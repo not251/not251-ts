@@ -1,4 +1,4 @@
-import not251 from "../src/index.js";
+import not251 from "../src";
 
 describe("scale", () => {
   //C MAJOR
