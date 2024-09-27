@@ -19,8 +19,14 @@
     "dist/**/*",
     "./README.md"
   ],
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "music therory",
+    "music",
+    "harmony",
+    "chord",
+    "scale"
+  ],
+  "author": "not251",
   "license": "ISC",
   "description": "",
   "devDependencies": {
