@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "tsc --watch",
     "test": "jest",
-    "build": "rollup -c",
+    "build": "npm run build:es5 && npm run build:esm",
     "build:es5": "tsc --project tsconfig.es5.json",
     "build:esm": "tsc --project tsconfig.json",
     "build:all": "npm run build:es5 && npm run build:esm",
