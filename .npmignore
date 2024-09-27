@@ -1,7 +1,4 @@
 .git
-src
-tsconfig.json
-tsconfig.es5.json
+.gitignore
 rollup.config.js
 jest.config.js
-.gitignore
