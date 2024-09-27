@@ -1,4 +1,4 @@
-import * as PV from "./PositionVector";
+import positionVector from "./positionVector";
 
 export function quantize(note: number, scale: number[], left: boolean = true) {
   let lower = -1;
@@ -19,20 +19,20 @@ export function quantize(note: number, scale: number[], left: boolean = true) {
 }
 
 export function transpose(
-  inputScale: PV.PositionVector,
-  outputScale: PV.PositionVector,
+  inputscale: positionVector,
+  outputscale: positionVector,
   inRoot: number,
   outRoot: number,
   notes: number[]
 ): { degrees: number[]; notes: number[] } {
-  let inScale = inputScale.data;
-  let outScale = outputScale.data;
-  let mod = inputScale.modulo;
+  let inscale = inputscale.data;
+  let outscale = outputscale.data;
+  let mod = inputscale.modulo;
 
   let outNotes: number[] = [];
   let outDegrees: number[] = [];
-  let inScaleSize = inScale.length;
-  let length = outScale.length;
+  let inscaleSize = inscale.length;
+  let length = outscale.length;
 
   for (let i = 0; i < notes.length; i++) {
     let note = notes[i];
@@ -41,25 +41,25 @@ export function transpose(
     let octave = Math.floor((note - inRoot) / mod);
 
     let left = true;
-    let index = inScale.indexOf(inPC);
+    let index = inscale.indexOf(inPC);
     if (index === -1) {
-      inPC = quantize(inPC, inScale, left);
-      index = inScale.indexOf(inPC);
+      inPC = quantize(inPC, inscale, left);
+      index = inscale.indexOf(inPC);
     }
 
     if (index !== -1) {
       let grado = index;
-      let outPC = outScale[grado % length];
+      let outPC = outscale[grado % length];
       let outNote = outPC + outRoot + octave * mod;
 
       if (outNotes.length > 0 && outNotes[outNotes.length - 1] === outNote) {
         if (i > 0 && notes[i] !== notes[i - 1]) {
           left = !left;
-          inPC = quantize((note - inRoot) % mod, inScale, left);
-          index = inScale.indexOf(inPC);
+          inPC = quantize((note - inRoot) % mod, inscale, left);
+          index = inscale.indexOf(inPC);
           if (index !== -1) {
             grado = index;
-            outPC = outScale[grado % length];
+            outPC = outscale[grado % length];
             outNote = outPC + outRoot + octave * mod;
           }
         }

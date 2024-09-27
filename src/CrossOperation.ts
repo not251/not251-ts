@@ -1,7 +1,7 @@
-import * as PV from "./PositionVector";
-import * as IV from "./IntervalVector";
+import positionVector from "./positionVector";
+import intervalVector from "./intervalVector";
 
-export function toPositions(s: IV.IntervalVector): PV.PositionVector {
+export function toPositions(s: intervalVector): positionVector {
   let n = s.data.length;
   let out = new Array(n);
   let sum = s.offset;
@@ -10,10 +10,10 @@ export function toPositions(s: IV.IntervalVector): PV.PositionVector {
     sum += s.data[i];
   }
   sum -= s.offset;
-  return new PV.PositionVector(out, s.modulo, sum);
+  return new positionVector(out, s.modulo, sum);
 }
 
-export function toIntervals(s: PV.PositionVector): IV.IntervalVector {
+export function toIntervals(s: positionVector): intervalVector {
   let out: number[] = [];
   let n = s.data.length;
 
@@ -22,10 +22,10 @@ export function toIntervals(s: PV.PositionVector): IV.IntervalVector {
     out.push(interval);
   }
 
-  return new IV.IntervalVector(out, s.modulo, s.data[0]);
+  return new intervalVector(out, s.modulo, s.data[0]);
 }
 
-export function selectFromInterval(s: PV.PositionVector, j: IV.IntervalVector) {
+export function selectFromInterval(s: positionVector, j: intervalVector) {
   let v: number[] = [];
   let sum = j.offset;
 
@@ -34,7 +34,7 @@ export function selectFromInterval(s: PV.PositionVector, j: IV.IntervalVector) {
     sum += j.data[i];
   }
 
-  let out = new PV.PositionVector(v, s.modulo, s.span);
+  let out = new positionVector(v, s.modulo, s.span);
   out.spanUpdate();
 
   return out;

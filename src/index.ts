@@ -1,21 +1,28 @@
-import * as IV from "./IntervalVector";
-import * as PV from "./PositionVector";
-import * as Scale from "./Scale";
-import * as Chord from "./Chord";
-import * as Auto from "./Auto";
-import * as Quantize from "./Quantize";
-import * as CrossOperation from "./CrossOperation";
-import * as Distances from "./Distances";
-import * as Utility from "./Utility";
+import intervalVector from "./intervalVector";
+import positionVector from "./positionVector";
+import scale from "./scale";
+import { chordFromInterval, chordFromPosition } from "./chord";
+import { autoMode, autoVoicing } from "./auto";
+import { quantize, transpose } from "./quantize";
+import { selectFromInterval, toIntervals, toPositions } from "./crossOperation";
+import * as distances from "./distances";
+import * as utility from "./utility";
 
-export {
-  IV,
-  PV,
-  Scale,
-  Chord,
-  Auto,
-  Quantize,
-  CrossOperation,
-  Distances,
-  Utility,
+const not251 = {
+  autoMode,
+  autoVoicing,
+  chordFromInterval,
+  chordFromPosition,
+  distances,
+  utility,
+  scale,
+  quantize,
+  transpose,
+  selectFromInterval,
+  toIntervals,
+  toPositions,
+  intervalVector,
+  positionVector,
 };
+
+export default not251;

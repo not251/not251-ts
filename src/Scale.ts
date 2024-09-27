@@ -1,9 +1,9 @@
-import * as PV from "./PositionVector";
-import * as IV from "./IntervalVector";
-import * as CO from "./CrossOperation";
+import positionVector from "./positionVector";
+import intervalVector from "./intervalVector";
+import { toPositions } from "./crossOperation";
 
-export function scale(
-  intervalli: IV.IntervalVector,
+export default function scale(
+  intervalli: intervalVector,
   root: number = 0,
   modo: number = 0,
   grado: number = 0,
@@ -11,12 +11,12 @@ export function scale(
   isMirror: boolean = false,
   mirrorPos: number = 0,
   mirrorLeft: boolean = false
-): PV.PositionVector {
+): positionVector {
   intervalli.offset = root;
-  let out: IV.IntervalVector = intervalli.rotate(modo);
+  let out: intervalVector = intervalli.rotate(modo);
   if (isInvert) out = out.invert();
   if (isMirror) out = out.singleMirror(mirrorPos, mirrorLeft);
-  let outPos: PV.PositionVector = CO.toPositions(out);
+  let outPos: positionVector = toPositions(out);
   outPos.spanUpdate();
   outPos.rototranslate(grado);
   return outPos;

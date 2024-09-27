@@ -1,20 +1,25 @@
-import * as PV from "./PositionVector";
-import * as IV from "./IntervalVector";
-import * as Distances from "./Distances";
-import * as CO from "./CrossOperation";
+import positionVector from "./positionVector";
+import intervalVector from "./intervalVector";
+import {
+  euclideanDistanceMap,
+  minRotation,
+  sortByDistance,
+  optionMatrix,
+} from "./distances";
+import { toIntervals, toPositions } from "./crossOperation";
 
 export function autoVoicing(
-  reference: PV.PositionVector,
-  target: PV.PositionVector
-): { pv: PV.PositionVector; inversion: number } {
+  reference: positionVector,
+  target: positionVector
+): { pv: positionVector; inversion: number } {
   reference.spanUpdate();
   target.spanUpdate();
 
-  let center = Distances.minRotation(reference, target);
+  let center = minRotation(reference, target);
 
   let options = target.options(center);
 
-  let matrix: Distances.OptionMatrix = [];
+  let matrix: optionMatrix = [];
   for (let i = 0; i < options.length; ++i) {
     matrix.push({
       rotation: center - target.data.length + i,
@@ -22,35 +27,35 @@ export function autoVoicing(
     });
   }
 
-  let distances = Distances.euclideanDistanceMap(matrix, reference.data);
-  let sortedDistances = Distances.sortByDistance(distances);
+  let distances_map = euclideanDistanceMap(matrix, reference.data);
+  let sorteddistances = sortByDistance(distances_map);
 
-  let r = sortedDistances[0].rotation;
-  let firstElement = sortedDistances[0].data;
+  let r = sorteddistances[0].rotation;
+  let firstElement = sorteddistances[0].data;
 
-  let pv = new PV.PositionVector(firstElement, target.modulo, target.span);
+  let pv = new positionVector(firstElement, target.modulo, target.span);
 
   return { pv: pv, inversion: r };
 }
 
-export type ModeMapElement = {
+export type modeMapElement = {
   rotation: number;
-  data: PV.PositionVector;
+  data: positionVector;
 };
 
-export type ModeMap = ModeMapElement[];
+export type modeMap = modeMapElement[];
 
-export function autoModeGO(scale: IV.IntervalVector): ModeMap {
-  let out: ModeMap = [];
+export function autoModeGO(scale: intervalVector): modeMap {
+  let out: modeMap = [];
   let max = scale.data.length;
 
   for (let r = 0; r < max; r++) {
-    let option: ModeMapElement = {
+    let option: modeMapElement = {
       rotation: 0,
-      data: new PV.PositionVector([], 1, 1),
+      data: new positionVector([], 1, 1),
     };
     let rotated = scale.rotate(r, max, false);
-    option.data = CO.toPositions(rotated);
+    option.data = toPositions(rotated);
     option.rotation = r;
     out.push(option);
   }
@@ -59,8 +64,8 @@ export function autoModeGO(scale: IV.IntervalVector): ModeMap {
 }
 
 export function autoModeOptions(
-  modes: ModeMap,
-  notes: PV.PositionVector
+  modes: modeMap,
+  notes: positionVector
 ): {
   rotation: number;
   data: number[];
@@ -100,9 +105,9 @@ export function autoModeOptions(
 }
 
 export function autoMode(
-  scaleIntervals: IV.IntervalVector,
-  notes: PV.PositionVector
-): { rotation: number; data: PV.PositionVector } {
+  scaleIntervals: intervalVector,
+  notes: positionVector
+): { rotation: number; data: positionVector } {
   let mod = scaleIntervals.modulo;
   let root = scaleIntervals.offset;
 
@@ -114,33 +119,30 @@ export function autoMode(
   let options = autoModeOptions(modes, notes);
 
   if (Object.keys(options).length === 0) {
-    let scala = CO.toPositions(scaleIntervals);
+    let scala = toPositions(scaleIntervals);
     //THROW ERROR
     return { data: scala, rotation: -666 };
   }
 
-  let scalePositions = CO.toPositions(scaleIntervals);
+  let scalePositions = toPositions(scaleIntervals);
 
-  let distanceMap = Distances.euclideanDistanceMap(
-    options,
-    scalePositions.data
-  );
+  let distanceMap = euclideanDistanceMap(options, scalePositions.data);
 
-  let sortedDistances = Distances.sortByDistance(distanceMap);
+  let sorteddistances = sortByDistance(distanceMap);
 
-  let r = sortedDistances[0].rotation;
-  let bestOption = sortedDistances[0].data;
+  let r = sorteddistances[0].rotation;
+  let bestOption = sorteddistances[0].data;
 
-  let p = new PV.PositionVector(
+  let p = new positionVector(
     bestOption,
     scalePositions.modulo,
     scalePositions.span
   );
-  let autoModeIntervals = CO.toIntervals(p);
+  let autoModeIntervals = toIntervals(p);
 
   autoModeIntervals.offset = root;
 
-  let mode = CO.toPositions(autoModeIntervals);
+  let mode = toPositions(autoModeIntervals);
 
   return {
     data: mode,

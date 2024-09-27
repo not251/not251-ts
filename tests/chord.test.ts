@@ -1,16 +1,17 @@
-import * as MyIV from "../src/IntervalVector";
-import * as MyPV from "../src/PositionVector";
-import * as MyScale from "../src/Scale";
-import * as MyChord from "../src/Chord";
+import not251 from "../src/index.js";
 
-describe("Chord", () => {
+describe("chord", () => {
   //C Major from intervals and positions
   it("should create a C Major chord", () => {
-    let chordIntervals = new MyIV.IntervalVector([2], 12, 0);
-    let chordPositions = new MyPV.PositionVector([0, 2, 4], 12, 12);
-    let intervalVector = new MyIV.IntervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0);
-    let scale = MyScale.scale(intervalVector, 0, 0, 0, false, false, 0);
-    let chord1 = MyChord.chordFromInterval(
+    let chordIntervals = new not251.intervalVector([2], 12, 0);
+    let chordPositions = new not251.positionVector([0, 2, 4], 12, 12);
+    let intervalVector = new not251.intervalVector(
+      [2, 2, 1, 2, 2, 2, 1],
+      12,
+      0
+    );
+    let scale = not251.scale(intervalVector, 0, 0, 0, false, false, 0);
+    let chord1 = not251.chordFromInterval(
       scale,
       0,
       chordIntervals,
@@ -24,7 +25,7 @@ describe("Chord", () => {
       0,
       0
     );
-    let chord2 = MyChord.chordFromPosition(
+    let chord2 = not251.chordFromPosition(
       scale,
       0,
       chordPositions,

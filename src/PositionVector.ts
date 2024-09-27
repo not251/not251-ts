@@ -1,7 +1,7 @@
-import * as utility from "./Utility";
+import { modulo } from "./utility";
 
 //absolute
-export class PositionVector {
+export default class positionVector {
   data: number[];
   modulo: number;
   span: number;
@@ -16,11 +16,10 @@ export class PositionVector {
     let n = this.data.length;
     let out = 0;
     if (i >= 0) {
-      out = this.data[utility.modulo(i, n)] + Math.abs(this.span) * ~~(i / n);
+      out = this.data[modulo(i, n)] + Math.abs(this.span) * ~~(i / n);
     } else {
       out =
-        this.data[utility.modulo(i, n)] +
-        Math.abs(this.span) * (~~((i + 1) / n) - 1);
+        this.data[modulo(i, n)] + Math.abs(this.span) * (~~((i + 1) / n) - 1);
     }
     return out;
   }
@@ -29,14 +28,14 @@ export class PositionVector {
     start: number,
     n: number = this.data.length,
     autoupdate: boolean = true
-  ): PositionVector {
+  ): positionVector {
     let out = new Array(n);
     for (let i = 0; i < n; i++) {
       out[i] = this.element(start + i);
     }
     if (autoupdate) this.data = out;
 
-    return new PositionVector(out, this.modulo, this.span);
+    return new positionVector(out, this.modulo, this.span);
   }
 
   spanUpdate(): void {
@@ -62,20 +61,20 @@ export class PositionVector {
     this.span = span;
   }
 
-  invert(autoupdate: boolean = true): PositionVector {
+  invert(autoupdate: boolean = true): positionVector {
     let out = this.data.slice();
     for (let i = 0; i < out.length; i++) {
       out[i] *= -1;
     }
     if (autoupdate) this.data = out;
-    return new PositionVector(out, this.modulo, this.span);
+    return new positionVector(out, this.modulo, this.span);
   }
 
   negative(
     position: number = 10,
     standard: boolean = true,
     autoupdate: boolean = true
-  ): PositionVector {
+  ): positionVector {
     let out = this.data.slice();
     let pos = position;
     if (standard) {
@@ -104,7 +103,7 @@ export class PositionVector {
       return a - b;
     });
 
-    let outV: PositionVector = new PositionVector(out, this.modulo, this.span);
+    let outV: positionVector = new positionVector(out, this.modulo, this.span);
 
     outV.rototranslate(-1);
 
@@ -112,8 +111,8 @@ export class PositionVector {
     return outV;
   }
 
-  options(center: number): PositionVector[] {
-    let map: PositionVector[] = [];
+  options(center: number): positionVector[] {
+    let map: positionVector[] = [];
     let n = this.data.length;
 
     for (let i = center - n; i < center + n; i++) {
@@ -123,12 +122,12 @@ export class PositionVector {
     return map;
   }
 
-  selectFromPosition(p: PositionVector) {
+  selectFromPosition(p: positionVector) {
     let v: number[] = [];
     for (let i = 0; i < p.data.length; i++) {
       v.push(this.element(p.data[i]));
     }
-    let out = new PositionVector(v, this.modulo, this.span);
+    let out = new positionVector(v, this.modulo, this.span);
     out.spanUpdate();
     return out;
   }

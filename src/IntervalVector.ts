@@ -1,7 +1,7 @@
-import * as utility from "./Utility";
+import { modulo } from "./utility";
 
 //relative
-export class IntervalVector {
+export default class intervalVector {
   data: number[];
   modulo: number;
   offset: number;
@@ -13,40 +13,40 @@ export class IntervalVector {
   }
 
   element(i: number): number {
-    return this.data[utility.modulo(i, this.data.length)];
+    return this.data[modulo(i, this.data.length)];
   }
 
   rotate(
     r: number,
     n: number = this.data.length,
     autoupdate: boolean = true
-  ): IntervalVector {
+  ): intervalVector {
     let out = new Array(n);
     for (let i = 0; i < n; i++) {
       out[i] = this.element(r + i);
     }
     if (autoupdate) this.data = out;
-    return new IntervalVector(out, this.modulo, this.offset);
+    return new intervalVector(out, this.modulo, this.offset);
   }
 
-  invert(autoupdate: boolean = true): IntervalVector {
+  invert(autoupdate: boolean = true): intervalVector {
     let n = this.data.length;
     let out = new Array(n);
     for (let i = 0; i < n; i++) {
       out[i] = this.data[n - 1 - i];
     }
     if (autoupdate) this.data = out;
-    return new IntervalVector(out, this.modulo, this.offset);
+    return new intervalVector(out, this.modulo, this.offset);
   }
 
   singleMirror(
     position: number,
     left: boolean,
     autoupdate: boolean = true
-  ): IntervalVector {
+  ): intervalVector {
     let out = this.data; // Copy the array
     let n = out.length;
-    position = utility.modulo(position, n);
+    position = modulo(position, n);
 
     if (left) {
       for (let i = 0; i < position / 2; ++i) {
@@ -64,6 +64,6 @@ export class IntervalVector {
     }
     if (autoupdate) this.data = out;
 
-    return new IntervalVector(out, this.modulo, this.offset);
+    return new intervalVector(out, this.modulo, this.offset);
   }
 }
