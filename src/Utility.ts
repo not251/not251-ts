@@ -19,7 +19,7 @@ export function degreeDetect(note: number, scale: number[], mod: number) {
 
 export function degreeDetectVec(notes: number[], scale: number[], mod: number) {
   // Inizializza un array per memorizzare i gradi rilevati
-  let degrees = [];
+  let degrees: number[] = [];
 
   // Itera su ogni nota nel vettore
   for (let i = 0; i < notes.length; i++) {

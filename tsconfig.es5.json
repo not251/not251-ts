@@ -1,7 +1,14 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "ES5",
-    "outDir": "./dist/es5"
-  }
+    "target": "ES5", // Target ES5 for older browsers
+    "module": "CommonJS", // CommonJS module system (compatible with older setups)
+    "outDir": "./dist/es5", // Output directory for ES5 build
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

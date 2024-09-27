@@ -124,7 +124,7 @@ export class PositionVector {
   }
 
   selectFromPosition(p: PositionVector) {
-    let v = [];
+    let v: number[] = [];
     for (let i = 0; i < p.data.length; i++) {
       v.push(this.element(p.data[i]));
     }

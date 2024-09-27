@@ -14,7 +14,7 @@ export function toPositions(s: IV.IntervalVector): PV.PositionVector {
 }
 
 export function toIntervals(s: PV.PositionVector): IV.IntervalVector {
-  let out = [];
+  let out: number[] = [];
   let n = s.data.length;
 
   for (let i = 0; i < n; i++) {
@@ -26,7 +26,7 @@ export function toIntervals(s: PV.PositionVector): IV.IntervalVector {
 }
 
 export function selectFromInterval(s: PV.PositionVector, j: IV.IntervalVector) {
-  let v = [];
+  let v: number[] = [];
   let sum = j.offset;
 
   for (let i = 0; i < j.data.length; i++) {
