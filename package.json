@@ -17,6 +17,8 @@
   },
   "files": [
     "dist/**/*",
+    "tsconfig.json",
+    "tsconfig.es5.json",
     "src",
     "./README.md"
   ],
