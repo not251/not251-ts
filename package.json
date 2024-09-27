@@ -11,9 +11,8 @@
     "type-check": "tsc --noEmit"
   },
   "files": [
-    "dist/cjs",
-    "dist/esm",
-    "dist/types"
+    "dist",
+    "README.md"
   ],
   "keywords": [
     "music therory",
