@@ -8,7 +8,7 @@ import { selectFromInterval, toIntervals, toPositions } from "./crossOperation";
 import * as distances from "./distances";
 import * as utility from "./utility";
 
-const not251 = {
+export {
   autoMode,
   autoVoicing,
   chordFromInterval,
@@ -24,5 +24,3 @@ const not251 = {
   intervalVector,
   positionVector,
 };
-
-export default not251;

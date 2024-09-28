@@ -26,7 +26,7 @@ module.exports = [
       }),
       resolve(),
       commonjs(),
-      terser(),
+      //terser(),
     ],
   },
 ];
