@@ -1,4 +1,4 @@
-import not251 from "../src";
+import * as not251 from "../src";
 
 describe("scale", () => {
   //C MAJOR
