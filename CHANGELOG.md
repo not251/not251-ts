@@ -1,5 +1,11 @@
 # not251-ts
 
+## 1.0.2
+
+### Patch Changes
+
+- a9a3037: Added autoRoot
+
 ## 1.0.1
 
 ### Patch Changes
