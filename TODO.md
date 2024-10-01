@@ -9,6 +9,7 @@
 - [ ] Indian: change variable names
 - [ ] Move phraseLength to "rhythm" file
 - [ ] AutoRoot, AutoModo: return "error" or "undefined" instead of -666
+- [ ] AutoMode: add "totalMode" to update mode in a scales
 
 ## Automation
 

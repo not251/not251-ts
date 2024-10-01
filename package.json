@@ -5,7 +5,6 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "tsc --watch",
     "lint": "tsc",
     "test": "jest",
     "build": "rollup -c rollup.config.js",
@@ -17,8 +16,8 @@
     "README.md"
   ],
   "keywords": [
-    "music therory",
     "music",
+    "music theory",
     "harmony",
     "chord",
     "scale"
