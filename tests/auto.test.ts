@@ -215,3 +215,25 @@ describe("autogrado", () => {
     expect(result.result.data).toEqual([-1, 4, 7]);
   });
 });
+
+describe("autoroot", () => {
+  it("find closest root ", () => {
+    let result = not251.autoRoot(
+      new not251.positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12),
+      [66]
+    );
+
+    expect(result).toEqual(7);
+  });
+});
+
+describe("autoroot", () => {
+  it("find closest root ", () => {
+    let result = not251.autoRoot(
+      new not251.positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12),
+      [61, 66]
+    );
+
+    expect(result).toEqual(2);
+  });
+});
