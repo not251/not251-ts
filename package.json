@@ -6,8 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
+    "lint": "tsc",
     "test": "jest",
     "build": "rollup -c rollup.config.js",
+    "release": "pnpm run build && changeset publish",
     "type-check": "tsc --noEmit"
   },
   "files": [
@@ -22,9 +24,10 @@
     "scale"
   ],
   "author": "not251",
-  "license": "ISC",
+  "license": "MIT",
   "description": "",
   "devDependencies": {
+    "@changesets/cli": "^2.27.8",
     "@rollup/plugin-commonjs": "^28.0.0",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
