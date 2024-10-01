@@ -93,7 +93,10 @@ export function editDistance(v1: number[], v2: number[]): number {
   var dp = new Array(n + 1);
 
   for (var i = 0; i <= n; i++) {
-    dp[i] = new Array(m + 1).fill(0);
+    dp[i] = new Array(m + 1);
+    for (var j = 0; j <= m; j++) {
+      dp[i][j] = 0; // Manually setting each element to 0
+    }
   }
 
   for (var i = 0; i <= n; i++) {
