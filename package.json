@@ -1,5 +1,5 @@
 {
-  "name": "not251-ts",
+  "name": "@not251/not251",
   "version": "1.0.0",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
