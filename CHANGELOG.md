@@ -1,5 +1,11 @@
 # not251-ts
 
+## 1.0.3
+
+### Patch Changes
+
+- 3fc69fe: fixed es5 compatibility for editDistance function
+
 ## 1.0.2
 
 ### Patch Changes
