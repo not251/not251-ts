@@ -1,5 +1,11 @@
 # not251-ts
 
+## 1.0.4
+
+### Patch Changes
+
+- 1582c32: fix incompatibility with es5
+
 ## 1.0.3
 
 ### Patch Changes
