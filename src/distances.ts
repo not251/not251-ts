@@ -85,27 +85,27 @@ export function sortByDistance(distances: distanceMap): distanceMap {
   return out;
 }
 
-//check es5 compatibility
 //change variables names
 //da fare test
-
 export function editDistance(v1: number[], v2: number[]): number {
-  let n = v1.length;
-  let m = v2.length;
-  let dp: number[][] = Array.from({ length: n + 1 }, () =>
-    Array(m + 1).fill(0)
-  );
+  var n = v1.length;
+  var m = v2.length;
+  var dp = new Array(n + 1);
 
-  for (let i = 0; i <= n; ++i) {
+  for (var i = 0; i <= n; i++) {
+    dp[i] = new Array(m + 1).fill(0);
+  }
+
+  for (var i = 0; i <= n; i++) {
     dp[i][0] = i;
   }
 
-  for (let j = 0; j <= m; ++j) {
+  for (var j = 0; j <= m; j++) {
     dp[0][j] = j;
   }
 
-  for (let i = 1; i <= n; ++i) {
-    for (let j = 1; j <= m; ++j) {
+  for (var i = 1; i <= n; i++) {
+    for (var j = 1; j <= m; j++) {
       if (v1[i - 1] === v2[j - 1]) {
         dp[i][j] = dp[i - 1][j - 1];
       } else {
