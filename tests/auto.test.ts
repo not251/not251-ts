@@ -2,6 +2,7 @@ import * as not251 from "../src";
 
 describe("autoVoicing", () => {
   //First degree to fourth degree
+
   it("should autovoice the two chords", () => {
     let chordIntervals = new not251.intervalVector([2], 12, 0);
     let chordPositions = new not251.positionVector([0, 2, 4], 12, 12);
@@ -50,8 +51,59 @@ describe("autoVoicing", () => {
   });
 });
 
+it("should autovoice the same chord", () => {
+  let chordIntervals = new not251.intervalVector([2], 12, 0);
+  let chordPositions = new not251.positionVector([0, 2, 4], 12, 12);
+  let intervalVector = new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0);
+  let scale = not251.scale(intervalVector, 0, 0, 0, false, false, 0);
+  let chord1 = not251.chordFromInterval(
+    scale,
+    0,
+    chordIntervals,
+    3,
+    0,
+    3,
+    false,
+    false,
+    10,
+    false,
+    0,
+    0
+  );
+
+  let chord2 = not251.chordFromPosition(
+    scale,
+    0,
+    chordPositions,
+    3,
+    0,
+    3,
+    false,
+    false,
+    10,
+    false,
+    0,
+    0
+  );
+
+  let out = not251.autoVoicing(chord1, chord2);
+
+  expect(chord1.data).toEqual([0, 4, 7]);
+  expect(chord2.data).toEqual([0, 4, 7]);
+  expect(out.pv.data).toEqual([0, 4, 7]);
+  expect(out.inversion).toEqual(0);
+});
+
+it("should autovoice P2P two chord", () => {
+  let out = not251.autovoicingP2P(
+    new not251.positionVector([0, 4, 7], 12, 12),
+    new not251.positionVector([5, 9, 12, 16], 12, 24)
+  );
+
+  expect(out.data).toEqual([0, 4, 5, 9]);
+});
+
 describe("autoMode", () => {
-  //autoMode from one semitone out
   it("should rotate scale to mode 1", () => {
     let intervalVector = new not251.intervalVector(
       [2, 2, 1, 2, 2, 2, 1],
@@ -86,5 +138,80 @@ describe("quantize", () => {
 
     expect(out.degrees).toEqual([0, 1, 2]);
     expect(out.notes).toEqual([1, 3, 4]);
+  });
+});
+
+describe("autogrado", () => {
+  it("find closest degree ", () => {
+    let result = not251.autoGrado(
+      [
+        not251.scale(
+          new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
+          0,
+          0,
+          0,
+          false,
+          false,
+          0
+        ),
+      ],
+      1,
+      new not251.intervalVector([2, 2, 3], 7, 0),
+      new not251.positionVector([0, 4, 7], 12, 12)
+    );
+
+    expect(result.scale.data).toEqual([0, 2, 4, 5, 7, 9, 11]);
+    expect(result.grado).toEqual(-3);
+    expect(result.result.data).toEqual([-1, 2, 7]);
+  });
+});
+
+describe("autogrado", () => {
+  it("find closest degree ", () => {
+    let result = not251.autoGrado(
+      [
+        not251.scale(
+          new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
+          0,
+          0,
+          0,
+          false,
+          false,
+          0
+        ),
+      ],
+      3,
+      new not251.intervalVector([2, 2, 3], 7, 0),
+      new not251.positionVector([0, 4, 7], 12, 12)
+    );
+
+    expect(result.scale.data).toEqual([0, 2, 4, 5, 7, 9, 11]);
+    expect(result.grado).toEqual(3);
+    expect(result.result.data).toEqual([0, 5, 9]);
+  });
+});
+
+describe("autogrado", () => {
+  it("find closest degree ", () => {
+    let result = not251.autoGrado(
+      [
+        not251.scale(
+          new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
+          0,
+          0,
+          0,
+          false,
+          false,
+          0
+        ),
+      ],
+      6,
+      new not251.intervalVector([2, 2, 3], 7, 0),
+      new not251.positionVector([0, 4, 7], 12, 12)
+    );
+
+    expect(result.scale.data).toEqual([0, 2, 4, 5, 7, 9, 11]);
+    expect(result.grado).toEqual(2);
+    expect(result.result.data).toEqual([-1, 4, 7]);
   });
 });

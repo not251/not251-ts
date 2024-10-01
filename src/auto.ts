@@ -5,13 +5,16 @@ import {
   minRotation,
   sortByDistance,
   optionMatrix,
+  editDistance,
+  distanceMap,
 } from "./distances";
-import { toIntervals, toPositions } from "./crossOperation";
+import { toIntervals, toPositions, selectFromInterval } from "./crossOperation";
+import { findPC, scaleMap } from "./utility";
 
 export function autoVoicing(
   reference: positionVector,
   target: positionVector
-): { pv: positionVector; inversion: number } {
+): { pv: positionVector; inversion: number; distance: number } {
   reference.spanUpdate();
   target.spanUpdate();
 
@@ -32,10 +35,11 @@ export function autoVoicing(
 
   let r = sorteddistances[0].rotation;
   let firstElement = sorteddistances[0].data;
+  let distance = sorteddistances[0].distance;
 
   let pv = new positionVector(firstElement, target.modulo, target.span);
 
-  return { pv: pv, inversion: r };
+  return { pv: pv, inversion: r, distance: distance };
 }
 
 export type modeMapElement = {
@@ -148,4 +152,127 @@ export function autoMode(
     data: mode,
     rotation: r,
   };
+}
+
+//da fare test
+export function autoRoot(scale: positionVector, notes: number[]): number {
+  let result = scaleMap(scale.data, scale.modulo);
+  let foundMap = findPC(result, scale.modulo, notes);
+
+  if (Object.keys(foundMap).length === 0) {
+    return -666;
+  }
+
+  let minDistance = Number.MAX_VALUE;
+  let root = -1;
+
+  for (const key in foundMap) {
+    let value = foundMap[key];
+    let distance = editDistance(value, scale.data);
+    if (distance < minDistance) {
+      minDistance = distance;
+      root = parseInt(key);
+    }
+  }
+
+  return root;
+}
+
+//da fare test
+export function autovoicingP2P(
+  v1: positionVector,
+  v2: positionVector
+): positionVector {
+  let out = v2.data.slice();
+  let used = new Array(out.length).fill(false);
+  let mod = v2.modulo;
+
+  for (let i = 0; i < v1.data.length && i < out.length; ++i) {
+    let target = v1.data[i];
+    let closest_diff = Infinity;
+    let closest_index = i;
+
+    for (let j = i; j < out.length; ++j) {
+      if (!used[j]) {
+        let diff = Math.abs(((target % mod) - (out[j] % mod) + mod) % mod);
+        let abs_diff = Math.abs(target - out[j]);
+
+        if (
+          diff < closest_diff ||
+          (diff === closest_diff &&
+            abs_diff < Math.abs(target - out[closest_index]))
+        ) {
+          closest_diff = diff;
+          closest_index = j;
+        }
+      }
+    }
+
+    [out[i], out[closest_index]] = [out[closest_index], out[i]];
+    used[i] = true;
+
+    let octave_diff = target - out[i];
+    out[i] += Math.floor(octave_diff / mod) * mod;
+
+    if (Math.abs(target - (out[i] + mod)) < Math.abs(target - out[i])) {
+      out[i] += mod;
+    } else if (Math.abs(target - (out[i] - mod)) < Math.abs(target - out[i])) {
+      out[i] -= mod;
+    }
+  }
+
+  out.sort((a, b) => a - b);
+  let outPV = new positionVector(out, v1.modulo, v1.span);
+  outPV.spanUpdate();
+  return outPV;
+}
+
+export type autoGradoMapElement = {
+  scale: positionVector;
+  result: positionVector;
+  grado: number;
+  distance: number;
+};
+
+export type autoGradoMap = autoGradoMapElement[];
+
+export function autoGradoGO(
+  scalaMap: positionVector[],
+  grado: number,
+  voicing: intervalVector,
+  target: positionVector
+): autoGradoMap {
+  let voicingMap: autoGradoMap = [];
+
+  for (let j = 0; j < scalaMap.length; ++j) {
+    voicing.offset = grado;
+    for (let i = 0; i < voicing.data.length; ++i) {
+      let v = selectFromInterval(scalaMap[j], voicing);
+      let autovoiced = autoVoicing(target, v);
+
+      voicingMap.push({
+        scale: scalaMap[j],
+        result: autovoiced.pv,
+        grado: voicing.offset,
+        distance: autovoiced.distance,
+      });
+
+      voicing.offset -= voicing.data[i];
+    }
+  }
+
+  return voicingMap;
+}
+
+export function autoGrado(
+  scalaMap: positionVector[],
+  grado: number,
+  voicing: intervalVector,
+  target: positionVector
+): autoGradoMapElement {
+  let map = autoGradoGO(scalaMap, grado, voicing, target);
+
+  map = map.sort((a, b) => a.distance - b.distance);
+
+  return map[0];
 }

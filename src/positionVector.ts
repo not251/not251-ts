@@ -131,4 +131,38 @@ export default class positionVector {
     out.spanUpdate();
     return out;
   }
+
+  freeInvert(axis: number = 1): positionVector {
+    if (this.data.length === 0) {
+      return this; // Return empty vector if the data is empty
+    }
+
+    let out: number[] = new Array(this.data.length);
+
+    switch (axis) {
+      case 0: {
+        // First element
+        const axisValue = this.data[0];
+        for (let i = 0; i < this.data.length; i++) {
+          out[i] = 2 * axisValue - this.data[i];
+        }
+        break;
+      }
+      case 2: {
+        // Last element
+        const axisValue = this.data[this.data.length - 1];
+        for (let i = 0; i < this.data.length; i++) {
+          out[i] = 2 * axisValue - this.data[i];
+        }
+        break;
+      }
+      case 1:
+      default:
+        // Median case: reverse the array
+        out = this.data.slice().reverse();
+        break;
+    }
+
+    return new positionVector(out, this.modulo, this.span);
+  }
 }

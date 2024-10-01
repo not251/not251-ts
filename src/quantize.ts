@@ -21,8 +21,8 @@ export function quantize(note: number, scale: number[], left: boolean = true) {
 export function transpose(
   inputscale: positionVector,
   outputscale: positionVector,
-  inRoot: number,
-  outRoot: number,
+  inRoot: number = 0,
+  outRoot: number = 0,
   notes: number[]
 ): { degrees: number[]; notes: number[] } {
   let inscale = inputscale.data;
@@ -31,7 +31,6 @@ export function transpose(
 
   let outNotes: number[] = [];
   let outDegrees: number[] = [];
-  let inscaleSize = inscale.length;
   let length = outscale.length;
 
   for (let i = 0; i < notes.length; i++) {
