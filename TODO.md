@@ -14,3 +14,4 @@
 ## Automation
 
 - [ ] Tests: make sure tests runs also on build, not only on source
+- [ ] Docs: enable docs workflow after enabling github pages (repo must be public)
