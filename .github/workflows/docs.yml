@@ -1,0 +1,40 @@
+name: Docs
+on:
+  workflow_run:
+    workflows: [Publish]
+    branches: [main]
+    types: [completed]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  docs:
+    permissions:
+      id-token: "write"
+      pages: "write"
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+
+      - id: "build"
+        name: "Build documentation"
+        run: pnpm run docs
+
+      - id: "upload-documentation"
+        name: "Upload Pages artifact"
+        uses: "actions/upload-pages-artifact@v2"
+        with:
+          path: "docs/"
+
+      - id: "deployment"
+        name: "Deploy documentation to GitHub Pages"
+        uses: "actions/deploy-pages@v2
