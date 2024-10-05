@@ -95,7 +95,7 @@ export function editDistance(v1: number[], v2: number[]): number {
   for (var i = 0; i <= n; i++) {
     dp[i] = new Array(m + 1);
     for (var j = 0; j <= m; j++) {
-      dp[i][j] = 0; // Manually setting each element to 0
+      dp[i][j] = 0;
     }
   }
 
@@ -118,4 +118,187 @@ export function editDistance(v1: number[], v2: number[]): number {
   }
 
   return dp[n][m];
+}
+
+
+// other distances
+function normalize(input) {
+    var sum = input.reduce(function(acc, val) {
+        return acc + val;
+    }, 0);
+    if (sum === 0) {
+        throw new Error("Sum of vector elements is zero, cannot normalize");
+    }
+
+    return input.map(function(val) {
+        return val / sum;
+    });
+}
+
+function computeCDF(pdf) {
+    var cdf = [];
+    pdf.reduce(function(acc, val) {
+        cdf.push(acc + val);
+        return acc + val;
+    }, 0);
+    return cdf;
+}
+
+function earthMoversDistance(v1, v2) {
+    if (v1.length !== v2.length) {
+        throw new Error("Input vectors must have the same size");
+    }
+
+    var f1 = normalize(v1);
+    var f2 = normalize(v2);
+    var cdfF1 = computeCDF(f1);
+    var cdfF2 = computeCDF(f2);
+
+    return cdfF1.reduce(function(emd, val, i) {
+        return emd + Math.abs(val - cdfF2[i]);
+    }, 0);
+}
+
+function kolmogorovDistance(v1, v2) {
+    if (v1.length !== v2.length) {
+        throw new Error("Input vectors must have the same size");
+    }
+
+    var f1 = normalize(v1);
+    var f2 = normalize(v2);
+
+    return f1.reduce(function(kolDist, val, i) {
+        return kolDist + Math.abs(val - f2[i]);
+    }, 0);
+}
+
+function mahalanobisDistance(v1, v2) {
+    if (v1.length !== v2.length) {
+        throw new Error("Input vectors must have the same size");
+    }
+
+    var f1 = normalize(v1);
+    var f2 = normalize(v2);
+
+    var sum = f1.reduce(function(acc, val, i) {
+        return acc + Math.pow(val - f2[i], 2);
+    }, 0);
+
+    return Math.sqrt(sum / f1.length);
+}
+
+function kullbackLeiblerLDivergence(v1, v2) {
+    if (v1.length !== v2.length) {
+        throw new Error("Input vectors must have the same size");
+    }
+
+    var f1 = normalize(v1);
+    var f2 = normalize(v2);
+
+    var klDiv = 0;
+    for (var i = 0; i < f1.length; i++) {
+        if (f1[i] > 0 && f2[i] > 0) {
+            klDiv += f1[i] * Math.log(f1[i] / f2[i]);
+        }
+    }
+
+    return 1 - klDiv;
+}
+
+function levenshteinDistance(v1, v2) {
+    if (v1.length !== v2.length) {
+        throw new Error("Vectors must be of the same length");
+    }
+
+    return v1.reduce(function(changes, val, i) {
+        return changes + (val !== v2[i] ? 1 : 0);
+    }, 0);
+}
+
+function hammingDistance(v1, v2) {
+    if (v1.length !== v2.length) {
+        throw new Error("Vectors must have the same size");
+    }
+
+    return v1.reduce(function(distance, val, i) {
+        return distance + (val !== v2[i] ? 1 : 0);
+    }, 0);
+}
+
+function cosineSimilarity(v1, v2) {
+    if (v1.length !== v2.length) {
+        throw new Error("Input vectors must have the same size");
+    }
+
+    var dotProduct = v1.reduce(function(acc, val, i) {
+        return acc + val * v2[i];
+    }, 0);
+    var f1 = Math.sqrt(v1.reduce(function(acc, val) {
+        return acc + val * val;
+    }, 0));
+    var f2 = Math.sqrt(v2.reduce(function(acc, val) {
+        return acc + val * val;
+    }, 0));
+
+    return 1 - dotProduct / (f1 * f2);
+}
+
+function totalVariationDistance(v1, v2) {
+    var pA = normalize(v1);
+    var pB = normalize(v2);
+
+    return pA.reduce(function(sum, val, i) {
+        return sum + Math.abs(val - pB[i]);
+    }, 0) / 2;
+}
+
+function jaccardIndex(v1, v2) {
+    var intersection = 0;
+    var union_ = 0;
+
+    for (var i = 0; i < v1.length; i++) {
+        if (v1[i] === 1 || v2[i] === 1) {
+            union_++;
+            if (v1[i] === 1 && v2[i] === 1) {
+                intersection++;
+            }
+        }
+    }
+
+    return 1 - intersection / union_;
+}
+
+function jensenShannonDivergence(v1, v2) {
+    var f1 = normalize(v1);
+    var f2 = normalize(v2);
+    var m = f1.map(function(val, i) {
+        return (val + f2[i]) / 2;
+    });
+
+    var klDivergence = function(p, q) {
+        return p.reduce(function(divergence, val, i) {
+            if (val > 0) {
+                return divergence + val * Math.log2(val / q[i]);
+            }
+            return divergence;
+        }, 0);
+    };
+
+    return (klDivergence(f1, m) + klDivergence(f2, m)) / 2;
+}
+
+function hellingerDistance(v1, v2) {
+    var f1 = normalize(v1);
+    var f2 = normalize(v2);
+
+    var sum = f1.reduce(function(acc, val, i) {
+        return acc + Math.pow(Math.sqrt(val) - Math.sqrt(f2[i]), 2);
+    }, 0);
+
+    return Math.sqrt(sum) / Math.sqrt(2);
+}
+
+    let sum = f1.reduce((acc, val, i) => acc + Math.pow(Math.sqrt(val) - Math.sqrt(f2[i]), 2), 0);
+
+    return Math.sqrt(sum) / Math.sqrt(2);
 }
