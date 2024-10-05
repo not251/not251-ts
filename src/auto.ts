@@ -276,3 +276,49 @@ export function autoGrado(
 
   return map[0];
 }
+
+class autoVoicingCouple {
+  private a: positionVector;
+  private b: positionVector;
+
+  constructor() {
+      this.a = new positionVector([], 1, 1);
+      this.b = new positionVector([], 1, 1);
+  }
+
+  update(input: positionVector): void {
+      this.a = this.b; 
+      this.b = new positionVector([...input.data], input.modulo, input.span);
+  }
+
+  get(): { first: positionVector; second: positionVector } {
+      return {
+          first: this.a,
+          second: this.b
+      };
+  }
+}
+
+function autoVoicingUpdate(input: positionVector, isAuto: boolean): [positionVector, number, number] {
+  let coppia = new autoVoicingCouple();
+  coppia.update(input);
+  let vectors = coppia.get();
+  let v1: positionVector = vectors.first;
+  let v2: positionVector = vectors.second;
+
+  if (v1.data.length === 0) { 
+      v1 = v2; 
+  } 
+  
+  let autoVoicingInfo: {pv: positionVector, inversion: number, distance: number} = autoVoicing(v1, v2);
+  let voiced: positionVector = autoVoicingInfo.pv;
+  let position: number = autoVoicingInfo.inversion;
+  let distance: number = autoVoicingInfo.distance;
+
+  if (isAuto) {
+      coppia.update(voiced);
+      return [voiced, position, distance];
+  } else {
+      return [v2, 0, 0];
+  }
+}
