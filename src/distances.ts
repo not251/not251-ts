@@ -122,183 +122,179 @@ export function editDistance(v1: number[], v2: number[]): number {
 
 
 // other distances
-function normalize(input) {
-    var sum = input.reduce(function(acc, val) {
+function normalize(inArr: number[]): number[] {
+    let sum = inArr.reduce(function (acc, val) {
         return acc + val;
     }, 0);
-    if (sum === 0) {
-        throw new Error("Sum of vector elements is zero, cannot normalize");
-    }
+    if (sum === 0) throw new Error("Sum of vector elements is zero, cannot normalize");
 
-    return input.map(function(val) {
+    let outArr = inArr.map(function (val) {
         return val / sum;
     });
+    return outArr;
 }
 
-function computeCDF(pdf) {
-    var cdf = [];
-    pdf.reduce(function(acc, val) {
-        cdf.push(acc + val);
-        return acc + val;
-    }, 0);
+function computeCDF(pdf: number[]): number[] {
+    let cdf = [];
+    for (let i = 0; i < pdf.length; i++) {
+        cdf[i] = (cdf[i - 1] || 0) + pdf[i];
+    }
     return cdf;
 }
 
-function earthMoversDistance(v1, v2) {
-    if (v1.length !== v2.length) {
-        throw new Error("Input vectors must have the same size");
+function earthMoversDistance(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) return -1;
+
+    let f1 = normalize(v1);
+    let f2 = normalize(v2);
+    let cdfF1 = computeCDF(f1);
+    let cdfF2 = computeCDF(f2);
+
+    let emd = 0;
+    for (let i = 0; i < cdfF1.length; i++) {
+        emd += Math.abs(cdfF1[i] - cdfF2[i]);
     }
-
-    var f1 = normalize(v1);
-    var f2 = normalize(v2);
-    var cdfF1 = computeCDF(f1);
-    var cdfF2 = computeCDF(f2);
-
-    return cdfF1.reduce(function(emd, val, i) {
-        return emd + Math.abs(val - cdfF2[i]);
-    }, 0);
+    return emd;
 }
 
-function kolmogorovDistance(v1, v2) {
-    if (v1.length !== v2.length) {
-        throw new Error("Input vectors must have the same size");
+function kolmogorovDistance(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) throw new Error("Input vectors must have the same size");
+
+    let f1 = normalize(v1);
+    let f2 = normalize(v2);
+
+    let kolDist = 0;
+    for (let i = 0; i < f1.length; i++) {
+        kolDist += Math.abs(f1[i] - f2[i]);
     }
-
-    var f1 = normalize(v1);
-    var f2 = normalize(v2);
-
-    return f1.reduce(function(kolDist, val, i) {
-        return kolDist + Math.abs(val - f2[i]);
-    }, 0);
+    return kolDist;
 }
 
-function mahalanobisDistance(v1, v2) {
-    if (v1.length !== v2.length) {
-        throw new Error("Input vectors must have the same size");
+function mahalanobisDistance(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) throw new Error("Input vectors must have the same size");
+
+    let f1 = normalize(v1);
+    let f2 = normalize(v2);
+
+    let sum = 0;
+    for (let i = 0; i < f1.length; i++) {
+        let diff = f1[i] - f2[i];
+        sum += diff * diff;
     }
-
-    var f1 = normalize(v1);
-    var f2 = normalize(v2);
-
-    var sum = f1.reduce(function(acc, val, i) {
-        return acc + Math.pow(val - f2[i], 2);
-    }, 0);
-
     return Math.sqrt(sum / f1.length);
 }
 
-function kullbackLeiblerLDivergence(v1, v2) {
-    if (v1.length !== v2.length) {
-        throw new Error("Input vectors must have the same size");
-    }
+function kullbackLeiblerDivergence(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) throw new Error("Input vectors must have the same size");
 
-    var f1 = normalize(v1);
-    var f2 = normalize(v2);
+    let f1 = normalize(v1);
+    let f2 = normalize(v2);
 
-    var klDiv = 0;
-    for (var i = 0; i < f1.length; i++) {
+    let klDiv = 0;
+    for (let i = 0; i < f1.length; i++) {
         if (f1[i] > 0 && f2[i] > 0) {
             klDiv += f1[i] * Math.log(f1[i] / f2[i]);
         }
     }
-
     return 1 - klDiv;
 }
 
-function levenshteinDistance(v1, v2) {
-    if (v1.length !== v2.length) {
-        throw new Error("Vectors must be of the same length");
+function levenshteinDistance(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) throw new Error("Vectors must be of the same length");
+
+    let changes = 0;
+    for (let i = 0; i < v2.length; i++) {
+        if (v1[i] !== v2[i]) {
+            changes++;
+        }
+    }
+    return changes;
+}
+
+function hammingDistance(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) throw new Error("Vectors must have the same size");
+
+    let distance = 0;
+    for (let i = 0; i < v1.length; i++) {
+        if (v1[i] !== v2[i]) {
+            distance++;
+        }
+    }
+    return distance;
+}
+
+function cosineSimilarity(v1: number[], v2: number[]): number {
+    if (v1.length !== v2.length) throw new Error("Vectors must have the same size");
+
+    let dotProduct = 0;
+    let magV1 = 0;
+    let magV2 = 0;
+
+    for (let i = 0; i < v1.length; i++) {
+        dotProduct += v1[i] * v2[i];
+        magV1 += v1[i] * v1[i];
+        magV2 += v2[i] * v2[i];
     }
 
-    return v1.reduce(function(changes, val, i) {
-        return changes + (val !== v2[i] ? 1 : 0);
-    }, 0);
+    return 1 - (dotProduct / (Math.sqrt(magV1) * Math.sqrt(magV2)));
 }
 
-function hammingDistance(v1, v2) {
-    if (v1.length !== v2.length) {
-        throw new Error("Vectors must have the same size");
+function totalVariationDistance(v1: number[], v2: number[]): number {
+    let pA = normalize(v1);
+    let pB = normalize(v2);
+
+    let sum = 0;
+    for (let i = 0; i < pA.length; i++) {
+        sum += Math.abs(pA[i] - pB[i]);
     }
 
-    return v1.reduce(function(distance, val, i) {
-        return distance + (val !== v2[i] ? 1 : 0);
-    }, 0);
+    return sum / 2;
 }
 
-function cosineSimilarity(v1, v2) {
-    if (v1.length !== v2.length) {
-        throw new Error("Input vectors must have the same size");
-    }
+function jaccardIndex(v1: number[], v2: number[]): number {
+    let intersection = 0;
+    let union = 0;
 
-    var dotProduct = v1.reduce(function(acc, val, i) {
-        return acc + val * v2[i];
-    }, 0);
-    var f1 = Math.sqrt(v1.reduce(function(acc, val) {
-        return acc + val * val;
-    }, 0));
-    var f2 = Math.sqrt(v2.reduce(function(acc, val) {
-        return acc + val * val;
-    }, 0));
-
-    return 1 - dotProduct / (f1 * f2);
-}
-
-function totalVariationDistance(v1, v2) {
-    var pA = normalize(v1);
-    var pB = normalize(v2);
-
-    return pA.reduce(function(sum, val, i) {
-        return sum + Math.abs(val - pB[i]);
-    }, 0) / 2;
-}
-
-function jaccardIndex(v1, v2) {
-    var intersection = 0;
-    var union_ = 0;
-
-    for (var i = 0; i < v1.length; i++) {
+    for (let i = 0; i < v1.length; i++) {
         if (v1[i] === 1 || v2[i] === 1) {
-            union_++;
+            union++;
             if (v1[i] === 1 && v2[i] === 1) {
                 intersection++;
             }
         }
     }
 
-    return 1 - intersection / union_;
+    return 1 - (intersection / union);
 }
 
-function jensenShannonDivergence(v1, v2) {
-    var f1 = normalize(v1);
-    var f2 = normalize(v2);
-    var m = f1.map(function(val, i) {
+function jensenShannonDivergence(v1: number[], v2: number[]): number {
+    let f1 = normalize(v1);
+    let f2 = normalize(v2);
+    let m = f1.map(function (val, i) {
         return (val + f2[i]) / 2;
     });
 
-    var klDivergence = function(p, q) {
-        return p.reduce(function(divergence, val, i) {
-            if (val > 0) {
-                return divergence + val * Math.log2(val / q[i]);
+    function klDiv(p: number[], q: number[]) {
+        let divergence = 0;
+        for (let i = 0; i < p.length; i++) {
+            if (p[i] > 0) {
+                divergence += p[i] * Math.log2(p[i] / q[i]);
             }
-            return divergence;
-        }, 0);
-    };
+        }
+        return divergence;
+    }
 
-    return (klDivergence(f1, m) + klDivergence(f2, m)) / 2;
+    return (klDiv(f1, m) + klDiv(f2, m)) / 2;
 }
 
-function hellingerDistance(v1, v2) {
-    var f1 = normalize(v1);
-    var f2 = normalize(v2);
+function hellingerDistance(v1: number[], v2: number[]): number {
+    let f1 = normalize(v1);
+    let f2 = normalize(v2);
 
-    var sum = f1.reduce(function(acc, val, i) {
-        return acc + Math.pow(Math.sqrt(val) - Math.sqrt(f2[i]), 2);
-    }, 0);
-
-    return Math.sqrt(sum) / Math.sqrt(2);
-}
-
-    let sum = f1.reduce((acc, val, i) => acc + Math.pow(Math.sqrt(val) - Math.sqrt(f2[i]), 2), 0);
+    let sum = 0;
+    for (let i = 0; i < f1.length; i++) {
+        sum += Math.pow(Math.sqrt(f1[i]) - Math.sqrt(f2[i]), 2);
+    }
 
     return Math.sqrt(sum) / Math.sqrt(2);
 }
