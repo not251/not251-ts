@@ -274,7 +274,7 @@ function jensenShannonDivergence(v1: number[], v2: number[]): number {
         return (val + f2[i]) / 2;
     });
 
-    function klDiv(p: number[], q: number[]) {
+function klDiv(p: number[], q: number[]) {
         let divergence = 0;
         for (let i = 0; i < p.length; i++) {
             if (p[i] > 0) {
