@@ -2,7 +2,7 @@ import positionVector from "./positionVector";
 import intervalVector from "./intervalVector";
 import { toPositions } from "./crossOperation";
 
-// scale Generates a positionVector based on an input intervalVector, allowing for transformations like inversion and mirroring. 
+// Generates a positionVector based on an input intervalVector, allowing for transformations like inversion and mirroring. 
 // It rotates the interval vector by modo, adjusts the root, and optionally inverts or mirrors it. 
 // The output is then converted to a position vector, which is roto-translated by grado to finalize its configuration.
 
