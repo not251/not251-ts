@@ -1,6 +1,9 @@
 // ha senso usarle con gli intervalvectors per scale, per i positionvector ha senso se si tratta di altezze nel tempo
 
-// lo specchio posizionato su position riflette sia a destra sia a sinistra
+// Performs a two-part reflection on an array of numbers. 
+// First, elements up to a specified position are mirrored inward. 
+// Then, the reflection is applied again to elements after the position up to the end of the array, mirroring outward. 
+// This creates a symmetrical pattern in the data around the central position.
 export function doubleMirror(input: number[], position: number): number[] {
   let out = [...input];
   let length = out.length;
@@ -24,7 +27,9 @@ export function doubleMirror(input: number[], position: number): number[] {
   return out;
 }
 
-// riflette solo dal lato indicato da "left"
+// Reflects elements either to the left or right of a specified position. 
+// If left is true, elements up to position are mirrored inwards; otherwise, elements from position to the end are reflected outwards. 
+// The result is a mirrored IntervalVector, updating data if autoupdate is true.
 export function singleMirror(
   input: number[],
   position: number,
@@ -54,7 +59,10 @@ export function singleMirror(
   return out;
 }
 
-// sceglie un numero di elementi pari a "pos" a partire dal lato indicato da "left" e li riflette dal lato opposto
+// Mirrors elements in an array around a specified pos. 
+// If left is true, the left section (up to pos) is mirrored to the right end, flipping the array symmetrically from the start. 
+// If left is false, the right section (from pos onward) is mirrored towards the start, creating symmetry from the right side. 
+// The function returns the mirrored array as out.
 export function mirror2(input: number[], pos: number, left: boolean): number[] {
   let out = [...input];
   let n = input.length;
