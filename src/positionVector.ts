@@ -6,12 +6,16 @@ export default class positionVector {
   modulo: number;
   span: number;
 
+// Initializes a new PositionVector with the specified data array, modulo, and span. 
+// These properties define the vector, where data holds the elements, modulo specifies a cyclical constraint, and span determines the scaling range for the elements.
   constructor(data: number[], modulo: number, span: number) {
     this.data = data;
     this.modulo = modulo;
     this.span = span;
   }
 
+// Retrieves the element at the specified index i in the data array, supporting both positive and negative indices. 
+// Uses modular arithmetic to handle wrap-around indexing. 
   element(i: number): number {
     let n = this.data.length;
     let out = 0;
@@ -24,6 +28,8 @@ export default class positionVector {
     return out;
   }
 
+// Creates a new vector by shifting elements starting from the given start index over n elements, incorporating cyclic rotation. 
+// Optionally updates the internal data array to the rotated result when autoupdate is true.
   rototranslate(
     start: number,
     n: number = this.data.length,
@@ -38,6 +44,8 @@ export default class positionVector {
     return new positionVector(out, this.modulo, this.span);
   }
 
+// Recalculates and adjusts the span value to ensure it fully covers the range (difference between maximum and minimum values) of the data array. 
+// If the current span is insufficient, it increments by the modulo until it spans the range.
   spanUpdate(): void {
     let maximum = this.data[0];
     let minimum = this.data[0];
@@ -61,6 +69,8 @@ export default class positionVector {
     this.span = span;
   }
 
+// Inverts all elements in the data array by negating their values, effectively flipping the vector around the origin. 
+// Returns a new PositionVector with inverted values. Updates the original vector if autoupdate is true.
   invert(autoupdate: boolean = true): positionVector {
     let out = this.data.slice();
     for (let i = 0; i < out.length; i++) {
@@ -70,6 +80,9 @@ export default class positionVector {
     return new positionVector(out, this.modulo, this.span);
   }
 
+// Reflects each element in the data array around a specified position. 
+// Optionally scales elements up and then down based on "standard", before and after reflection. 
+// The reflected values are sorted, and the result is rotated to align with the original vector. Updates data if autoupdate is true.
   negative(
     position: number = 10,
     standard: boolean = true,
@@ -111,6 +124,8 @@ export default class positionVector {
     return outV;
   }
 
+// Generates an array of possible PositionVector transformations centered around a given value. 
+// Each transformation represents a PositionVector obtained by shifting the elements to new positions relative to the center, cycling through both left and right rotations.
   options(center: number): positionVector[] {
     let map: positionVector[] = [];
     let n = this.data.length;
@@ -122,6 +137,8 @@ export default class positionVector {
     return map;
   }
 
+// Creates a new PositionVector by selecting elements from the current vector based on indices provided by another PositionVector. 
+// The resulting vector is then adjusted for its range by recalculating the span.
   selectFromPosition(p: positionVector) {
     let v: number[] = [];
     for (let i = 0; i < p.data.length; i++) {
@@ -132,6 +149,8 @@ export default class positionVector {
     return out;
   }
 
+// Inverts the vector around a specific axis, which can be the first element (0), last element (2), or the middle element (default). 
+// Returns a new vector with elements mirrored around the chosen axis. If the median (1) is selected, the data is simply reversed.
   freeInvert(axis: number = 1): positionVector {
     if (this.data.length === 0) {
       return this; // Return empty vector if the data is empty
