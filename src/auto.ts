@@ -11,6 +11,9 @@ import {
 import { toIntervals, toPositions, selectFromInterval } from "./crossOperation";
 import { findPC, scaleMap } from "./utility";
 
+// Adjusts the target position vector to match the reference vector by finding the optimal rotation. 
+// Evaluates possible rotations and calculates the Euclidean distance to determine the best alignment. 
+// Returns an object containing the modified position vector, the applied rotation (inversion), and the distance between the two vectors.
 export function autoVoicing(
   reference: positionVector,
   target: positionVector
@@ -42,13 +45,19 @@ export function autoVoicing(
   return { pv: pv, inversion: r, distance: distance };
 }
 
+// Defines the structure for a single mode entry, including the rotation index and a position vector. 
+// This structure facilitates storing multiple modal variations of a scale, each represented by its own rotation.
 export type modeMapElement = {
   rotation: number;
   data: positionVector;
 };
 
+// An array of modeMapElement objects, serving as a collection for multiple modes of a scale. 
+// Allows for easy iteration and mode selection based on rotation.
 export type modeMap = modeMapElement[];
 
+// Generates all possible modes for a given interval vector scale by rotating it. 
+// Returns a map of modeMap elements with rotation indexes and position vectors.
 export function autoModeGO(scale: intervalVector): modeMap {
   let out: modeMap = [];
   let max = scale.data.length;
@@ -67,6 +76,8 @@ export function autoModeGO(scale: intervalVector): modeMap {
   return out;
 }
 
+// Determines all compatible modes that contain all the given notes from a position vector. 
+// Checks each mode in the mode map and returns matching rotation and data as an array of objects.
 export function autoModeOptions(
   modes: modeMap,
   notes: positionVector
@@ -108,6 +119,8 @@ export function autoModeOptions(
   return out;
 }
 
+// Automatically finds the best fitting mode for a given set of notes and interval vector scale. 
+// Returns the best match as an object with rotation and position vector data.
 export function autoMode(
   scaleIntervals: intervalVector,
   notes: positionVector
@@ -154,7 +167,8 @@ export function autoMode(
   };
 }
 
-//da fare test
+// Automatically determines the root position of a scale that best matches a set of notes. 
+// Uses edit distance to find the closest match and returns the root position.
 export function autoRoot(scale: positionVector, notes: number[]): number {
   let result = scaleMap(scale.data, scale.modulo);
   let foundMap = findPC(result, scale.modulo, notes);
@@ -178,7 +192,8 @@ export function autoRoot(scale: positionVector, notes: number[]): number {
   return root;
 }
 
-//da fare test
+// Automatically matches and adjusts voicing between two position vectors, based on closest pitches. 
+// Returns a new position vector that represents the updated voicing.
 export function autovoicingP2P(
   v1: positionVector,
   v2: positionVector
@@ -227,6 +242,8 @@ export function autovoicingP2P(
   return outPV;
 }
 
+// Represents an element in the auto grado map, which stores different voicing results for a given scale. 
+// Includes scale, result position vector, grado (degree), and distance.
 export type autoGradoMapElement = {
   scale: positionVector;
   result: positionVector;
@@ -234,8 +251,12 @@ export type autoGradoMapElement = {
   distance: number;
 };
 
+// An array of autoGradoMapElement objects, providing a collection of voicing results across scales and degrees. 
+// Useful for finding the best voicing match for a given target.
 export type autoGradoMap = autoGradoMapElement[];
 
+// Generates a map of voicing options for a scale, considering different degrees and target positions. 
+// Returns an array of autoGradoMap elements, each with voicing results and distance information.
 export function autoGradoGO(
   scalaMap: positionVector[],
   grado: number,
@@ -264,6 +285,8 @@ export function autoGradoGO(
   return voicingMap;
 }
 
+// Finds the best voicing match for a given grado in a scale map. 
+// Sorts by distance and returns the closest match as an autoGradoMapElement object.
 export function autoGrado(
   scalaMap: positionVector[],
   grado: number,
@@ -277,6 +300,8 @@ export function autoGrado(
   return map[0];
 }
 
+// Class for managing and updating two consecutive position vectors, used in auto voicing. 
+// Allows for comparison between current and previous states of position vectors.
 class autoVoicingCouple {
   private a: positionVector;
   private b: positionVector;
@@ -299,6 +324,8 @@ class autoVoicingCouple {
   }
 }
 
+// Updates the auto voicing process with a new position vector and optional auto flag. 
+// Returns the updated position vector, inversion position, and distance, or the previous vector if auto is off.
 function autoVoicingUpdate(input: positionVector, isAuto: boolean): [positionVector, number, number] {
   let coppia = new autoVoicingCouple();
   coppia.update(input);
