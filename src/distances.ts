@@ -153,6 +153,8 @@ export function editDistance(v1: number[], v2: number[]): number {
 
 
 // other distances
+
+/*
 function normalize(inArr: number[]): number[] {
     let sum = inArr.reduce(function (acc, val) {
         return acc + val;
@@ -329,3 +331,4 @@ function hellingerDistance(v1: number[], v2: number[]): number {
 
     return Math.sqrt(sum) / Math.sqrt(2);
 }
+*/
