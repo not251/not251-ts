@@ -66,12 +66,13 @@ export type modeMapElement = {
  */
 export type modeMap = modeMapElement[];
 
+
 /**
  * Returns a map of modeMap elements with rotation indexes and position vectors.
  * Generates all possible modes for a given interval vector scale by rotating it.
  *
- * @param scale  intervalVector containing the scale to be analyzed
- * @returns
+ * @param scale The intervalVector containing the scale to be analyzed.
+ * @returns A modeMap containing the generated modes with their respective rotations.
  */
 export function autoModeGO(scale: intervalVector): modeMap {
   let out: modeMap = [];
@@ -95,9 +96,9 @@ export function autoModeGO(scale: intervalVector): modeMap {
  * Checks each mode in the mode map and returns matching rotation and data as an array of objects.
  * Determines all compatible modes that contain all the given notes from a position vector.
  *
- * @param modes modeMap containing the modes to be analyzed
- * @param notes positionVector containing the notes to be analyzed
- * @returns
+ * @param modes The modeMap containing the modes to be analyzed.
+ * @param notes The positionVector containing the notes to be analyzed.
+ * @returns An array of objects, each containing a rotation and the corresponding mode data.
  */
 export function autoModeOptions(
   modes: modeMap,
@@ -142,10 +143,11 @@ export function autoModeOptions(
 
 /**
  * Returns the best match as an object with rotation and position vector data.
- *  Automatically finds the best fitting mode for a given set of notes and interval vector scale.
- * @param scaleIntervals intervalVector containing the scale intervals to be analyzed
- * @param notes positionVector containing the notes to be target
- * @returns
+ * Automatically finds the best fitting mode for a given set of notes and interval vector scale.
+ *
+ * @param scaleIntervals The intervalVector containing the scale intervals to be analyzed.
+ * @param notes The positionVector containing the notes to be targeted.
+ * @returns An object containing the rotation and the best fitting position vector data.
  */
 export function autoMode(
   scaleIntervals: intervalVector,
@@ -197,9 +199,9 @@ export function autoMode(
  * Automatically determines the root position of a scale that best matches a set of notes.
  * Uses edit distance to find the closest match and returns the root position.
  *
- * @param scale positionVector containing the scale to be analyzed
- * @param notes array of numbers containing the notes to be targeted
- * @returns
+ * @param scale The positionVector containing the scale to be analyzed.
+ * @param notes An array of numbers containing the notes to be targeted.
+ * @returns The best matching root position or -666 if no match is found.
  */
 export function autoRoot(scale: positionVector, notes: number[]): number {
   let result = scaleMap(scale.data, scale.modulo);
@@ -228,9 +230,9 @@ export function autoRoot(scale: positionVector, notes: number[]): number {
  * Automatically matches and adjusts voicing between two position vectors, based on closest pitches.
  * Returns a new position vector that represents the updated voicing.
  *
- * @param v1 positionVector containing the first position vector to be analyzed
- * @param v2 positionVector containing the second position vector to be analyzed
- * @returns
+ * @param v1 The positionVector containing the first position vector to be analyzed.
+ * @param v2 The positionVector containing the second position vector to be analyzed.
+ * @returns A new position vector that represents the updated voicing.
  */
 export function autovoicingP2P(
   v1: positionVector,
@@ -301,11 +303,11 @@ export type autoGradoMap = autoGradoMapElement[];
  * Generates a map of voicing options for a scale, considering different degrees and target positions.
  * Returns an array of autoGradoMap elements, each with voicing results and distance information.
  *
- * @param scalaMap map of scales
- * @param grado degree
- * @param voicing interval vector
- * @param target target
- * @returns
+ * @param scalaMap An array of positionVectors representing multiple scales to be analyzed.
+ * @param grado The degree of the scale to be considered in voicing.
+ * @param voicing The intervalVector representing the voicing intervals.
+ * @param target The positionVector representing the target voicing to be matched.
+ * @returns An array of autoGradoMap objects, each containing a scale, result, degree, and distance.
  */
 export function autoGradoGO(
   scalaMap: positionVector[],
@@ -336,13 +338,14 @@ export function autoGradoGO(
 }
 
 /**
- * Finds the best voicing match for a given grado in a scale map.
+ * Finds the best voicing match for a given degree in a scale map.
  * Sorts by distance and returns the closest match as an autoGradoMapElement object.
- * @param scalaMap map of scales
- * @param grado degree
- * @param voicing interval vector
- * @param target target
- * @returns autoGradoMapElement
+ *
+ * @param scalaMap An array of positionVectors representing multiple scales to be analyzed.
+ * @param grado The degree of the scale to be considered in voicing.
+ * @param voicing The intervalVector representing the voicing intervals.
+ * @param target The positionVector representing the target voicing to be matched.
+ * @returns The closest matching autoGradoMapElement based on distance.
  */
 export function autoGrado(
   scalaMap: positionVector[],
@@ -371,7 +374,7 @@ class autoVoicingCouple {
   }
 
   /**
-   * @param input position vector
+   * @param input The new position vector to update.
    * @returns void
    */
   update(input: positionVector): void {
@@ -379,6 +382,11 @@ class autoVoicingCouple {
     this.b = new positionVector([...input.data], input.modulo, input.span);
   }
 
+  /**
+   * Retrieves the current state of the two position vectors.
+   *
+   * @returns An object containing the first and second position vectors.
+   */
   get(): { first: positionVector; second: positionVector } {
     return {
       first: this.a,
@@ -390,9 +398,10 @@ class autoVoicingCouple {
 /**
  * Updates the auto voicing process with a new position vector and optional auto flag.
  * Returns the updated position vector, inversion position, and distance, or the previous vector if auto is off.
- * @param input position vector
- * @param isAuto boolean
- * @returns
+ *
+ * @param input The position vector to update for auto voicing.
+ * @param isAuto A boolean indicating whether the auto voicing feature is enabled.
+ * @returns A tuple containing the updated position vector, inversion position, and distance.
  */
 function autoVoicingUpdate(
   input: positionVector,
