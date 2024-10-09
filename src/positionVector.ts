@@ -227,4 +227,18 @@ export default class positionVector {
 
     return new positionVector(out, this.modulo, this.span);
   }
+
+/**
+ * Sums a specified number to each element of the positionVector instance.
+ *
+ * @param num - The number to add to each element of the positionVector. Defaults to 0.
+ * @returns A new positionVector instance with summed values.
+ */
+  sum(num : number = 0) : positionVector {
+      let out = new Array(this.data.length);
+      for (let i = 0; i < this.data.length; i++) {
+          out[i] += num;
+      }
+    return new positionVector(out, this.modulo, this.span);
+  }
 }
