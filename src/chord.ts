@@ -14,9 +14,9 @@ import { selectFromInterval } from "./crossOperation";
  * @param position - Degree of roto-translation applied to the selected chord (default is 0).
  * @param postVoices - Number of voices to consider after the selection (default is 3).
  * @param isInvert - If true, the chord is inverted (default is false).
- * @param isNegative - If true, the chord undergoes a negation transformation (default is false).
- * @param negativePos - Position for the negation operation (default is 10).
- * @param standardNegative - Defines the type of negation applied (default is true).
+ * @param isNegative - If true, the chord undergoes a negative transformation (default is false).
+ * @param negativePos - Position for the negative operation (default is 10).
+ * @param standardNegative - Defines the type of negative applied (default is true).
  * @param root - Adjusts the root note of the resulting chord (default is 0).
  * @param octave - Adjusts the octave of the resulting chord (default is 4).
  * @returns The resulting positionVector chord after applying transformations.
