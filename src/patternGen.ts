@@ -1,3 +1,9 @@
+/**
+ * Adjusts the value of 'n' until it is at least as large as 'k' by incrementally adding 'n.value' to itself.
+ * This function ensures that 'n.value' is equal to or greater than 'k' by scaling 'n' upwards.
+ * @param n An object containing the value to be updated.
+ * @param k The target threshold that 'n.value' must reach or exceed.
+ */
 function updateLength(n: { value: number }, k: number): void {
     let temp = n.value;
     while (temp < k) {
@@ -6,6 +12,14 @@ function updateLength(n: { value: number }, k: number): void {
     n.value = temp;
 }
 
+/**
+ * Generates a Euclidean rhythm pattern based on two parameters.
+ * This recursive algorithm divides 'n' events across 'k' slots using the Euclidean algorithm.
+ * The result is an array of integers representing evenly distributed rhythmic events.
+ * @param n The total number of steps.
+ * @param k The number of events.
+ * @returns An array representing the Euclidean rhythm distribution.
+ */
 function euclidean(n: number, k: number): number[] {
     let out: number[] = [];
     
@@ -29,6 +43,13 @@ function euclidean(n: number, k: number): number[] {
     return out;
 }
 
+/**
+ * Calculates the positions of rhythmic events within a specified number of steps.
+ * Uses the Clough-Douthett algorithm to create a rhythm pattern with evenly spaced events.
+ * @param steps The total number of steps in the rhythm.
+ * @param events The number of rhythmic events or beats to be placed within the steps.
+ * @returns An array of integers representing event positions in the rhythm.
+ */
 function CloughDouthett(steps: number, events: number): number[] {
     let out: number[] = [];
     for (let i = 0; i < events; i++) {
@@ -37,6 +58,16 @@ function CloughDouthett(steps: number, events: number): number[] {
     return out;
 }
 
+
+/**
+ * Generates a rhythm pattern based on modular arithmetic.
+ * Calculates the positions of events distributed across 'n' steps, separated by 'm' intervals.
+ * The positions are sorted to represent a rhythmic sequence with a given periodicity.
+ * @param n The total number of steps in the rhythm.
+ * @param k The number of rhythmic events.
+ * @param m The step interval for event placement.
+ * @returns An array of integers representing the rhythm positions in ascending order.
+ */
 function deepRhythm(n: number, k: number, m: number): number[] {
     let out: number[] = [];
     for (let i = 0; i < k; i++) {
@@ -47,6 +78,15 @@ function deepRhythm(n: number, k: number, m: number): number[] {
     return out;
 }
 
+/**
+ * Distributes rhythmic events with groups of zeros based on the given parameters.
+ * Alternates between events and groups of zeros, where the group size is determined by 'g'.
+ * This function manages both events and rests across a sequence of length 'n'.
+ * @param n The total sequence length.
+ * @param k The number of events.
+ * @param g The size of each group of zeros between events.
+ * @returns An array representing the distribution of events and rests.
+ */
 function groupingDistribution(n: number, k: number, g: number): number[] {
     let out: number[] = [];
     
@@ -74,6 +114,13 @@ function groupingDistribution(n: number, k: number, g: number): number[] {
     return out;
 }
 
+/**
+ * Distributes events evenly over a specified length, aiming for maximal spacing between events.
+ * Marks event positions based on the computed interval length between events.
+ * @param n The total sequence length.
+ * @param k The number of events to distribute.
+ * @returns An array representing the distribution with 1s for events and 0s for gaps.
+ */
 function midpointDistribution(n: number, k: number): number[] {
     let out: number[] = new Array(n).fill(0);
     let interval = n / k;
@@ -87,6 +134,14 @@ function midpointDistribution(n: number, k: number): number[] {
     return out;
 }
 
+/**
+ * Divides a sequence into groups, with each group containing one event followed by zeros.
+ * Any remainder that does not fit into groups of 'g' length is added at a specified position.
+ * @param n The total length of the sequence.
+ * @param g The number of elements per group.
+ * @param p The insertion point for any remainder group within the main sequence.
+ * @returns An array representing the group distribution with events and rests.
+ */
 function subdiv(n: number, g: number, p: number): number[] {
     let length = n;
     
@@ -119,6 +174,12 @@ function subdiv(n: number, g: number, p: number): number[] {
     return out;
 }
 
+/**
+ * Replaces all zeros in an array with incremental values to indicate rest positions.
+ * Converts zeros into a count-up sequence to differentiate between rests of varying lengths.
+ * @param input The array containing 1s and 0s (events and rests).
+ * @returns An array where zeros are replaced by an incrementing sequence starting from 2.
+ */
 function fillZeros(input: number[]): number[] {
     let out: number[] = [];
     let count = 0;
@@ -135,6 +196,12 @@ function fillZeros(input: number[]): number[] {
     return out;
 }
 
+/**
+ * Generates a binary inverse of the input array by flipping 1s and 0s.
+ * This transformation is often used to produce complementary rhythms.
+ * @param input The binary array containing 1s and 0s.
+ * @returns A new array where all 1s are flipped to 0s and vice versa.
+ */
 function binaryGhost(input: number[]): number[] {
     let out: number[] = [];
     
