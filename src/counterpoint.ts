@@ -1,7 +1,27 @@
 import { toIntervals, toPositions } from "./crossOperation";
 import positionVector from "./positionVector";
 
-//da fare test
+/**
+ * Generates counterpoint based on the given melody and various transformation parameters.
+ * Applies inversion, retrograde, or both to the melody as specified.
+ *
+ * @param scala - The position vector representing the scale.
+ * @param root - The root note for the melody.
+ * @param octaveShift - The amount to shift the octave for the melody.
+ * @param melodyNotes - The notes of the melody to be transformed.
+ * @param melodyDurations - The durations of the melody notes.
+ * @param melodyRhythm - The rhythm pattern of the melody notes.
+ * @param inversion - A boolean indicating whether to apply inversion.
+ * @param retrograde - A boolean indicating whether to reverse the melody.
+ * @param retrogradeInversion - A boolean indicating whether to apply both retrograde and inversion.
+ * @param inversionAxis - The axis for inversion (0 for first note, 1 for median, 2 for last).
+ * @param durationScalingFactor - The scaling factor for note durations.
+ * @param rhythmScalingFactor - The scaling factor for rhythm.
+ * @param subdivisions - The number of subdivisions for rhythm calculations.
+ * @param delay - A delay to be added to the rhythm.
+ * @param free - A boolean indicating whether to use free inversion.
+ * @returns An object containing the transformed notes, durations, and rhythm as arrays of numbers.
+ */
 export function generateCounterpoint(
   scala: positionVector,
   root: number,
@@ -83,7 +103,19 @@ export function generateCounterpoint(
   };
 }
 
-//da fare test
+/**
+ * Inverts a melody around a specified axis within the given scale.
+ * Returns the inverted melody as an array of notes.
+ *
+ * @param melody - The melody to be inverted.
+ * @param scale - The scale used for inversion.
+ * @param root - The root note of the melody.
+ * @param octaveShift - The amount to shift the octave.
+ * @param inversionAxis - The axis around which to invert.
+ * @param mod - The modulo for the scale.
+ * @param shift - Optional additional shift for degrees (default is 0).
+ * @returns The inverted melody as an array of numbers.
+ */
 export function invertMelody(
   melody: number[],
   scale: number[],
@@ -145,7 +177,16 @@ export function invertMelody(
   );
 }
 
-//da fare test
+/**
+ * Analyzes a melody to extract its scale degrees and octaves based on the given scale and root.
+ * Returns an object containing arrays of degrees and octaves.
+ *
+ * @param scale - The scale to analyze against.
+ * @param root - The root note of the melody.
+ * @param melody - The melody notes to analyze.
+ * @param mod - The modulo for the scale.
+ * @returns An object with arrays of degrees and octaves, represented as numbers.
+ */
 export function analyzeMelody(
   scale: number[],
   root: number,
@@ -169,7 +210,17 @@ export function analyzeMelody(
   return { degrees: degrees, octaves: octaves };
 }
 
-//da fare test
+/**
+ * Reconstructs melody notes from their degrees and octaves based on the provided scale and root.
+ * Returns the reconstructed melody as an array of notes.
+ *
+ * @param degreesAndOctaves - An object containing arrays of degrees and octaves.
+ * @param scale - The scale used for reconstruction.
+ * @param root - The root note of the melody.
+ * @param mod - The modulo for the scale.
+ * @param shift - An optional shift value to adjust degrees.
+ * @returns An array of note numbers.
+ */
 export function reconstructNotes(
   degreesAndOctaves: { degrees: number[]; octaves: number[] },
   scale: number[],
@@ -195,7 +246,14 @@ export function reconstructNotes(
   return notes;
 }
 
-//da fare test
+/**
+ * Scales the duration of each note by the specified scaling factor.
+ * Returns an array of scaled durations.
+ *
+ * @param durations - The original durations of the notes.
+ * @param scalingFactor - The scaling factor (in percentage).
+ * @returns An array of scaled durations.
+ */
 export function durationScaler(
   durations: number[],
   scalingFactor: number
@@ -208,7 +266,15 @@ export function durationScaler(
   return d;
 }
 
-//da fare test
+/**
+ * Scales the rhythm of the melody based on the specified subdivisions and multiplier.
+ * Returns an array of scaled rhythm values.
+ *
+ * @param s - The original rhythm values.
+ * @param subdivisions - The number of subdivisions for rhythm calculations.
+ * @param mult - The multiplier for scaling (in percentage).
+ * @returns An array of scaled rhythm values.
+ */
 export function rhythmScaler(
   s: number[],
   subdivisions: number,
