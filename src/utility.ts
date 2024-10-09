@@ -179,3 +179,80 @@ export function appendOnes(arr: number[], n: number): void {
     arr.push(1);
   }
 }
+
+/**
+ * Calculates the greatest common divisor (GCD) of two numbers.
+ *
+ * @param a - The first number.
+ * @param b - The second number.
+ * @returns The GCD of the two numbers.
+ */
+function gcd(a: number, b: number): number {
+  if (b === 0) {
+    return a;
+  }
+  return gcd(b, a % b);
+}
+
+/**
+ * Calculates the least common multiple (LCM) of two numbers.
+ *
+ * @param a - The first number.
+ * @param b - The second number.
+ * @returns The LCM of the two numbers.
+ */
+function lcm(a: number, b: number): number {
+  return (a * b) / gcd(a, b);
+}
+
+/**
+ * Calculates the LCM of two positionVector instances and scales their data, modulo and span accordingly.
+ *
+ * @param a - The first positionVector instance.
+ * @param b - The second positionVector instance.
+ * @returns A tuple containing two positionVector instances scaled to the same modulo.
+ */
+function lcmPosition(a: positionVector, b: positionVector): [positionVector, positionVector] {
+  if (a.modulo === b.modulo) {
+    return [a, b];
+  }
+  let c = lcm(a.modulo, b.modulo);
+  let d = [];
+  for (let i = 0; i < a.data.length; i++) {
+    d.push((c / a.modulo) * a.data[i]);
+  }
+  let e = [];
+  for (let i = 0; i < b.data.length; i++) {
+    e.push((c / b.modulo) * b.data[i]);
+  }
+  return [
+    new positionVector(d, c, (c / a.modulo) * a.span),
+    new positionVector(e, c, (c / b.modulo) * b.span),
+  ];
+}
+
+/**
+ * Calculates the LCM of two intervalVector instances and scales their data, modulo and offset accordingly.
+ *
+ * @param a - The first intervalVector instance.
+ * @param b - The second intervalVector instance.
+ * @returns A tuple containing two intervalVector instances scaled to the same modulo.
+ */
+function lcmInterval(a: intervalVector, b: intervalVector): [intervalVector, intervalVector] {
+  if (a.modulo === b.modulo) {
+    return [a, b];
+  }
+  let c = lcm(a.modulo, b.modulo);
+  let d = [];
+  for (let i = 0; i < a.data.length; i++) {
+    d.push((c / a.modulo) * a.data[i]);
+  }
+  let e = [];
+  for (let i = 0; i < b.data.length; i++) {
+    e.push((c / b.modulo) * b.data[i]);
+  }
+  return [
+    new intervalVector(d, c, (c / a.modulo) * a.offset),
+    new intervalVector(e, c, (c / b.modulo) * b.offset),
+  ];
+}
