@@ -1,26 +1,47 @@
 import { modulo } from "./utility";
 
-//relative
+/**
+ * Represents a cyclic vector of intervals, supporting transformations like rotation, inversion, and reflection.
+ * Defined by elements (data), a modulo constraint for cyclic properties, and an offset for shifting operations.
+ */
 export default class intervalVector {
   data: number[];
   modulo: number;
   offset: number;
 
-// Initializes an IntervalVector with an array of intervals (data), along with the modulo (cyclic constraint) and offset (shift value). 
-// Defines the basic properties and interval relationships.
+  /**
+   * Initializes an IntervalVector with a sequence of intervals, a modulo for cyclic behavior,
+   * and an offset to determine how intervals are shifted. This constructor sets the base properties
+   * and defines the relationships between intervals within the vector.
+   * @param data An array of intervals that form the vector.
+   * @param modulo A cyclic constraint that wraps elements within a specified range.
+   * @param offset A shift value applied during certain transformations.
+   */
   constructor(data: number[], modulo: number, offset: number) {
     this.data = data;
     this.modulo = modulo;
     this.offset = offset;
   }
 
-// Retrieves the element at the specified index, cycling through the data array using modular arithmetic to wrap around indices beyond the array's length.
+  /**
+   * Retrieves the interval at a specified index, applying modular arithmetic to handle indices
+   * that exceed the vector's bounds by wrapping around cyclically.
+   * @param i The index of the interval to retrieve, allowing negative values for reverse indexing.
+   * @returns The interval at the given index, adjusted for cyclic behavior.
+   */
   element(i: number): number {
     return this.data[modulo(i, this.data.length)];
   }
 
-// Rotates the vector starting from a specified index r, continuing for n elements, and returning the rotated result as a new IntervalVector. 
-// If autoupdate is true, the internal data array is updated to the rotated sequence.
+  /**
+   * Rotates the vector by selecting a sequence of intervals starting from a given index,
+   * cycling through 'n' elements, and returning the rotated sequence as a new IntervalVector.
+   * If autoupdate is true, the original data array is updated with the rotated sequence.
+   * @param r The starting index for rotation.
+   * @param n The number of elements to include in the rotation (defaults to the entire vector).
+   * @param autoupdate If true, updates the original data with the rotated sequence (default is true).
+   * @returns A new IntervalVector representing the rotated sequence.
+   */
   rotate(
     r: number,
     n: number = this.data.length,
@@ -34,8 +55,13 @@ export default class intervalVector {
     return new intervalVector(out, this.modulo, this.offset);
   }
 
-// Reverses the order of intervals in the data array, effectively inverting the sequence. 
-// A new IntervalVector with the inverted order is returned, and if autoupdate is true, updates the internal data to the inverted order.
+  /**
+   * Inverts the sequence of intervals by reversing their order, effectively flipping the vector.
+   * A new IntervalVector with the reversed order is returned, and if autoupdate is true,
+   * the original data array is updated with the inverted order.
+   * @param autoupdate If true, updates the original data array with the inverted sequence (default is true).
+   * @returns A new IntervalVector with the intervals in reverse order.
+   */
   invert(autoupdate: boolean = true): intervalVector {
     let n = this.data.length;
     let out = new Array(n);
@@ -46,9 +72,16 @@ export default class intervalVector {
     return new intervalVector(out, this.modulo, this.offset);
   }
 
-// Reflects elements either to the left or right of a specified position. 
-// If left is true, elements up to position are mirrored inwards; otherwise, elements from position to the end are reflected outwards. 
-// The result is a mirrored IntervalVector, updating data if autoupdate is true.
+  /**
+   * Reflects elements either towards or away from a specified position within the vector.
+   * When 'left' is true, intervals up to the position are mirrored inwards, otherwise elements 
+   * from the position to the end are reflected outwards. This creates a new IntervalVector 
+   * with mirrored elements, and if autoupdate is true, updates the original data with the mirrored result.
+   * @param position The position around which the reflection is performed.
+   * @param left Determines the direction of reflection: true for left side, false for right side.
+   * @param autoupdate If true, updates the original data array with the mirrored sequence (default is true).
+   * @returns A new IntervalVector with reflected elements based on the specified position and direction.
+   */
   singleMirror(
     position: number,
     left: boolean,
