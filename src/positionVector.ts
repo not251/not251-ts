@@ -1,16 +1,22 @@
 import { modulo } from "./utility";
 
-//absolute
-export default class positionVector {
-  data: number[];
-  modulo: number;
-  span: number;
-
 /**
  * Represents a cyclic vector, supporting various transformations like rototranslation,
  * inversion, and reflection. Defined by elements (data), a modulo constraint for cyclic properties, 
  * and a span that represents the total range covered by the elements.
  */
+export default class positionVector {
+  data: number[];
+  modulo: number;
+  span: number;
+
+  /**
+   * Initializes a new PositionVector with specified elements, a modulo for cyclic properties, 
+   * and a span indicating the vector's range.
+   * @param data An array of numeric elements representing the vector.
+   * @param modulo A cyclical constraint defining the repeating interval.
+   * @param span The range covered by the vector's elements.
+   */
   constructor(data: number[], modulo: number, span: number) {
     this.data = data;
     this.modulo = modulo;
