@@ -1,5 +1,14 @@
 import positionVector from "./positionVector";
 
+/**
+ * Quantizes a given note to the nearest value in the specified scale.
+ * Returns the lower or upper neighbor based on the 'left' parameter.
+ *
+ * @param note - The note to be quantized.
+ * @param scale - An array representing the scale.
+ * @param left - If true, returns the lower neighbor; otherwise, the upper neighbor.
+ * @returns The quantized note.
+ */
 export function quantize(note: number, scale: number[], left: boolean = true) {
   let lower = -1;
   let upper = -1;
@@ -18,6 +27,18 @@ export function quantize(note: number, scale: number[], left: boolean = true) {
   return left ? lower : upper;
 }
 
+/**
+ * Quantize notes on an input scale and transpose them to an output scale, taking into account 
+ * the specified roots for each scale.
+ * Returns the corresponding degrees and transposed notes.
+ *
+ * @param inputscale - The input scale represented as a PositionVector.
+ * @param outputscale - The output scale represented as a PositionVector.
+ * @param inRoot - The root note of the input scale.
+ * @param outRoot - The root note of the output scale.
+ * @param notes - An array of notes to be transposed.
+ * @returns An object containing the transposed degrees and notes.
+ */
 export function transpose(
   inputscale: positionVector,
   outputscale: positionVector,
