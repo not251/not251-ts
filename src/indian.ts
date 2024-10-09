@@ -1,12 +1,15 @@
 import { isAllZeros, isAllOnes, appendOnes, cut } from "./utility";
 
-// e: punto in cui termina la frase
-// c: ciclicità della frase, numero di volte in cui la frase oltrepassa e prima di terminare
-// n: numero di beats della battuta
-// s: punto in cui inizia la frase
-// l: suddivisione del beat (ad es. 2 se binaria, 3 se ternaria)
-
-// la funzione restituisce un intero indicante il numero totale di suddivisioni coperte dalla frase, secondo la formula N=(e+cn-s)l
+/**
+ * Calculates the total number of subdivisions covered by a musical phrase.
+ * 
+ * @param e - The point where the phrase ends.
+ * @param c - The cyclicity of the phrase, indicating how many times it passes before ending.
+ * @param n - The number of beats in the measure.
+ * @param s - The point where the phrase begins.
+ * @param l - The subdivision of the beat (e.g., 2 for binary, 3 for ternary).
+ * @returns The total number of subdivisions covered by the phrase, calculated using the formula N = (e + cn - s) * l.
+ */
 export function phraseLength(
   e: number,
   c: number,
@@ -18,6 +21,13 @@ export function phraseLength(
   return length;
 }
 
+/**
+ * Generates a Tihai pattern based on the number of beats and the specified cycle length.
+ * 
+ * @param n - The total number of beats in the phrase.
+ * @param m - The cycle length for the Tihai.
+ * @returns A tuple containing the number of beats before the final beat (b) and the number of divisions (d).
+ */
 export function tihaiGenerator(n: number, m: number): [number, number] {
   let l = n;
   while (l % m !== 0) {
@@ -28,6 +38,14 @@ export function tihaiGenerator(n: number, m: number): [number, number] {
   return [b, d];
 }
 
+/**
+ * Constructs the Tihai pattern based on the number of beats before the final beat and divisions.
+ * 
+ * @param b - The number of beats before the final beat.
+ * @param d - The number of divisions after the beats.
+ * @param m - The cycle length for the Tihai.
+ * @returns An array representing the Tihai pattern, where 1 indicates a beat and 0 indicates a division.
+ */
 export function tihaiReader(b: number, d: number, m: number): number[] {
   const out: number[] = [];
 
@@ -44,6 +62,14 @@ export function tihaiReader(b: number, d: number, m: number): number[] {
   return out;
 }
 
+/**
+ * Generates a Tihai pattern based on the total number of beats, cycle length, and a boolean flag.
+ * 
+ * @param n - The total number of beats in the phrase.
+ * @param m - The cycle length for the Tihai.
+ * @param a - A boolean flag to recursively call the tihai function when the results are all ones or all zeros, obtaining pseudo-tihais.
+ * @returns An array representing the Tihai pattern.
+ */
 export function tihai(n: number, m: number, a: boolean): number[] {
   if (n <= 2) {
     return new Array(n).fill(1);
