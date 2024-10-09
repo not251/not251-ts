@@ -6,6 +6,9 @@ import { reduceVectors } from "./utility";
 // The function iterates through both vectors up to their shortest length, calculating the square of the difference for each element. 
 // The sum of these squared differences is then square-rooted to return the Euclidean distance. 
 // This represents how far apart the two vectors are in a multi-dimensional space.
+// @param {number[]} v1 - The first vector for distance calculation.
+// @param {number[]} v2 - The second vector for distance calculation.
+// @returns {number} The Euclidean distance between v1 and v2.
 export function euclideanDistance(v1: number[], v2: number[]): number {
   let length = Math.min(v1.length, v2.length);
   let out = 0.0;
@@ -20,6 +23,9 @@ export function euclideanDistance(v1: number[], v2: number[]): number {
 
 // Computes the Euclidean distance between two vectors after they have been reduced to common dimensions by the reduceVectors function. 
 // This ensures the vectors are comparable in terms of length and structure before calculating the Euclidean distance.
+// @param {number[]} v1 - The first vector to be reduced and compared.
+// @param {number[]} v2 - The second vector to be reduced and compared.
+// @returns {number} The Euclidean distance between the reduced vectors.
 export function reducedEuclideanDistance(v1: number[], v2: number[]): number {
   let [r1, r2] = reduceVectors(v1, v2);
   return euclideanDistance(r1, r2);
@@ -28,6 +34,9 @@ export function reducedEuclideanDistance(v1: number[], v2: number[]): number {
 // Determines the minimal rotation needed for a positionVector (v2) to align its minimum element with the minimum element in another positionVector (v1). 
 // It calculates an octave difference based on the smallest element in v1 and positions the rotation index accordingly. 
 // The function iterates through v2 until the closest alignment is found, returning the rotation index at this point.
+// @param {positionVector} v1 - The reference positionVector used for alignment.
+// @param {positionVector} v2 - The positionVector that will be rotated.
+// @returns {number} The rotation index needed for alignment.
 export function minRotation(v1: positionVector, v2: positionVector): number {
   let minV = Math.min.apply(Math, v1.data);
   let diffOct = Math.floor(minV / v1.span) - Math.floor(v2.data[0] / v2.span);
@@ -74,6 +83,10 @@ export type optionMatrix = optionMatrixElement[];
 // Creates a map of Euclidean distances between a target vector (v) and each element in an optionMatrix. 
 // Each element in the resulting distanceMap contains the rotation index, data vector, and distance value. 
 // The function also provides an option to use reducedEuclideanDistance by setting isReduced to true.
+// @param {optionMatrix} matrix - The matrix containing different rotation possibilities.
+// @param {number[]} v - The target vector to compare against the options in the matrix.
+// @param {boolean} isReduced - Flag indicating whether to use reduced Euclidean distance calculation.
+// @returns {distanceMap} A map of distances between the target vector and the matrix elements.
 export function euclideanDistanceMap(
   matrix: optionMatrix,
   v: number[],
@@ -103,6 +116,8 @@ export function euclideanDistanceMap(
 // Sorts a distanceMap in ascending order based on the distance property of each element. 
 // This allows you to prioritize closer matches to the target vector first. 
 // The function returns a distanceMap with elements sorted by increasing distance.
+// @param {distanceMap} distances - The distance map to be sorted.
+// @returns {distanceMap} A sorted distanceMap in ascending order of distance.
 export function sortByDistance(distances: distanceMap): distanceMap {
   let out: distanceMap = distances.slice();
 
@@ -118,6 +133,9 @@ export function sortByDistance(distances: distanceMap): distanceMap {
 // For each element in v1 and v2, the function checks if they are the same. 
 // If not, it computes the minimum number of operations needed (insert, delete, replace) to make them equal. 
 // The function returns the final value as the minimum edit distance, representing how many changes are needed to convert one vector into the other.
+// @param {number[]} v1 - The first vector for calculating edit distance.
+// @param {number[]} v2 - The second vector for calculating edit distance.
+// @returns {number} The Levenshtein edit distance between v1 and v2.
 export function editDistance(v1: number[], v2: number[]): number {
   var n = v1.length;
   var m = v2.length;
