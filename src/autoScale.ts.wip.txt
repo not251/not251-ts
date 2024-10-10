@@ -1,0 +1,157 @@
+/**
+ * Counts the number of adjacent values in a circular scale.
+ * Two values are considered adjacent if their difference (modulo the given modulo) is 1.
+ * @param scale An array of numbers representing the scale
+ * @param modulo The modulus for circular arithmetic
+ * @returns The count of adjacent values in the scale
+ */
+function countAdjacentValues(scale: number[], modulo: number): number {
+  let count = 0;
+  let sortedScale = [...scale].sort((a, b) => a - b);
+  for (let i = 0; i < sortedScale.length; i++) {
+    let current = sortedScale[i];
+    let next = sortedScale[(i + 1) % sortedScale.length];
+    if ((next - current + modulo) % modulo === 1) {
+      count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Automatically adjusts a scale to include given notes, optimizing for adjacency.
+ * It can operate in left, right, or auto mode. In auto mode, it chooses the result with fewer adjacent values.
+ * @param scale The original scale to be adjusted
+ * @param notes The notes to be included in the scale
+ * @param modulo The modulus for circular arithmetic
+ * @param left Whether to prefer lower (left) or higher (right) values when quantizing
+ * @param auto If true, compares left and right results and chooses the optimal one
+ * @returns The adjusted scale
+ */
+function autoScale(
+  scale: number[],
+  notes: number[],
+  modulo: number,
+  left: boolean,
+  auto: boolean
+): number[] {
+  if (auto) {
+    let leftResult = tryAutoScale(scale, notes, modulo, true);
+    let rightResult = tryAutoScale(scale, notes, modulo, false);
+
+    let leftAdjacentCount = countAdjacentValues(leftResult, modulo);
+    let rightAdjacentCount = countAdjacentValues(rightResult, modulo);
+
+    if (leftAdjacentCount === rightAdjacentCount) {
+      let result = tryAutoScale(scale, notes, modulo, left);
+      return result;
+    }
+
+    return leftAdjacentCount < rightAdjacentCount ? leftResult : rightResult;
+  } else {
+    let result = tryAutoScale(scale, notes, modulo, left);
+    return result;
+  }
+}
+
+/**
+ * Attempts to adjust the scale to include the given notes, preferring left or right quantization.
+ * @param scale The original scale to be adjusted
+ * @param notes The notes to be included in the scale
+ * @param modulo The modulus for circular arithmetic
+ * @param left Whether to prefer lower (left) or higher (right) values when quantizing
+ * @returns The adjusted scale
+ */
+function tryAutoScale(
+  scale: number[],
+  notes: number[],
+  modulo: number,
+  left: boolean
+): number[] {
+  let updatedScale = [...scale];
+  for (let note of notes) {
+    let notePC = note % modulo;
+    if (!updatedScale.includes(notePC)) {
+      let closest = findClosestIndex(updatedScale, notePC, notes, left);
+      if (closest === -1) {
+        left = !left;
+        closest = findClosestIndex(updatedScale, notePC, notes, left);
+      }
+      if (closest !== -1) {
+        updatedScale[closest] = notePC;
+      }
+    }
+  }
+  return updatedScale;
+}
+
+/**
+ * Quantizes a note to the nearest value in the scale, preferring lower or higher values.
+ * @param note The note to be quantized
+ * @param scale The scale to quantize against
+ * @param left Whether to prefer lower (left) or higher (right) values
+ * @returns The quantized note value
+ */
+function quantize(note: number, scale: number[], left: boolean): number {
+  let lower = -1;
+  let upper = -1;
+  for (let i = 0; i < scale.length; i++) {
+    if (scale[i] <= note) {
+      lower = scale[i];
+    }
+    if (scale[i] >= note) {
+      upper = scale[i];
+      break;
+    }
+  }
+  if (lower === -1) return upper;
+  if (upper === -1) return lower;
+
+  return left ? lower : upper;
+}
+
+/**
+ * Finds the index of the closest value in the scale to the target, excluding certain values.
+ * @param scale The scale to search in
+ * @param target The target value to find the closest to
+ * @param exclude An array of values to exclude from consideration
+ * @param left Whether to prefer lower (left) or higher (right) values
+ * @returns The index of the closest value, or -1 if not found
+ */
+function findClosestIndex(
+  scale: number[],
+  target: number,
+  exclude: number[],
+  left: boolean
+): number {
+  let quantizedValue = quantize(target, scale, left);
+  let index = scale.indexOf(quantizedValue);
+  if (index !== -1 && !exclude.includes(scale[index])) {
+    return index;
+  }
+
+  return -1;
+}
+
+/**
+ * Main function to demonstrate the usage of the autoScale function.
+ * It sets up an initial scale, notes to include, and parameters, then calls autoScale and logs the result.
+ */
+
+/*
+
+TEST!
+
+
+function main() {
+  let scale = [0, 2, 4, 5, 7, 9, 11];
+  let notes = [3, 8];
+  let modulo = 12;
+  let left = false;
+  let auto = true;
+
+  let updatedScale = autoScale(scale, notes, modulo, left, auto);
+
+  console.log("Updated scale:", updatedScale.join(" "));
+}
+*/

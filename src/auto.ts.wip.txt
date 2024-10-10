@@ -1,0 +1,284 @@
+import positionVector from "./positionVector";
+import intervalVector from "./intervalVector";
+import {
+  euclideanDistanceMap,
+  minRotation,
+  sortByDistance,
+  optionMatrix,
+  editDistance,
+  distanceMap,
+} from "./distances";
+import { toIntervals, toPositions, selectFromInterval } from "./crossOperation";
+import { findPC, scaleMap, modulo } from "./utility";
+import { autoVoicing } from "./chord";
+
+/**
+ * Represents an element in the auto grado map, which stores different voicing results for a given scale.
+ * Includes scale, result position vector, grado (degree), and distance.
+ */
+export type autoGradoMapElement = {
+  scale: positionVector;
+  result: positionVector;
+  grado: number;
+  distance: number;
+};
+
+/**
+ * An array of autoGradoMapElement objects, providing a collection of voicing results across scales and degrees.
+ * Useful for finding the best voicing match for a given target.
+ */
+export type autoGradoMap = autoGradoMapElement[];
+
+/**
+ * Generates a map of voicing options for a scale, considering different degrees and target positions.
+ * Returns an array of autoGradoMap elements, each with voicing results and distance information.
+ *
+ * @param scalaMap An array of positionVectors representing multiple scales to be analyzed.
+ * @param grado The degree of the scale to be considered in voicing.
+ * @param voicing The intervalVector representing the voicing intervals.
+ * @param target The positionVector representing the target voicing to be matched.
+ * @returns An array of autoGradoMap objects, each containing a scale, result, degree, and distance.
+ */
+export function autoGradoGO(
+  scalaMap: positionVector[],
+  grado: number,
+  voicing: intervalVector,
+  target: positionVector
+): autoGradoMap {
+  let voicingMap: autoGradoMap = [];
+
+  for (let j = 0; j < scalaMap.length; ++j) {
+    voicing.offset = grado;
+    for (let i = 0; i < voicing.data.length; ++i) {
+      let v = selectFromInterval(scalaMap[j], voicing);
+      let autovoiced = autoVoicing(target, v);
+
+      voicingMap.push({
+        scale: scalaMap[j],
+        result: autovoiced.pv,
+        grado: voicing.offset,
+        distance: autovoiced.distance,
+      });
+
+      voicing.offset -= voicing.data[i];
+    }
+  }
+
+  return voicingMap;
+}
+
+/**
+ * Finds the best voicing match for a given degree in a scale map.
+ * Sorts by distance and returns the closest match as an autoGradoMapElement object.
+ *
+ * @param scalaMap An array of positionVectors representing multiple scales to be analyzed.
+ * @param grado The degree of the scale to be considered in voicing.
+ * @param voicing The intervalVector representing the voicing intervals.
+ * @param target The positionVector representing the target voicing to be matched.
+ * @returns The closest matching autoGradoMapElement based on distance.
+ */
+export function autoGrado(
+  scalaMap: positionVector[],
+  grado: number,
+  voicing: intervalVector,
+  target: positionVector
+): autoGradoMapElement {
+  let map = autoGradoGO(scalaMap, grado, voicing, target);
+
+  map = map.sort((a, b) => a.distance - b.distance);
+
+  return map[0];
+}
+
+/**
+ * !!! WIP!
+ * Class for managing and updating two consecutive position vectors, used in auto voicing.
+ * Allows for comparison between current and previous states of position vectors.
+ */
+class autoVoicingCouple {
+  private a: positionVector;
+  private b: positionVector;
+
+  constructor() {
+    this.a = new positionVector([], 1, 1);
+    this.b = new positionVector([], 1, 1);
+  }
+
+  /**
+   * @param input The new position vector to update.
+   * @returns void
+   */
+  update(input: positionVector): void {
+    this.a = this.b;
+    this.b = new positionVector([...input.data], input.modulo, input.span);
+  }
+
+  /**
+   * Retrieves the current state of the two position vectors.
+   *
+   * @returns An object containing the first and second position vectors.
+   */
+  get(): { first: positionVector; second: positionVector } {
+    return {
+      first: this.a,
+      second: this.b,
+    };
+  }
+}
+
+/**
+ * Updates the auto voicing process with a new position vector and optional auto flag.
+ * Returns the updated position vector, inversion position, and distance, or the previous vector if auto is off.
+ *
+ * @param input The position vector to update for auto voicing.
+ * @param isAuto A boolean indicating whether the auto voicing feature is enabled.
+ * @returns A tuple containing the updated position vector, inversion position, and distance.
+ */
+function autoVoicingUpdate(
+  input: positionVector,
+  isAuto: boolean
+): [positionVector, number, number] {
+  let coppia = new autoVoicingCouple();
+  coppia.update(input);
+  let vectors = coppia.get();
+  let v1: positionVector = vectors.first;
+  let v2: positionVector = vectors.second;
+
+  if (v1.data.length === 0) {
+    v1 = v2;
+  }
+
+  let autoVoicingInfo: {
+    pv: positionVector;
+    inversion: number;
+    distance: number;
+  } = autoVoicing(v1, v2);
+  let voiced: positionVector = autoVoicingInfo.pv;
+  let position: number = autoVoicingInfo.inversion;
+  let distance: number = autoVoicingInfo.distance;
+
+  if (isAuto) {
+    coppia.update(voiced);
+    return [voiced, position, distance];
+  } else {
+    return [v2, 0, 0];
+  }
+}
+
+type AutoRootMapElement = {
+  root: number;
+  scale: positionVector;
+};
+
+/**
+ * asdasdasdasd
+ * @param note
+ * @param scale
+ * @returns
+ */
+function scalaMapFromNote(
+  note: positionVector,
+  scale: positionVector
+): AutoRootMapElement[] {
+  let resultArray: positionVector[] = [];
+  let scalaZero = scale;
+
+  for (let i = 0; i < scale.data.length; i++) {
+    let value = scalaZero.sum(note.data[0] - scale.data[i]);
+    resultArray.push(value);
+  }
+
+  resultArray = resultArray.filter((value) =>
+    note.data.every((noteValue) =>
+      value.data.some(
+        (valueData) =>
+          modulo(valueData, scale.modulo) === modulo(noteValue, scale.modulo)
+      )
+    )
+  );
+
+  let resultObjects: AutoRootMapElement[] = resultArray.map((scale) => ({
+    root: modulo(scale.data[0], scale.modulo),
+    scale: scale,
+  }));
+
+  return resultObjects;
+}
+
+function sortAndModuloScalaMap(
+  scalaMap: AutoRootMapElement[]
+): AutoRootMapElement[] {
+  return scalaMap.map(({ root, scale }) => {
+    const moduloData = scale.data.map((value) => modulo(value, scale.modulo));
+
+    const sortedData = moduloData.sort((a, b) => a - b);
+
+    return {
+      root: root,
+      scale: new positionVector(sortedData, scale.modulo, scale.span),
+    };
+  });
+}
+/**
+ * WIP! New version coming!
+ * Automatically determines the root position of a scale that best matches a set of notes.
+ * Uses edit distance to find the closest match and returns the root position.
+ *
+ * @param scale The positionVector containing the scale to be analyzed.
+ * @param notes The positionVector containing the notes to be targeted.
+ * @returns The best matching root position or -666 if no match is found.
+ */
+export function autoRoot(scale: positionVector, notes: number[]): number {
+  let result = scaleMap(scale.data, scale.modulo);
+  let foundMap = findPC(result, scale.modulo, notes);
+
+  if (Object.keys(foundMap).length === 0) {
+    return -666;
+  }
+
+  let minDistance = Number.MAX_VALUE;
+  let root = -1;
+
+  for (const key in foundMap) {
+    let value = foundMap[key];
+    let distance = editDistance(value, scale.data);
+    if (distance < minDistance) {
+      minDistance = distance;
+      root = parseInt(key);
+    }
+  }
+
+  return root;
+}
+
+/*
+WIP!
+Update tests!!!!
+
+
+export function autoRoot(
+  scale: positionVector,
+  notes: positionVector
+): number | undefined {
+  let result = scalaMapFromNote(scale, notes);
+  let sorted = sortAndModuloScalaMap(result);
+
+  if (Object.keys(sorted).length == 0) {
+    return undefined;
+  }
+
+  let minDistance = Number.MAX_VALUE;
+  let root = -1;
+
+  for (const key in sorted) {
+    let value = result[key];
+    let distance = editDistance(value.scale.data, scale.data);
+    if (distance < minDistance) {
+      minDistance = distance;
+      root = parseInt(key);
+    }
+  }
+
+  return root;
+}
+*/

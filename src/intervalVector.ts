@@ -1,4 +1,4 @@
-import { modulo } from "./utility";
+import { modulo, lcm } from "./utility";
 
 /**
  * Represents a cyclic vector of intervals, supporting transformations like rotation, inversion, and reflection.
@@ -17,7 +17,7 @@ export default class intervalVector {
    * @param modulo A cyclic constraint that wraps elements within a specified range.
    * @param offset A shift value applied during certain transformations.
    */
-  constructor(data: number[], modulo: number, offset: number) {
+  constructor(data: number[], modulo: number = 12, offset: number = 0) {
     this.data = data;
     this.modulo = modulo;
     this.offset = offset;
@@ -74,8 +74,8 @@ export default class intervalVector {
 
   /**
    * Reflects elements either towards or away from a specified position within the vector.
-   * When 'left' is true, intervals up to the position are mirrored inwards, otherwise elements 
-   * from the position to the end are reflected outwards. This creates a new IntervalVector 
+   * When 'left' is true, intervals up to the position are mirrored inwards, otherwise elements
+   * from the position to the end are reflected outwards. This creates a new IntervalVector
    * with mirrored elements, and if autoupdate is true, updates the original data with the mirrored result.
    * @param position The position around which the reflection is performed.
    * @param left Determines the direction of reflection: true for left side, false for right side.
@@ -109,4 +109,33 @@ export default class intervalVector {
 
     return new intervalVector(out, this.modulo, this.offset);
   }
+}
+
+/**
+ * Calculates the LCM of two intervalVector instances and scales their data, modulo and offset accordingly.
+ *
+ * @param a - The first intervalVector instance.
+ * @param b - The second intervalVector instance.
+ * @returns A tuple containing two intervalVector instances scaled to the same modulo.
+ */
+export function lcmInterval(
+  a: intervalVector,
+  b: intervalVector
+): [intervalVector, intervalVector] {
+  if (a.modulo === b.modulo) {
+    return [a, b];
+  }
+  let c = lcm(a.modulo, b.modulo);
+  let d = [];
+  for (let i = 0; i < a.data.length; i++) {
+    d.push((c / a.modulo) * a.data[i]);
+  }
+  let e = [];
+  for (let i = 0; i < b.data.length; i++) {
+    e.push((c / b.modulo) * b.data[i]);
+  }
+  return [
+    new intervalVector(d, c, (c / a.modulo) * a.offset),
+    new intervalVector(e, c, (c / b.modulo) * b.offset),
+  ];
 }

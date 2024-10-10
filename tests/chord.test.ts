@@ -1,45 +1,64 @@
 import * as not251 from "../src";
 
 describe("chord", () => {
-  //C Major from intervals and positions
-  it("should create a C Major chord", () => {
-    let chordIntervals = new not251.intervalVector([2], 12, 0);
-    let chordPositions = new not251.positionVector([0, 2, 4], 12, 12);
-    let intervalVector = new not251.intervalVector(
-      [2, 2, 1, 2, 2, 2, 1],
-      12,
-      0
-    );
-    let scale = not251.scale(intervalVector, 0, 0, 0, false, false, 0);
-    let chord1 = not251.chordFromInterval(
-      scale,
-      0,
-      chordIntervals,
-      3,
-      0,
-      3,
-      false,
-      false,
-      10,
-      false,
-      0,
-      0
-    );
-    let chord2 = not251.chordFromPosition(
-      scale,
-      0,
-      chordPositions,
-      3,
-      0,
-      3,
-      false,
-      false,
-      10,
-      false,
-      0,
-      0
-    );
-    expect(chord1.data).toEqual([0, 4, 7]);
-    expect(chord2.data).toEqual([0, 4, 7]);
+  it("should create a C Major chord from interval", () => {
+    let c_major = not251.chord();
+    expect(c_major.data).toEqual([60, 64, 67]);
+  });
+
+  it("should create a C Major chord from position", () => {
+    let c_major = not251.chord({
+      selection: new not251.positionVector([0, 2, 4], 12, 12),
+    });
+    expect(c_major.data).toEqual([60, 64, 67]);
+  });
+  it("should create a D Major chord from interval", () => {
+    let d_major = not251.chord({ root: 2 });
+    expect(d_major.data).toEqual([62, 66, 69]);
   });
 });
+
+describe("autoVoicing", () => {
+  it("should autovoice the two chords", () => {
+    let referenceChordParams = { ...not251.defaultChordParams };
+    referenceChordParams.grado = 0;
+    referenceChordParams.octave = 0;
+
+    let targetChordParams = { ...not251.defaultChordParams };
+    targetChordParams.grado = 4;
+    targetChordParams.octave = 0;
+
+    let out = not251.autoVoicing(referenceChordParams, targetChordParams);
+
+    expect(not251.chord(referenceChordParams).data).toEqual([0, 4, 7]);
+    expect(not251.chord(targetChordParams).data).toEqual([7, 11, 14]);
+    expect(not251.chord(out).data).toEqual([-1, 2, 7]);
+    expect(out.position).toEqual(-2);
+  });
+
+  it("should autovoice the same chord", () => {
+    let referenceChordParams = { ...not251.defaultChordParams };
+    referenceChordParams.octave = 0;
+
+    let targetChordParams = { ...not251.defaultChordParams };
+    targetChordParams.octave = 0;
+
+    let out = not251.autoVoicing(referenceChordParams, targetChordParams);
+
+    expect(not251.chord(referenceChordParams).data).toEqual([0, 4, 7]);
+    expect(not251.chord(targetChordParams).data).toEqual([0, 4, 7]);
+    expect(not251.chord(out).data).toEqual([0, 4, 7]);
+    expect(out.position).toEqual(0);
+  });
+});
+
+/*
+it("should autovoice P2P two chord", () => {
+  let out = not251.autovoicingP2P(
+    new not251.positionVector([0, 4, 7], 12, 12),
+    new not251.positionVector([5, 9, 12, 16], 12, 24)
+  );
+
+  expect(out.data).toEqual([0, 4, 5, 9]);
+});
+*/

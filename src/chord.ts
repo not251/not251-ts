@@ -1,12 +1,101 @@
 import positionVector from "./positionVector";
 import intervalVector from "./intervalVector";
 import { selectFromInterval } from "./crossOperation";
+import { scale } from "./scale";
+import {
+  euclideanDistanceMap,
+  minRotation,
+  optionMatrix,
+  sortByDistance,
+} from "./distances";
+
+export type ChordParams = {
+  scala?: positionVector;
+  grado?: number;
+  selection?: positionVector | intervalVector;
+  preVoices?: number;
+  position?: number;
+  postVoices?: number;
+  isInvert?: boolean;
+  isNegative?: boolean;
+  negativePos?: number;
+  standardNegative?: boolean;
+  root?: number;
+  octave?: number;
+};
+
+export const defaultChordParams: ChordParams = {
+  scala: scale(),
+  grado: 0,
+  selection: new intervalVector([2], 12, 0),
+  preVoices: 3,
+  position: 0,
+  postVoices: 3,
+  isInvert: false,
+  isNegative: false,
+  negativePos: 10,
+  standardNegative: true,
+  root: 0,
+  octave: 5,
+} as const;
 
 /**
- * Generates a chord by selecting positions from a scale and applying transformations, 
- * including inversion and negation. This function uses a positionVector scale and selection 
+ * Generates chords from intervals or positions depending on parameters.
+ * @param param ChordParams
+ * @returns
+ */
+export function chord({
+  scala = scale(),
+  grado = 0,
+  selection = new intervalVector([2], 12, 0),
+  preVoices = 3,
+  position = 0,
+  postVoices = 3,
+  isInvert = false,
+  isNegative = false,
+  negativePos = 10,
+  standardNegative = true,
+  root = 0,
+  octave = 5,
+}: ChordParams = defaultChordParams) {
+  if (selection instanceof positionVector) {
+    return chordFromPosition(
+      scala,
+      grado,
+      selection as positionVector,
+      preVoices,
+      position,
+      postVoices,
+      isInvert,
+      isNegative,
+      negativePos,
+      standardNegative,
+      root,
+      octave
+    );
+  } else {
+    return chordFromInterval(
+      scala,
+      grado,
+      selection as intervalVector,
+      preVoices,
+      position,
+      postVoices,
+      isInvert,
+      isNegative,
+      negativePos,
+      standardNegative,
+      root,
+      octave
+    );
+  }
+}
+
+/**
+ * Generates a chord by selecting positions from a scale and applying transformations,
+ * including inversion and negation. This function uses a positionVector scale and selection
  * to produce a position vector chord.
- * 
+ *
  * @param scala - The scale represented as a positionVector.
  * @param grado - Degree of rotation to change the starting note of the scale (default is 0).
  * @param selection - Determines which positions in the scale are included in the chord.
@@ -21,8 +110,8 @@ import { selectFromInterval } from "./crossOperation";
  * @param octave - Adjusts the octave of the resulting chord (default is 4).
  * @returns The resulting positionVector chord after applying transformations.
  */
-export function chordFromPosition(
-  scala: positionVector,
+function chordFromPosition(
+  scala: positionVector = scale(),
   grado: number = 0,
   selection: positionVector,
   preVoices: number = 3,
@@ -51,10 +140,10 @@ export function chordFromPosition(
 }
 
 /**
- * Constructs a chord using intervals rather than positions for the selection process. 
- * It applies rotation, inversion, and negation to the generated position vector based 
+ * Constructs a chord using intervals rather than positions for the selection process.
+ * It applies rotation, inversion, and negation to the generated position vector based
  * on the provided scale.
- * 
+ *
  * @param scala - The scale as a positionVector.
  * @param grado - Degree of rotation to change the starting note (default is 0).
  * @param selection - Intervals that define which positions in the scale are selected.
@@ -69,8 +158,8 @@ export function chordFromPosition(
  * @param octave - Adjusts the octave of the chord (default is 4).
  * @returns The resulting positionVector chord after applying transformations.
  */
-export function chordFromInterval(
-  scala: positionVector,
+function chordFromInterval(
+  scala: positionVector = scale(),
   grado: number = 0,
   selection: intervalVector,
   preVoices: number = 3,
@@ -96,4 +185,114 @@ export function chordFromInterval(
     out.data[i] += shiftedRoot;
   }
   return out;
+}
+
+export function autoVoicing(
+  reference: ChordParams,
+  target: ChordParams
+): ChordParams {
+  let output = { ...target };
+  let result = autoVoicing_internal(
+    chord({ ...reference }),
+    chord({ ...target })
+  );
+  output.position = result.inversion;
+
+  return output;
+}
+
+/**
+ * Adjusts the target position vector to match the reference vector by finding the optimal rotation.
+ * Evaluates possible rotations and calculates the Euclidean distance to determine the best alignment.
+ * Returns an object containing the modified position vector, the applied rotation (inversion), and the distance between the two vectors.
+ *
+ * @param reference The reference position vector to be matched.
+ * @param target The target position vector to be adjusted.
+ * @returns An object containing the adjusted position vector, the applied rotation, and the distance between the two vectors.
+ */
+function autoVoicing_internal(
+  reference: positionVector,
+  target: positionVector
+): { pv: positionVector; inversion: number; distance: number } {
+  reference.spanUpdate();
+  target.spanUpdate();
+
+  let center = minRotation(reference, target);
+
+  let options = target.options(center);
+
+  let matrix: optionMatrix = [];
+  for (let i = 0; i < options.length; ++i) {
+    matrix.push({
+      rotation: center - target.data.length + i,
+      data: options[i].data,
+    });
+  }
+
+  let distances_map = euclideanDistanceMap(matrix, reference.data);
+  let sorteddistances = sortByDistance(distances_map);
+
+  let r = sorteddistances[0].rotation;
+  let firstElement = sorteddistances[0].data;
+  let distance = sorteddistances[0].distance;
+
+  let pv = new positionVector(firstElement, target.modulo, target.span);
+
+  return { pv: pv, inversion: r, distance: distance };
+}
+
+/**
+ * Automatically matches and adjusts voicing between two position vectors, based on closest pitches.
+ * Returns a new position vector that represents the updated voicing.
+ *
+ * @param v1 The positionVector containing the first position vector to be analyzed.
+ * @param v2 The positionVector containing the second position vector to be analyzed.
+ * @returns A new position vector that represents the updated voicing.
+ */
+export function autovoicingP2P(
+  v1: positionVector,
+  v2: positionVector
+): positionVector {
+  let out = v2.data.slice();
+  let used = new Array(out.length).fill(false);
+  let mod = v2.modulo;
+
+  for (let i = 0; i < v1.data.length && i < out.length; ++i) {
+    let target = v1.data[i];
+    let closest_diff = Infinity;
+    let closest_index = i;
+
+    for (let j = i; j < out.length; ++j) {
+      if (!used[j]) {
+        let diff = Math.abs(((target % mod) - (out[j] % mod) + mod) % mod);
+        let abs_diff = Math.abs(target - out[j]);
+
+        if (
+          diff < closest_diff ||
+          (diff === closest_diff &&
+            abs_diff < Math.abs(target - out[closest_index]))
+        ) {
+          closest_diff = diff;
+          closest_index = j;
+        }
+      }
+    }
+
+    [out[i], out[closest_index]] = [out[closest_index], out[i]];
+    used[i] = true;
+
+    let octave_diff = target - out[i];
+    out[i] += Math.floor(octave_diff / mod) * mod;
+
+    if (Math.abs(target - (out[i] + mod)) < Math.abs(target - out[i])) {
+      out[i] += mod;
+    } else if (Math.abs(target - (out[i] - mod)) < Math.abs(target - out[i])) {
+      out[i] -= mod;
+    }
+  }
+
+  out.sort((a, b) => a - b);
+  let outPV = new positionVector(out, v1.modulo, v1.span);
+  outPV.spanUpdate();
+  return outPV;
 }

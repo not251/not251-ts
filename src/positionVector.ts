@@ -1,8 +1,8 @@
-import { modulo } from "./utility";
+import { modulo, lcm } from "./utility";
 
 /**
  * Represents a cyclic vector, supporting various transformations like rototranslation,
- * inversion, and reflection. Defined by elements (data), a modulo constraint for cyclic properties, 
+ * inversion, and reflection. Defined by elements (data), a modulo constraint for cyclic properties,
  * and a span that represents the total range covered by the elements.
  */
 export default class positionVector {
@@ -11,13 +11,13 @@ export default class positionVector {
   span: number;
 
   /**
-   * Initializes a new PositionVector with specified elements, a modulo for cyclic properties, 
+   * Initializes a new PositionVector with specified elements, a modulo for cyclic properties,
    * and a span indicating the vector's range.
    * @param data An array of numeric elements representing the vector.
    * @param modulo A cyclical constraint defining the repeating interval.
    * @param span The range covered by the vector's elements.
    */
-  constructor(data: number[], modulo: number, span: number) {
+  constructor(data: number[], modulo: number = 12, span: number = 12) {
     this.data = data;
     this.modulo = modulo;
     this.span = span;
@@ -43,7 +43,7 @@ export default class positionVector {
 
   /**
    * Performs a rototranslation on the vector, effectively shifting elements in a cyclic manner
-   * while also translating them based on the span. The operation starts from a specified index 
+   * while also translating them based on the span. The operation starts from a specified index
    * and continues for a given number of elements.
    * @param start The starting index for rototranslation.
    * @param n The number of elements to include in the transformation (defaults to the vector's length).
@@ -228,17 +228,46 @@ export default class positionVector {
     return new positionVector(out, this.modulo, this.span);
   }
 
-/**
- * Sums a specified number to each element of the positionVector instance.
- *
- * @param num - The number to add to each element of the positionVector. Defaults to 0.
- * @returns A new positionVector instance with summed values.
- */
-  sum(num : number = 0) : positionVector {
-      let out = new Array(this.data.length);
-      for (let i = 0; i < this.data.length; i++) {
-          out[i] += num;
-      }
+  /**
+   * Sums a specified number to each element of the positionVector instance.
+   *
+   * @param num - The number to add to each element of the positionVector. Defaults to 0.
+   * @returns A new positionVector instance with summed values.
+   */
+  sum(num: number = 0): positionVector {
+    let out = new Array(this.data.length);
+    for (let i = 0; i < this.data.length; i++) {
+      out[i] += num;
+    }
     return new positionVector(out, this.modulo, this.span);
   }
+}
+
+/**
+ * Calculates the LCM of two positionVector instances and scales their data, modulo and span accordingly.
+ *
+ * @param a - The first positionVector instance.
+ * @param b - The second positionVector instance.
+ * @returns A tuple containing two positionVector instances scaled to the same modulo.
+ */
+function lcmPosition(
+  a: positionVector,
+  b: positionVector
+): [positionVector, positionVector] {
+  if (a.modulo === b.modulo) {
+    return [a, b];
+  }
+  let c = lcm(a.modulo, b.modulo);
+  let d = [];
+  for (let i = 0; i < a.data.length; i++) {
+    d.push((c / a.modulo) * a.data[i]);
+  }
+  let e = [];
+  for (let i = 0; i < b.data.length; i++) {
+    e.push((c / b.modulo) * b.data[i]);
+  }
+  return [
+    new positionVector(d, c, (c / a.modulo) * a.span),
+    new positionVector(e, c, (c / b.modulo) * b.span),
+  ];
 }

@@ -2,27 +2,11 @@ import * as not251 from "../src";
 
 describe("counterpoint", () => {
   it("counterpoint tests", () => {
-    let outputScale = not251.scale(
-      new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
-      0,
-      0,
-      0,
-      false,
-      false,
-      0
-    );
+    let outputScale = not251.scale();
     let outRoot = 0;
 
     let transposedMelody = not251.transpose(
-      not251.scale(
-        new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
-        0,
-        0,
-        0,
-        false,
-        false,
-        0
-      ),
+      not251.scale(),
       outputScale,
       outRoot,
       0,

@@ -1,14 +1,14 @@
 import intervalVector from "./intervalVector";
 import positionVector from "./positionVector";
-import scale from "./scale";
-import { chordFromInterval, chordFromPosition } from "./chord";
+import { ScaleParams, defaultScaleParams, scale, autoMode } from "./scale";
 import {
-  autoMode,
+  ChordParams,
+  defaultChordParams,
+  chord,
   autoVoicing,
-  autoGrado,
   autovoicingP2P,
-  autoRoot,
-} from "./auto";
+} from "./chord";
+//import { autoGrado, autoRoot } from "./auto";
 import { transpose } from "./quantize";
 import { selectFromInterval, toIntervals, toPositions } from "./crossOperation";
 import { grid } from "./grid";
@@ -22,12 +22,13 @@ export {
   autoMode,
   autoVoicing,
   autovoicingP2P,
-  autoGrado,
-  autoRoot,
-  chordFromInterval,
-  chordFromPosition,
+  ChordParams,
+  defaultChordParams,
+  chord,
   distances,
   utility,
+  ScaleParams,
+  defaultScaleParams,
   scale,
   transpose,
   selectFromInterval,
