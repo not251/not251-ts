@@ -11,17 +11,17 @@ import {
 
 export type ChordParams = {
   scala?: positionVector;
-  grado?: number;
   selection?: positionVector | intervalVector;
+  grado?: number;
   preVoices?: number;
   position?: number;
   postVoices?: number;
+  root?: number;
+  octave?: number;
   isInvert?: boolean;
   isNegative?: boolean;
   negativePos?: number;
   standardNegative?: boolean;
-  root?: number;
-  octave?: number;
 };
 
 export const defaultChordParams: ChordParams = {
