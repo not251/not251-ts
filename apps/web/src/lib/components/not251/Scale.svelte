@@ -53,7 +53,7 @@
 			<Slider id="modo" bind:value={$modo} min={0} max={7} step={1} />
 			<Label for="grado">Grado: {$grado[0] + 1}</Label>
 			<Slider id="grado" bind:value={$grado} max={7} step={1} />
-			<Label for="root">Root: {$root[0] + 1}</Label>
+			<Label for="root">Root: {$root[0]}</Label>
 			<Slider id="root" bind:value={$root} max={11} step={1} />
 
 			<div class="flex items-center space-x-2">

@@ -61,10 +61,10 @@
 			<Label for="preVoices">Pre-Voices: {preVoices}</Label>
 			<Slider id="preVoices" bind:value={preVoices} min={1} max={7} step={1} />
 			<Label for="position">Position: {position}</Label>
-			<Slider id="position" bind:value={position} min={1} max={7} step={1} />
+			<Slider id="position" bind:value={position} min={0} max={7} step={1} />
 			<Label for="postVoices">Post-Voices: {postVoices}</Label>
 			<Slider id="postVoices" bind:value={postVoices} min={1} max={7} step={1} />
-			<Label for="root">Root: {root[0] + 1}</Label>
+			<Label for="root">Root: {root[0]}</Label>
 			<Slider id="root" bind:value={root} max={11} step={1} />
 			<Label for="octave">Octave: {octave}</Label>
 			<Slider id="octave" bind:value={octave} min={-2} max={8} step={1} />
