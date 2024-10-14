@@ -16,6 +16,6 @@
     "@not251/not251": "workspace:*",
     "@aptrn/maxmsp-ts": "^0.0.1",
     "@types/maxmsp": "^1.0.12",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   }
 }
