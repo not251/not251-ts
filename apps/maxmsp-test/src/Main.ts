@@ -6,7 +6,9 @@ autowatch = 1;
 
 function bang() {
   let scale = not251.scale();
-  post(scale.data + "\n");
+  post("Scale: " + scale.data + "\n");
+  let chord = not251.chord();
+  post("Chord: " + chord.data + "\n");
 }
 
 bang();
