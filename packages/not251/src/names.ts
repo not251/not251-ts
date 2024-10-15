@@ -8,7 +8,7 @@ const noteInglesi: string[]= ["C", "D", "E", "F", "G", "A", "B"];
 
 
 
-export function scaleNames(scala: positionVector) {
+export function scaleNames(scala: positionVector, ita: boolean = true) {
   let cMaj = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12);
   let a = minRotation(scala, cMaj); 
 
@@ -22,18 +22,24 @@ export function scaleNames(scala: positionVector) {
     let sum_n = n.reduce((acc, val) => acc + val, 0); //somma delle differenze 
     let sum_m = m.reduce((acc, val) => acc + val, 0);
     let dorototraslata: positionVector;
-  if (sum_n < sum_m) { 
-    dorototraslata = trasp1;
+    if (Math.abs(sum_n) < Math.abs(sum_m)) { 
+      dorototraslata = trasp1;
     } else {
     a = a + 1;
     dorototraslata = trasp2;
   }
-   //l'algoritmo che porta a questo potrebbe essere ottimizzato
+  
+  //l'algoritmo che porta a questo potrebbe essere ottimizzato
   let nomi: string[] = [];
 
   for (let i = 0; i < scala.data.length; i++) {
     let diff = scala.data[i] - dorototraslata.data[i]; // Calcola la differenza senza modulo
-    let nome = noteItaliane[modulo(a + i, 7)];
+    let nome: string;
+
+    if (ita == true){
+    nome = noteItaliane[modulo(a + i, 7)];
+    }
+    else {nome = noteInglesi[modulo(a + i, 7)]}
     if (diff > 0) {
       for (let j = 0; j < diff; j++) {
         nome += "#";
