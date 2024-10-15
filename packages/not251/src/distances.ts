@@ -37,17 +37,20 @@ export function reducedEuclideanDistance(v1: number[], v2: number[]): number {
 // @param {positionVector} v1 - The reference positionVector used for alignment.
 // @param {positionVector} v2 - The positionVector that will be rotated.
 // @returns {number} The rotation index needed for alignment.
-export function minRotation(v1: positionVector, v2: positionVector): number {
-  let minV = Math.min.apply(Math, v1.data);
-  let diffOct = Math.floor(minV / v1.span) - Math.floor(v2.data[0] / v2.span);
-  let size = v2.data.length;
+
+//reference è il vettore che rimane fisso, target è quello che viene ruotato per arrivare a reference 
+//potrei aver confuso il significato dei nomi, nel caso invertire la logica
+export function minRotation(reference: positionVector, target: positionVector): number {
+  let minV = Math.min.apply(Math, reference.data);
+  let diffOct = Math.floor(minV / reference.span) - Math.floor(target.data[0] / target.span);
+  let size = target.data.length;
   let i = diffOct * size;
 
-  while (v2.data[i] <= minV) {
+  while (target.element(i) <= minV) {
     i++;
   }
 
-  while (v2.data[i] > minV) {
+  while (target.element(i) > minV) {
     i--;
   }
 
