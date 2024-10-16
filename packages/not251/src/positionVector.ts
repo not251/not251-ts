@@ -186,34 +186,7 @@ export default class positionVector {
     let out = new positionVector(v, this.modulo, this.span);
     out.spanUpdate();
     return out;
-  }
-
-  inverse_select(voicing: positionVector, scala: positionVector): positionVector {
-
-    let index: positionVector = new positionVector([], voicing.data.length, voicing.data.length);
-    //aggiungere sort a voicing per evitare che possa rompersi
-    
-    let j = Math.floor(voicing.data[0] / voicing.modulo);
-    
-    while (scala.element(j) > voicing.data[0]){
-      j--;
-    }
-  
-    for (let i = 0; i < voicing.data.length; i++) {
-      while(scala.element(j) < voicing.data[i]){
-        j++;
-      }
-      if(scala.element(j) == voicing.data[i]){
-        index.data.push(j);
-      }
-      else {
-        // Messaggio di errore e interruzione della funzione
-        throw new Error("Errore: Impossibile trovare la corrispondenza per l'elemento " + voicing.data[i] + " nella scala.");
-      }
-    }
-  
-    return index;
-  }
+  } 
   
   /**
    * Inverts the vector around a specified axis, which can be the first element, last element, or middle element.
@@ -268,6 +241,16 @@ export default class positionVector {
     }
     return new positionVector(out, this.modulo, this.span);
   }
+
+  scaleZero() {
+    this.sum(-this.data[0]);
+    for(let i = 1; i < this.data.length; i++) {
+      this.data[i] = modulo(this.data[i], this.modulo);
+    }
+    this.data.sort((a, b) => a - b);
+  }
+
+
 }
 
 /**
@@ -297,4 +280,31 @@ function lcmPosition(
     new positionVector(d, c, (c / a.modulo) * a.span),
     new positionVector(e, c, (c / b.modulo) * b.span),
   ];
+}
+
+export function inverse_select(voicing: positionVector, scala: positionVector): positionVector {
+
+  let index: positionVector = new positionVector([], voicing.data.length, voicing.data.length);
+  //aggiungere sort a voicing per evitare che possa rompersi
+  
+  let j = Math.floor(voicing.data[0] / voicing.modulo);
+  
+  while (scala.element(j) > voicing.data[0]){
+    j--;
+  }
+
+  for (let i = 0; i < voicing.data.length; i++) {
+    while(scala.element(j) < voicing.data[i]){
+      j++;
+    }
+    if(scala.element(j) == voicing.data[i]){
+      index.data.push(j);
+    }
+    else {
+      // Messaggio di errore e interruzione della funzione
+      throw new Error("Errore: Impossibile trovare la corrispondenza per l'elemento " + voicing.data[i] + " nella scala.");
+    }
+  }
+
+  return index;
 }
