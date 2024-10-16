@@ -1,3 +1,6 @@
+import { noteName, noteNames } from "./constants";
+import { minRotation } from "./distances";
+import { scale } from "./scale";
 import { modulo, lcm } from "./utility";
 
 /**
@@ -240,6 +243,68 @@ export default class positionVector {
       out[i] += num;
     }
     return new positionVector(out, this.modulo, this.span);
+  }
+
+  /**
+   * It returns the note names for the input scale.
+   * This only works for scales with 7 notes and modulo 12 for the moment.
+   *
+   * @param scaleVector positionVector for the input scale to find note names for.
+   * @returns An array of noteNames objects, each containing the English and Italian note names.
+   */
+  names(scaleVector: positionVector): noteName[] {
+    let cMaj = scale();
+    let a = minRotation(scaleVector, cMaj);
+
+    //sto supponendo che entrambe le scale sia di uguale lunghezza
+
+    let trasp1 = cMaj.rototranslate(a, cMaj.data.length, false);
+    let trasp2 = cMaj.rototranslate(a + 1, cMaj.data.length, false);
+
+    let n = trasp1.data.map((value, index) => value - scaleVector.data[index]); // differenza lineare tra due vettori
+    let m = trasp2.data.map((value, index) => value - scaleVector.data[index]);
+
+    let sum_n = n.reduce((acc, val) => acc + val, 0); //somma delle differenze
+    let sum_m = m.reduce((acc, val) => acc + val, 0);
+
+    let dorototraslata: positionVector;
+
+    if (Math.abs(sum_n) < Math.abs(sum_m)) {
+      dorototraslata = trasp1;
+    } else {
+      a = a + 1;
+      dorototraslata = trasp2;
+    }
+
+    //l'algoritmo che porta a questo potrebbe essere ottimizzato
+
+    let names: noteName[] = [];
+
+    for (let i = 0; i < scaleVector.data.length; i++) {
+      let diff = scaleVector.data[i] - dorototraslata.data[i]; // Calcola la differenza senza modulo
+
+      let name: noteName = {
+        en: "",
+        it: "",
+      };
+
+      name.en = noteNames[modulo(a + i, noteNames.length)].en;
+      name.it = noteNames[modulo(a + i, noteNames.length)].it;
+
+      if (diff > 0) {
+        for (let j = 0; j < diff; j++) {
+          name.en += "#";
+          name.it += "#";
+        }
+      } else if (diff < 0) {
+        for (let j = 0; j < -diff; j++) {
+          name.en += "b";
+          name.it += "b";
+        }
+      }
+      names.push(name);
+    }
+    return names;
   }
 }
 
