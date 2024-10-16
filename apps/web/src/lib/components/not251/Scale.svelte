@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as not251 from '@not251/not251';
+	import { scale, intervalVector } from '@not251/not251';
 	import { Slider } from '$lib/components/ui/slider';
 	import * as Card from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
@@ -7,7 +7,7 @@
 	import { scaleNotes } from './store';
 
 	// Stores for state management
-	let intervals = $state(new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0));
+	let intervals = $state(new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0));
 	let root = $state([0]);
 	let grado = $state([0]);
 	let modo = $state([0]);
@@ -18,7 +18,7 @@
 
 	// Update the scaleNotes store whenever inputs change
 	$effect(() => {
-		$scaleNotes = not251.scale({
+		$scaleNotes = scale({
 			intervals: intervals,
 			root: root[0],
 			grado: grado[0],

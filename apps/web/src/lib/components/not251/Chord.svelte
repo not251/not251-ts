@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as not251 from '@not251/not251';
+	import { positionVector, chord } from '@not251/not251';
 	import * as Tone from 'tone';
 	import { Slider } from '$lib/components/ui/slider';
 	import Button from '$lib/components/ui/button/button.svelte';
@@ -13,7 +13,7 @@
 		scala = $scaleNotes;
 	});
 
-	let scala: not251.positionVector = $state($scaleNotes);
+	let scala: positionVector = $state($scaleNotes);
 	let grado: number[] = $state([0]);
 	let preVoices: number[] = $state([3]);
 	let position: number[] = $state([0]);
@@ -26,7 +26,7 @@
 	let negativePos: number[] = $state([10]);
 
 	let chordNotes = $derived(
-		not251.chord({
+		chord({
 			scala: scala,
 			grado: grado[0],
 			preVoices: preVoices[0],
