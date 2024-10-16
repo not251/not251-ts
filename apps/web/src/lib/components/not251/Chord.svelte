@@ -7,7 +7,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
 	import { scaleNotes } from './store';
-	import { scale } from 'svelte/transition';
+	import Keyboard from '../keyboard/Keyboard.svelte';
 
 	let scala: not251.positionVector;
 	let grado: number[] = [0];
@@ -91,6 +91,7 @@
 	<Card.Footer>
 		<div class="flex w-full flex-col gap-10">
 			<Button on:click={() => play(chordNotes.data)}>Play</Button>
+			<Keyboard middleC={60} octaves={octave[0]} keysPressed={chordNotes.data} />
 
 			<p>Result: {JSON.stringify(chordNotes.data, null, 2)}</p>
 		</div>

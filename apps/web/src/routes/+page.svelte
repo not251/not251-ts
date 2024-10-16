@@ -7,7 +7,6 @@
 	<h1 class="text-center text-4xl font-semibold">not251 Web Demo</h1>
 	<div class="flex w-full flex-row items-center justify-center gap-10">
 		<Scale />
-
 		<Chord />
 	</div>
 </div>
