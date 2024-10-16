@@ -9,35 +9,37 @@
 	import { scaleNotes } from './store';
 	import Keyboard from '../keyboard/Keyboard.svelte';
 
-	let scala: not251.positionVector;
-	let grado: number[] = [0];
-	let preVoices: number[] = [3];
-	let position: number[] = [0];
-	let postVoices: number[] = [3];
-	let root: number[] = [0];
-	let octave: number[] = [3];
-	let isInvert: boolean = false;
-	let isNegative: boolean = false;
-	let standardNegative: boolean = true;
-	let negativePos: number[] = [10];
-
-	$: chordNotes = not251.chord({
-		scala: scala,
-		grado: grado[0],
-		preVoices: preVoices[0],
-		position: position[0],
-		postVoices: postVoices[0],
-		root: root[0],
-		octave: octave[0] + 2,
-		isInvert: isInvert,
-		isNegative: isNegative,
-		standardNegative: standardNegative,
-		negativePos: negativePos[0]
+	$effect(() => {
+		scala = $scaleNotes;
 	});
 
-	scaleNotes.subscribe((value) => {
-		scala = value;
-	});
+	let scala: not251.positionVector = $state($scaleNotes);
+	let grado: number[] = $state([0]);
+	let preVoices: number[] = $state([3]);
+	let position: number[] = $state([0]);
+	let postVoices: number[] = $state([3]);
+	let root: number[] = $state([0]);
+	let octave: number[] = $state([3]);
+	let isInvert: boolean = $state(false);
+	let isNegative: boolean = $state(false);
+	let standardNegative: boolean = $state(true);
+	let negativePos: number[] = $state([10]);
+
+	let chordNotes = $derived(
+		not251.chord({
+			scala: scala,
+			grado: grado[0],
+			preVoices: preVoices[0],
+			position: position[0],
+			postVoices: postVoices[0],
+			root: root[0],
+			octave: octave[0] + 2,
+			isInvert: isInvert,
+			isNegative: isNegative,
+			standardNegative: standardNegative,
+			negativePos: negativePos[0]
+		})
+	);
 
 	function play(notes: number[]) {
 		const synth = new Tone.PolySynth(Tone.Synth).toDestination();
