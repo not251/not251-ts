@@ -188,6 +188,33 @@ export default class positionVector {
     return out;
   }
 
+  inverse_select(voicing: positionVector, scala: positionVector): positionVector {
+
+    let index: positionVector = new positionVector([], voicing.data.length, voicing.data.length);
+    //aggiungere sort a voicing per evitare che possa rompersi
+    
+    let j = Math.floor(voicing.data[0] / voicing.modulo);
+    
+    while (scala.element(j) > voicing.data[0]){
+      j--;
+    }
+  
+    for (let i = 0; i < voicing.data.length; i++) {
+      while(scala.element(j) < voicing.data[i]){
+        j++;
+      }
+      if(scala.element(j) == voicing.data[i]){
+        index.data.push(j);
+      }
+      else {
+        // Messaggio di errore e interruzione della funzione
+        throw new Error("Errore: Impossibile trovare la corrispondenza per l'elemento " + voicing.data[i] + " nella scala.");
+      }
+    }
+  
+    return index;
+  }
+  
   /**
    * Inverts the vector around a specified axis, which can be the first element, last element, or middle element.
    * The median (1) simply reverses the data, while the other options mirror elements around the selected axis.
