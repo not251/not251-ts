@@ -306,6 +306,33 @@ export default class positionVector {
     }
     return names;
   }
+
+  /**
+   * This method scales the vector to zero, effectively removing the offset.
+   * TBI: remove duplicates in out.data!
+   * @param autoupdate updates the original data array with the updated values (default is false).
+   * @returns
+   */
+  toZero(autoupdate: boolean = false): positionVector {
+    let out = new positionVector(this.data.slice(), this.modulo, this.span);
+
+    this.sum(-out.data[0]);
+    for (let i = 1; i < out.data.length; i++) {
+      out.data[i] = modulo(out.data[i], out.modulo);
+    }
+    out.data.sort((a, b) => a - b);
+    out.spanUpdate();
+
+    //TBI: Remove duplicates in out.data!
+
+    if (autoupdate) {
+      this.data = out.data;
+      this.span = out.span;
+      this.modulo = out.modulo;
+    }
+
+    return out;
+  }
 }
 
 /**
@@ -335,4 +362,40 @@ function lcmPosition(
     new positionVector(d, c, (c / a.modulo) * a.span),
     new positionVector(e, c, (c / b.modulo) * b.span),
   ];
+}
+
+export function inverse_select(
+  voicing: positionVector,
+  scala: positionVector
+): positionVector {
+  let index: positionVector = new positionVector(
+    [],
+    voicing.data.length,
+    voicing.data.length
+  );
+  //aggiungere sort a voicing per evitare che possa rompersi
+
+  let j = Math.floor(voicing.data[0] / voicing.modulo);
+
+  while (scala.element(j) > voicing.data[0]) {
+    j--;
+  }
+
+  for (let i = 0; i < voicing.data.length; i++) {
+    while (scala.element(j) < voicing.data[i]) {
+      j++;
+    }
+    if (scala.element(j) == voicing.data[i]) {
+      index.data.push(j);
+    } else {
+      // Messaggio di errore e interruzione della funzione
+      throw new Error(
+        "Errore: Impossibile trovare la corrispondenza per l'elemento " +
+          voicing.data[i] +
+          " nella scala."
+      );
+    }
+  }
+
+  return index;
 }
