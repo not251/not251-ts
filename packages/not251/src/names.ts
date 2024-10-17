@@ -1,7 +1,8 @@
-import positionVector from "./positionVector";
+import positionVector, { inverse_select } from "./positionVector";
 import intervalVector from "./intervalVector";
 import { modulo } from "./utility";
 import { minRotation} from "./distances";
+import { chord } from "./chord";
 
 const noteItaliane: string[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
 const noteInglesi: string[]= ["C", "D", "E", "F", "G", "A", "B"];
@@ -51,5 +52,20 @@ export function scaleNames(scala: positionVector, ita: boolean = true) {
     }
     nomi.push(nome);
   }
-  return nomi;
+  return nomi;  
 }
+
+/**
+ * funzione per visualizzare web chord notes
+ */
+let scala = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12);
+let chordNotes = chord({scala: scala});
+
+let index_chord = inverse_select(chordNotes, scala);
+
+let nomi_scala = scaleNames(scala);
+
+for (let i = 0; i < index_chord.data.length; i++) {
+  console.log(nomi_scala[index_chord.data[i]]);
+}
+
