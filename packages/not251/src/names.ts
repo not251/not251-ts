@@ -57,7 +57,7 @@ export function scaleNames(
     usedNotes.add(bestBaseName);
 
     if (useCents) {
-      const cents = Math.round(bestSteps * 100);
+      const cents = Math.round(bestSteps * 50);
       if (cents !== 0) {
         return `${bestBaseName} ${cents > 0 ? "↑" : "↓"}${Math.abs(cents)}¢`;
       }
