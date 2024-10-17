@@ -4,14 +4,14 @@ import { toIntervals, toPositions } from "./crossOperation";
 import { euclideanDistanceMap, sortByDistance } from "./distances";
 
 export type ScaleParams = {
-  intervals?: intervalVector;
-  root?: number;
-  modo?: number;
-  grado?: number;
-  isInvert?: boolean;
-  isMirror?: boolean;
-  mirrorPos?: number;
-  mirrorLeft?: boolean;
+  intervals: intervalVector;
+  root: number;
+  modo: number;
+  grado: number;
+  isInvert: boolean;
+  isMirror: boolean;
+  mirrorPos: number;
+  mirrorLeft: boolean;
 };
 
 export const defaultScaleParams: ScaleParams = {
