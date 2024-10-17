@@ -1,45 +1,49 @@
 <script lang="ts">
-	import { positionVector, chord } from '@not251/not251';
+	import { chord as generateChord, intervalVector } from '@not251/not251';
 	import * as Tone from 'tone';
 	import { Slider } from '$lib/components/ui/slider';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import { scaleNotes } from './store';
-	import Keyboard from '../keyboard/Keyboard.svelte';
+	import { chord, scale } from './store';
+	import { initChordOptions } from './utils';
 
-	$effect(() => {
-		scala = $scaleNotes;
-	});
-
-	let scala: positionVector = $state($scaleNotes);
-	let grado: number[] = $state([0]);
-	let preVoices: number[] = $state([3]);
-	let position: number[] = $state([0]);
-	let postVoices: number[] = $state([3]);
-	let root: number[] = $state([0]);
-	let octave: number[] = $state([3]);
-	let isInvert: boolean = $state(false);
-	let isNegative: boolean = $state(false);
-	let standardNegative: boolean = $state(true);
-	let negativePos: number[] = $state([10]);
+	let options = $state(initChordOptions);
 
 	let chordNotes = $derived(
-		chord({
-			scala: scala,
-			grado: grado[0],
-			preVoices: preVoices[0],
-			position: position[0],
-			postVoices: postVoices[0],
-			root: root[0],
-			octave: octave[0] + 2,
-			isInvert: isInvert,
-			isNegative: isNegative,
-			standardNegative: standardNegative,
-			negativePos: negativePos[0]
+		generateChord({
+			grado: $scale.options.grado[0],
+			root: $scale.options.root[0],
+			isInvert: options.isInvert,
+			isNegative: options.isNegative,
+			standardNegative: options.standardNegative,
+			negativePos: options.negativePos[0],
+			preVoices: options.preVoices[0],
+			position: options.position[0],
+			postVoices: options.postVoices[0],
+			octave: options.octave[0] + 2,
+			scala: $scale.notes,
+			selection: new intervalVector([2], 12, 0)
 		})
 	);
+
+	$effect(() => {
+		$chord = {
+			options: {
+				scale: options.scale,
+				octave: options.octave,
+				preVoices: options.preVoices,
+				position: options.position,
+				postVoices: options.postVoices,
+				isInvert: options.isInvert,
+				isNegative: options.isNegative,
+				standardNegative: options.standardNegative,
+				negativePos: options.negativePos
+			},
+			notes: chordNotes
+		};
+	});
 
 	function play(notes: number[]) {
 		const synth = new Tone.PolySynth(Tone.Synth).toDestination();
@@ -54,48 +58,55 @@
 <Card.Root class="w-full max-w-prose">
 	<Card.Header>
 		<Card.Title>Chord</Card.Title>
-		<Card.Description>Demo for Chord generation</Card.Description>
+		<Card.Description>Chord generation</Card.Description>
 	</Card.Header>
 	<Card.Content>
-		<div class="flex flex-col gap-10">
-			<Label for="grado">Grado: {grado[0] + 1}</Label>
-			<Slider id="grado" bind:value={grado} max={7} step={1} />
-			<Label for="preVoices">Pre-Voices: {preVoices}</Label>
-			<Slider id="preVoices" bind:value={preVoices} min={1} max={7} step={1} />
-			<Label for="position">Position: {position}</Label>
-			<Slider id="position" bind:value={position} min={0} max={7} step={1} />
-			<Label for="postVoices">Post-Voices: {postVoices}</Label>
-			<Slider id="postVoices" bind:value={postVoices} min={1} max={7} step={1} />
-			<Label for="root">Root: {root[0]}</Label>
-			<Slider id="root" bind:value={root} max={11} step={1} />
-			<Label for="octave">Octave: {octave}</Label>
-			<Slider id="octave" bind:value={octave} min={-2} max={8} step={1} />
-
-			<div class="flex items-center space-x-2">
-				<Switch id="isInvert" bind:checked={isInvert} />
-				<Label for="isInvert">Invert</Label>
+		<div class="flex flex-col gap-5">
+			<div>
+				<Label for="preVoices">Pre-Voices: {options.preVoices}</Label>
+				<Slider id="preVoices" bind:value={options.preVoices} min={1} max={7} step={1} />
+			</div>
+			<div>
+				<Label for="position">Position: {options.position}</Label>
+				<Slider id="position" bind:value={options.position} min={0} max={7} step={1} />
+			</div>
+			<div>
+				<Label for="postVoices">Post-Voices: {options.postVoices}</Label>
+				<Slider id="postVoices" bind:value={options.postVoices} min={1} max={7} step={1} />
+			</div>
+			<div>
+				<Label for="octave">Octave: {options.octave}</Label>
+				<Slider id="octave" bind:value={options.octave} min={-2} max={8} step={1} />
 			</div>
 
-			<div class="flex items-center space-x-2">
-				<Switch id="isNegative" bind:checked={isNegative} />
-				<Label for="isNegative">Negative</Label>
+			<!-- SWITCHES -->
+			<div class="flex flex-col gap-2">
+				<div class="flex items-center space-x-2">
+					<Switch id="isInvert" bind:checked={options.isInvert} />
+					<Label for="isInvert">Invert</Label>
+				</div>
+
+				<div class="flex items-center space-x-2">
+					<Switch id="isNegative" bind:checked={options.isNegative} />
+					<Label for="isNegative">Negative</Label>
+				</div>
+
+				<div class="flex items-center space-x-2">
+					<Switch id="standardNegative" bind:checked={options.standardNegative} />
+					<Label for="standardNegative">Standard Negative</Label>
+				</div>
 			</div>
 
-			<div class="flex items-center space-x-2">
-				<Switch id="standardNegative" bind:checked={standardNegative} />
-				<Label for="standardNegative">Standard Negative</Label>
+			<div class="">
+				<Label for="negativePos">Negative Position: {options.negativePos}</Label>
+				<Slider id="negativePos" bind:value={options.negativePos} min={0} max={11} step={1} />
 			</div>
-
-			<Label for="negativePos">Negative Position: {negativePos}</Label>
-			<Slider id="negativePos" bind:value={negativePos} min={0} max={11} step={1} />
 		</div>
 	</Card.Content>
 	<Card.Footer>
 		<div class="flex w-full flex-col gap-10">
-			<Button on:click={() => play(chordNotes.data)}>Play</Button>
-			<Keyboard middleC={60} octaves={octave[0]} keysPressed={chordNotes.data} />
-
-			<p>Result: {JSON.stringify(chordNotes.data, null, 2)}</p>
+			<Button on:click={() => play($chord.notes.data)}>Play</Button>
+			<p>Result: {JSON.stringify($chord.notes.data, null, 2)}</p>
 		</div>
 	</Card.Footer>
 </Card.Root>
