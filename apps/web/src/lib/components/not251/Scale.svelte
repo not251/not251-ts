@@ -1,85 +1,85 @@
 <script lang="ts">
-	import * as not251 from '@not251/not251';
-	import * as Tone from 'tone';
-	import { writable } from 'svelte/store';
-	import { Slider } from '$lib/components/ui/slider';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
+	import { Slider } from '$lib/components/ui/slider';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { scaleNotes } from './store';
+	import { scale as generateScale, positionVector } from '@not251/not251';
+	import { scale } from '$lib/components/not251/store';
+	import { initScaleOptions } from './utils';
 
-	// Stores for state management
-	const intervals = writable([2, 2, 1, 2, 2, 2, 1]);
-	const root = writable([0]);
-	const grado = writable([0]);
-	const modo = writable([0]);
-	const isInvert = writable(false);
-	const isMirror = writable(false);
-	const mirrorLeft = writable(false);
-	const mirrorPos = writable([0]);
+	let options = $state(initScaleOptions);
 
-	let intervalsValue = new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0);
-
-	let scala: not251.positionVector;
-
-	// Update the scaleNotes store whenever inputs change
-	$: scaleNotes.set(
-		not251.scale({
-			intervals: intervalsValue,
-			root: $root[0],
-			grado: $grado[0],
-			modo: $modo[0],
-			isInvert: $isInvert,
-			isMirror: $isMirror,
-			mirrorLeft: $mirrorLeft,
-			mirrorPos: $mirrorPos[0]
+	let scaleNotes: positionVector = $derived(
+		generateScale({
+			intervals: options.intervals,
+			grado: options.grado[0],
+			root: options.root[0],
+			modo: options.modo[0],
+			isInvert: options.isInvert,
+			isMirror: options.isMirror,
+			mirrorLeft: options.mirrorLeft,
+			mirrorPos: options.mirrorPos[0]
 		})
 	);
 
-	// Subscribe to scaleNotes store to update scala
-	scaleNotes.subscribe((value) => {
-		scala = value;
+	$effect(() => {
+		$scale = {
+			options: {
+				intervals: options.intervals,
+				grado: options.grado,
+				root: options.root,
+				modo: options.modo,
+				isInvert: options.isInvert,
+				isMirror: options.isMirror,
+				mirrorLeft: options.mirrorLeft,
+				mirrorPos: options.mirrorPos
+			},
+			notes: scaleNotes
+		};
 	});
 </script>
 
 <Card.Root class="w-full max-w-prose">
 	<Card.Header>
-		<Card.Title>Scale</Card.Title>
-		<Card.Description>Demo for Scale generation</Card.Description>
+		<Card.Title class="text-2xl">Scale</Card.Title>
+		<Card.Description>Scale generation</Card.Description>
 	</Card.Header>
 	<Card.Content>
-		<div class="flex flex-col gap-10">
-			<Label for="modo">Modo: {$modo[0] + 1}</Label>
-			<Slider id="modo" bind:value={$modo} min={0} max={7} step={1} />
-			<Label for="grado">Grado: {$grado[0] + 1}</Label>
-			<Slider id="grado" bind:value={$grado} max={7} step={1} />
-			<Label for="root">Root: {$root[0]}</Label>
-			<Slider id="root" bind:value={$root} max={11} step={1} />
-
-			<div class="flex items-center space-x-2">
-				<Label for="isInvert">Invert</Label>
-				<Switch id="isInvert" bind:checked={$isInvert} />
+		<div class="flex flex-col gap-5">
+			<div class="space-y-2">
+				<Label for="modo">Modo: {options.modo[0] + 1}</Label>
+				<Slider id="modo" bind:value={options.modo} min={0} max={7} step={1} />
 			</div>
-
-			<div class="flex items-center space-x-2">
-				<Label for="isMirror">Mirror</Label>
-				<Switch id="isMirror" bind:checked={$isMirror} />
+			<div class="space-y-2">
+				<Label for="grado">Grado: {options.grado[0] + 1}</Label>
+				<Slider id="grado" bind:value={options.grado} max={7} step={1} />
 			</div>
-
-			<div class="flex items-center space-x-2">
-				<Label for="mirrorLeft">Mirror Left</Label>
-				<Switch id="mirrorLeft" bind:checked={$mirrorLeft} />
+			<div class="space-y-2">
+				<Label for="root">Root: {options.root[0]}</Label>
+				<Slider id="root" bind:value={options.root} max={11} step={1} />
 			</div>
+			<div class="flex flex-col gap-2">
+				<div class="flex items-center space-x-2">
+					<Label for="isInvert">Invert</Label>
+					<Switch id="isInvert" bind:checked={options.isInvert} />
+				</div>
+				<div class="flex items-center space-x-2">
+					<Label for="isMirror">Mirror</Label>
+					<Switch id="isMirror" bind:checked={options.isMirror} />
+				</div>
 
-			<Label for="mirrorPos">Mirror Position: {$mirrorPos}</Label>
-			<Slider id="mirrorPos" bind:value={$mirrorPos} min={0} max={11} step={1} />
+				<div class="flex items-center space-x-2">
+					<Label for="mirrorLeft">Mirror Left</Label>
+					<Switch id="mirrorLeft" bind:checked={options.mirrorLeft} />
+				</div>
+			</div>
+			<div class="space-y-2">
+				<Label for="mirrorPos">Mirror Position: {options.mirrorPos}</Label>
+				<Slider id="mirrorPos" bind:value={options.mirrorPos} min={0} max={11} step={1} />
+			</div>
 		</div>
 	</Card.Content>
-	<Card.Footer>
-		<div class="flex w-full flex-col gap-10">
-			<p>Scale: {JSON.stringify(scala.names(), null, 2)}</p>
-		</div>
+	<Card.Footer class="flex w-full items-center justify-center gap-2">
+		<p>Scale Notes: {JSON.stringify($scale.notes?.data, null, 2)}</p>
 	</Card.Footer>
 </Card.Root>
