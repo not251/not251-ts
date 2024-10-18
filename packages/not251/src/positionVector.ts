@@ -1,4 +1,4 @@
-import { noteName, noteNames } from "./constants";
+import { Language, NoteName, NoteNames } from "./constants";
 import { minRotation } from "./distances";
 import { scale } from "./scale";
 import { modulo, lcm } from "./utility";
@@ -252,7 +252,12 @@ export default class positionVector {
    * @param scaleVector positionVector for the input scale to find note names for.
    * @returns An array of noteNames objects, each containing the English and Italian note names.
    */
-  names(scaleVector: positionVector): noteName[] {
+  names(desiredLanguages: Language[] = ["en"]): Partial<NoteName>[] {
+    let scaleVector: positionVector = new positionVector(
+      this.data,
+      this.modulo,
+      this.span
+    );
     let cMaj = scale();
     let a = minRotation(scaleVector, cMaj);
 
@@ -278,31 +283,27 @@ export default class positionVector {
 
     //l'algoritmo che porta a questo potrebbe essere ottimizzato
 
-    let names: noteName[] = [];
+    let names: Partial<NoteName>[] = [];
 
     for (let i = 0; i < scaleVector.data.length; i++) {
       let diff = scaleVector.data[i] - dorototraslata.data[i]; // Calcola la differenza senza modulo
 
-      let name: noteName = {
-        en: "",
-        it: "",
-      };
+      let noteName: Partial<NoteName> = {};
+      for (let language of desiredLanguages) {
+        noteName[language] =
+          NoteNames[modulo(a + i, NoteNames.length)][language];
 
-      name.en = noteNames[modulo(a + i, noteNames.length)].en;
-      name.it = noteNames[modulo(a + i, noteNames.length)].it;
-
-      if (diff > 0) {
-        for (let j = 0; j < diff; j++) {
-          name.en += "#";
-          name.it += "#";
-        }
-      } else if (diff < 0) {
-        for (let j = 0; j < -diff; j++) {
-          name.en += "b";
-          name.it += "b";
+        if (diff > 0) {
+          for (let j = 0; j < diff; j++) {
+            noteName[language] += "#";
+          }
+        } else if (diff < 0) {
+          for (let j = 0; j < -diff; j++) {
+            noteName[language] += "b";
+          }
         }
       }
-      names.push(name);
+      names.push(noteName);
     }
     return names;
   }

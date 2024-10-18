@@ -1,12 +1,13 @@
-export type noteName = {
-  en: string;
-  it: string;
+export type Language = "en" | "it";
+
+export type NoteName = {
+  [key in Language]: string;
 };
 
-export const noteNames: noteName[] = [
+export const NoteNames: NoteName[] = [
   {
     en: "C",
-    it: "Do",
+    it: "Do porco",
   },
   {
     en: "D",
