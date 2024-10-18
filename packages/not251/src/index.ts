@@ -17,8 +17,6 @@ import { phraseLength, tihai } from "./indian";
 import * as distances from "./distances";
 import * as utility from "./utility";
 import * as mirror from "./mirror";
-import * as names from "./names"; 
-
 
 export {
   autoMode,
@@ -43,5 +41,4 @@ export {
   generateCounterpoint,
   tihai,
   phraseLength,
-  names
 };

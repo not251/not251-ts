@@ -1,11 +1,11 @@
 import positionVector, { inverse_select } from "./positionVector";
 import intervalVector from "./intervalVector";
-import { modulo , lcm } from "./utility";
-import { minRotation} from "./distances";
+import { modulo, lcm } from "./utility";
+import { minRotation } from "./distances";
 import { chord } from "./chord";
 
 const noteItaliane: string[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
-const noteInglesi: string[]= ["C", "D", "E", "F", "G", "A", "B"];
+const noteInglesi: string[] = ["C", "D", "E", "F", "G", "A", "B"];
 
 /**
  * Generates the note names corresponding to the values of a scale.
@@ -116,7 +116,9 @@ export function scaleNames(
         return bestBaseName + (bestSteps > 0 ? "𝄲" : "𝄳"); // Microtonal symbols
       } else if (roundedSteps !== 0) {
         const alteration = roundedSteps > 0 ? "♯" : "♭";
-        return bestBaseName + alteration.repeat(Math.min(Math.abs(roundedSteps), 2));
+        return (
+          bestBaseName + alteration.repeat(Math.min(Math.abs(roundedSteps), 2))
+        );
       }
       return bestBaseName;
     }
@@ -127,7 +129,7 @@ export function scaleNames(
  * funzione per visualizzare web chord notes
  */
 let scala = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12);
-let chordNotes = chord({scala: scala});
+let chordNotes = chord({ scala: scala });
 
 let index_chord = inverse_select(chordNotes, scala);
 
@@ -136,4 +138,3 @@ let nomi_scala = scaleNames(scala);
 for (let i = 0; i < index_chord.data.length; i++) {
   console.log(nomi_scala[index_chord.data[i]]);
 }
-

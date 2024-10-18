@@ -92,7 +92,7 @@
 		<div class="flex w-full flex-col gap-10">
 			<Button on:click={() => play(chordNotes.data)}>Play</Button>
 
-			<p>Result: {JSON.stringify(chordNotes.data, null, 2)}</p>
+			<p>Result: {JSON.stringify(chordNotes.names(), null, 2)}</p>
 		</div>
 	</Card.Footer>
 </Card.Root>

@@ -1,3 +1,6 @@
+import { Language, NoteName, NoteNames } from "./constants";
+import { minRotation } from "./distances";
+import { scale } from "./scale";
 import { modulo, lcm } from "./utility";
 
 /**
@@ -186,8 +189,8 @@ export default class positionVector {
     let out = new positionVector(v, this.modulo, this.span);
     out.spanUpdate();
     return out;
-  } 
-  
+  }
+
   /**
    * Inverts the vector around a specified axis, which can be the first element, last element, or middle element.
    * The median (1) simply reverses the data, while the other options mirror elements around the selected axis.
@@ -242,15 +245,95 @@ export default class positionVector {
     return new positionVector(out, this.modulo, this.span);
   }
 
-  scaleZero() {
-    this.sum(-this.data[0]);
-    for(let i = 1; i < this.data.length; i++) {
-      this.data[i] = modulo(this.data[i], this.modulo);
+  /**
+   * It returns the note names for the input scale.
+   * This only works for scales with 7 notes and modulo 12 for the moment.
+   *
+   * @param scaleVector positionVector for the input scale to find note names for.
+   * @returns An array of noteNames objects, each containing the English and Italian note names.
+   */
+  names(desiredLanguages: Language[] = ["en"]): Partial<NoteName>[] {
+    let scaleVector: positionVector = new positionVector(
+      this.data,
+      this.modulo,
+      this.span
+    );
+    let cMaj = scale();
+    let a = minRotation(scaleVector, cMaj);
+
+    //sto supponendo che entrambe le scale sia di uguale lunghezza
+
+    let trasp1 = cMaj.rototranslate(a, cMaj.data.length, false);
+    let trasp2 = cMaj.rototranslate(a + 1, cMaj.data.length, false);
+
+    let n = trasp1.data.map((value, index) => value - scaleVector.data[index]); // differenza lineare tra due vettori
+    let m = trasp2.data.map((value, index) => value - scaleVector.data[index]);
+
+    let sum_n = n.reduce((acc, val) => acc + val, 0); //somma delle differenze
+    let sum_m = m.reduce((acc, val) => acc + val, 0);
+
+    let dorototraslata: positionVector;
+
+    if (Math.abs(sum_n) < Math.abs(sum_m)) {
+      dorototraslata = trasp1;
+    } else {
+      a = a + 1;
+      dorototraslata = trasp2;
     }
-    this.data.sort((a, b) => a - b);
+
+    //l'algoritmo che porta a questo potrebbe essere ottimizzato
+
+    let names: Partial<NoteName>[] = [];
+
+    for (let i = 0; i < scaleVector.data.length; i++) {
+      let diff = scaleVector.data[i] - dorototraslata.data[i]; // Calcola la differenza senza modulo
+
+      let noteName: Partial<NoteName> = {};
+      for (let language of desiredLanguages) {
+        noteName[language] =
+          NoteNames[modulo(a + i, NoteNames.length)][language];
+
+        if (diff > 0) {
+          for (let j = 0; j < diff; j++) {
+            noteName[language] += "#";
+          }
+        } else if (diff < 0) {
+          for (let j = 0; j < -diff; j++) {
+            noteName[language] += "b";
+          }
+        }
+      }
+      names.push(noteName);
+    }
+    return names;
   }
 
+  /**
+   * This method scales the vector to zero, effectively removing the offset.
+   * TBI: remove duplicates in out.data!
+   * @param autoupdate updates the original data array with the updated values (default is false).
+   * @returns
+   */
+  toZero(autoupdate: boolean = false): positionVector {
+    let out = new positionVector(this.data.slice(), this.modulo, this.span);
 
+    this.sum(-out.data[0]);
+    for (let i = 1; i < out.data.length; i++) {
+      out.data[i] = modulo(out.data[i], out.modulo);
+    }
+    out.data.sort((a, b) => a - b);
+    out.spanUpdate();
+
+    //TBI: Remove duplicates in out.data!
+
+    if (autoupdate) {
+      this.data = out.data;
+      this.span = out.span;
+      this.modulo = out.modulo;
+    }
+
+    return out;
+  }
 }
 
 /**
@@ -282,27 +365,36 @@ function lcmPosition(
   ];
 }
 
-export function inverse_select(voicing: positionVector, scala: positionVector): positionVector {
-
-  let index: positionVector = new positionVector([], voicing.data.length, voicing.data.length);
+export function inverse_select(
+  voicing: positionVector,
+  scala: positionVector
+): positionVector {
+  let index: positionVector = new positionVector(
+    [],
+    voicing.data.length,
+    voicing.data.length
+  );
   //aggiungere sort a voicing per evitare che possa rompersi
-  
+
   let j = Math.floor(voicing.data[0] / voicing.modulo);
-  
-  while (scala.element(j) > voicing.data[0]){
+
+  while (scala.element(j) > voicing.data[0]) {
     j--;
   }
 
   for (let i = 0; i < voicing.data.length; i++) {
-    while(scala.element(j) < voicing.data[i]){
+    while (scala.element(j) < voicing.data[i]) {
       j++;
     }
-    if(scala.element(j) == voicing.data[i]){
+    if (scala.element(j) == voicing.data[i]) {
       index.data.push(j);
-    }
-    else {
+    } else {
       // Messaggio di errore e interruzione della funzione
-      throw new Error("Errore: Impossibile trovare la corrispondenza per l'elemento " + voicing.data[i] + " nella scala.");
+      throw new Error(
+        "Errore: Impossibile trovare la corrispondenza per l'elemento " +
+          voicing.data[i] +
+          " nella scala."
+      );
     }
   }
 
