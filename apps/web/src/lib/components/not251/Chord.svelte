@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { chord as generateChord, intervalVector } from '@not251/not251';
-	import * as Tone from 'tone';
 	import { Slider } from '$lib/components/ui/slider';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
@@ -44,15 +42,6 @@
 			notes: chordNotes
 		};
 	});
-
-	function play(notes: number[]) {
-		const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-		let actualNotes: number[] = [];
-		notes.forEach((note) => {
-			actualNotes.push(Tone.Midi(note).toFrequency());
-		});
-		synth.triggerAttackRelease(actualNotes, '8n');
-	}
 </script>
 
 <Card.Root class="w-full max-w-prose">
@@ -104,9 +93,6 @@
 		</div>
 	</Card.Content>
 	<Card.Footer>
-		<div class="flex w-full flex-col gap-10">
-			<Button on:click={() => play($chord.notes.data)}>Play</Button>
-			<p>Result: {JSON.stringify($chord.notes.data, null, 2)}</p>
-		</div>
+		<p>Result: {JSON.stringify($chord.notes?.data, null, 2)}</p>
 	</Card.Footer>
 </Card.Root>
