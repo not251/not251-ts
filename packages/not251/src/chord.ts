@@ -10,18 +10,18 @@ import {
 } from "./distances";
 
 export type ChordParams = {
-  scala: positionVector;
-  selection: positionVector | intervalVector;
-  grado: number;
-  preVoices: number;
-  position: number;
-  postVoices: number;
-  root: number;
-  octave: number;
-  isInvert: boolean;
-  isNegative: boolean;
-  negativePos: number;
-  standardNegative: boolean;
+  scala?: positionVector;
+  selection?: positionVector | intervalVector;
+  grado?: number;
+  preVoices?: number;
+  position?: number;
+  postVoices?: number;
+  root?: number;
+  octave?: number;
+  isInvert?: boolean;
+  isNegative?: boolean;
+  negativePos?: number;
+  standardNegative?: boolean;
 };
 
 export const defaultChordParams: ChordParams = {
