@@ -17,7 +17,7 @@ import { phraseLength, tihai } from "./indian";
 import * as distances from "./distances";
 import * as utility from "./utility";
 import * as mirror from "./mirror";
-import { Language, NoteName, NoteNames } from "./constants";
+import { Language, NoteNames } from "./constants";
 
 export {
   autoMode,
@@ -29,7 +29,6 @@ export {
   distances,
   utility,
   Language,
-  NoteName,
   NoteNames,
   ScaleParams,
   defaultScaleParams,
