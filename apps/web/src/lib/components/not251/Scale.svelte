@@ -20,12 +20,14 @@
 	const mirrorLeft = writable(false);
 	const mirrorPos = writable([0]);
 
+	let intervalsValue = new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0);
+
 	let scala: not251.positionVector;
 
 	// Update the scaleNotes store whenever inputs change
 	$: scaleNotes.set(
 		not251.scale({
-			intervals: new not251.intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
+			intervals: intervalsValue,
 			root: $root[0],
 			grado: $grado[0],
 			modo: $modo[0],
@@ -77,7 +79,7 @@
 	</Card.Content>
 	<Card.Footer>
 		<div class="flex w-full flex-col gap-10">
-			<p>Scale: {JSON.stringify(scala.data, null, 2)}</p>
+			<p>Scale: {JSON.stringify(scala.names(), null, 2)}</p>
 		</div>
 	</Card.Footer>
 </Card.Root>
