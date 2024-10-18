@@ -9,8 +9,10 @@ export const Playground = () => {
       <h1 className="text-center text-4xl font-semibold">Playground</h1>
       <PlaygroundProvider>
         <Piano />
-        <Scale />
-        <Chord />
+        <div className="flex flex-row items-start gap-4">
+          <Scale />
+          <Chord />
+        </div>
       </PlaygroundProvider>
     </div>
   );
