@@ -24,8 +24,8 @@ importers:
   apps/docs:
     dependencies:
       '@not251/not251':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: workspace:*
+        version: link:../../packages/not251
       fumadocs-core:
         specifier: 13.4.10
         version: 13.4.10(@types/react@18.3.11)(next@14.2.15(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -982,9 +982,6 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
-
-  '@not251/not251@0.0.2':
-    resolution: {integrity: sha512-44YixLj7e9gqKbC4nVMgWPp9YXzbKa2YnjZ3+tndiaWhlwNJChsw60Ly3LunfkmQGksAEVQhee8JPkSePObOYQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -5257,8 +5254,6 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
-
-  '@not251/not251@0.0.2': {}
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
