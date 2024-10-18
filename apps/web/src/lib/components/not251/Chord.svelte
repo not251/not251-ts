@@ -46,24 +46,24 @@
 
 <Card.Root class="w-full max-w-prose">
 	<Card.Header>
-		<Card.Title>Chord</Card.Title>
+		<Card.Title class="text-2xl">Chord</Card.Title>
 		<Card.Description>Chord generation</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<div class="flex flex-col gap-5">
-			<div>
+			<div class="space-y-2">
 				<Label for="preVoices">Pre-Voices: {options.preVoices}</Label>
 				<Slider id="preVoices" bind:value={options.preVoices} min={1} max={7} step={1} />
 			</div>
-			<div>
+			<div class="space-y-2">
 				<Label for="position">Position: {options.position}</Label>
 				<Slider id="position" bind:value={options.position} min={0} max={7} step={1} />
 			</div>
-			<div>
+			<div class="space-y-2">
 				<Label for="postVoices">Post-Voices: {options.postVoices}</Label>
 				<Slider id="postVoices" bind:value={options.postVoices} min={1} max={7} step={1} />
 			</div>
-			<div>
+			<div class="space-y-2">
 				<Label for="octave">Octave: {options.octave}</Label>
 				<Slider id="octave" bind:value={options.octave} min={-2} max={8} step={1} />
 			</div>
@@ -85,14 +85,13 @@
 					<Label for="standardNegative">Standard Negative</Label>
 				</div>
 			</div>
-
-			<div class="">
+			<div class="space-y-2">
 				<Label for="negativePos">Negative Position: {options.negativePos}</Label>
 				<Slider id="negativePos" bind:value={options.negativePos} min={0} max={11} step={1} />
 			</div>
 		</div>
 	</Card.Content>
-	<Card.Footer>
-		<p>Result: {JSON.stringify($chord.notes?.data, null, 2)}</p>
+	<Card.Footer class="flex w-full items-center justify-center gap-2">
+		<p>Chord Notes: {JSON.stringify($chord.notes?.data, null, 2)}</p>
 	</Card.Footer>
 </Card.Root>

@@ -41,20 +41,20 @@
 
 <Card.Root class="w-full max-w-prose">
 	<Card.Header>
-		<Card.Title>Scale</Card.Title>
+		<Card.Title class="text-2xl">Scale</Card.Title>
 		<Card.Description>Scale generation</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<div class="flex flex-col gap-5">
-			<div>
+			<div class="space-y-2">
 				<Label for="modo">Modo: {options.modo[0] + 1}</Label>
 				<Slider id="modo" bind:value={options.modo} min={0} max={7} step={1} />
 			</div>
-			<div>
+			<div class="space-y-2">
 				<Label for="grado">Grado: {options.grado[0] + 1}</Label>
 				<Slider id="grado" bind:value={options.grado} max={7} step={1} />
 			</div>
-			<div>
+			<div class="space-y-2">
 				<Label for="root">Root: {options.root[0]}</Label>
 				<Slider id="root" bind:value={options.root} max={11} step={1} />
 			</div>
@@ -73,15 +73,13 @@
 					<Switch id="mirrorLeft" bind:checked={options.mirrorLeft} />
 				</div>
 			</div>
-		</div>
-		<div>
-			<Label for="mirrorPos">Mirror Position: {options.mirrorPos}</Label>
-			<Slider id="mirrorPos" bind:value={options.mirrorPos} min={0} max={11} step={1} />
+			<div class="space-y-2">
+				<Label for="mirrorPos">Mirror Position: {options.mirrorPos}</Label>
+				<Slider id="mirrorPos" bind:value={options.mirrorPos} min={0} max={11} step={1} />
+			</div>
 		</div>
 	</Card.Content>
-	<Card.Footer>
-		<div class="flex w-full flex-col gap-10">
-			<p>Scale: {JSON.stringify($scale.notes, null, 2)}</p>
-		</div>
+	<Card.Footer class="flex w-full items-center justify-center gap-2">
+		<p>Scale Notes: {JSON.stringify($scale.notes?.data, null, 2)}</p>
 	</Card.Footer>
 </Card.Root>
