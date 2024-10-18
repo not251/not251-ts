@@ -23,8 +23,6 @@ export function scaleNames(
   ita: boolean = true,
   useCents: boolean = false
 ): string[] {
-  const centsPerOctave = 600; // As per your definition
-  const centsPerSemitone = 50; // 600 cents / 12 semitones
   const semitoneValue = scala.modulo / 12; // Each semitone in terms of modulo
   const noteNames = ita ? noteItaliane : noteInglesi;
   const standardDegrees = [0, 2, 4, 5, 7, 9, 11]; // Major scale intervals in semitones
@@ -70,7 +68,8 @@ export function scaleNames(
 
       // Try octave offsets to find the closest reference value
       for (let octaveOffset = -1; octaveOffset <= 1; octaveOffset++) {
-        const refValue = (degree * scala.modulo) / 12 + octaveOffset * scala.modulo;
+        const refValue =
+          (degree * scala.modulo) / 12 + octaveOffset * scala.modulo;
         const diff = value - refValue;
         const steps = diff / semitoneValue; // Difference in semitones
         const absSteps = Math.abs(steps);
@@ -81,10 +80,7 @@ export function scaleNames(
           const accidentals = Math.abs(roundedSteps);
           const penalty = usedNotes.has(baseName) ? 1 : 0;
           const score =
-            absSteps +
-            accidentals +
-            penalty +
-            Math.abs(degreeOffset) * 0.5; // Penalize distant degrees
+            absSteps + accidentals + penalty + Math.abs(degreeOffset) * 0.5; // Penalize distant degrees
 
           if (score < minScore) {
             minScore = score;
@@ -104,7 +100,7 @@ export function scaleNames(
     usedNotes.add(bestBaseName);
 
     // Generate the note name with appropriate alterations
-        if (useCents) {
+    if (useCents) {
       const cents = Math.round(bestSteps * 50);
       if (cents !== 0) {
         return `${bestBaseName} ${cents > 0 ? "↑" : "↓"}${Math.abs(cents)}¢`;

@@ -7,7 +7,7 @@ export type NoteName = {
 export const NoteNames: NoteName[] = [
   {
     en: "C",
-    it: "Do porco",
+    it: "Do",
   },
   {
     en: "D",
