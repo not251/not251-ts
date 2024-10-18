@@ -23,40 +23,88 @@ export function scaleNames(
   ita: boolean = true,
   useCents: boolean = false
 ): string[] {
-  const modulo = scala.modulo;
-  const semitoneValue = modulo / 12;
+  const centsPerOctave = 600; // As per your definition
+  const centsPerSemitone = 50; // 600 cents / 12 semitones
+  const semitoneValue = scala.modulo / 12; // Each semitone in terms of modulo
   const noteNames = ita ? noteItaliane : noteInglesi;
-  const noteDegrees = [0, 2, 4, 5, 7, 9, 11];
-  const usedNotes = new Set<string>(); // To prevent duplicates
+  const standardDegrees = [0, 2, 4, 5, 7, 9, 11]; // Major scale intervals in semitones
+  // Determine the key (starting note)
+  const keyValue = modulo(scala.data[0], scala.modulo);
+  let keyIndex = Math.round((keyValue / scala.modulo) * 12) % 12;
 
-  return scala.data.map((value) => {
+  // Find the closest note name to the key
+  let minDiff = Infinity;
+  let keyNoteIndex = 0;
+  for (let i = 0; i < standardDegrees.length; i++) {
+    const degree = standardDegrees[i];
+    const refValue = (degree * scala.modulo) / 12;
+    const diff = Math.abs(refValue - keyValue);
+    if (diff < minDiff) {
+      minDiff = diff;
+      keyNoteIndex = i;
+    }
+  }
+
+  // Rotate noteNames and standardDegrees to match the key
+  const rotatedNoteNames = noteNames
+    .slice(keyNoteIndex)
+    .concat(noteNames.slice(0, keyNoteIndex));
+  const rotatedDegrees = standardDegrees
+    .slice(keyNoteIndex)
+    .concat(standardDegrees.slice(0, keyNoteIndex));
+
+  const usedNotes = new Set<string>(); // To prevent duplicate note names
+
+  return scala.data.map((value, idx) => {
     let bestBaseName = "";
-    let minAbsSteps = Infinity;
+    let minScore = Infinity;
     let bestSteps = 0;
+    let bestAccidentals = 0;
 
-    for (let i = 0; i < noteDegrees.length; i++) {
-      const degree = noteDegrees[i];
-      const baseName = noteNames[i];
-      const refValue = (degree * modulo) / 12;
-      const octaveOffset = Math.round((value - refValue) / modulo);
-      const adjustedRefValue = refValue + octaveOffset * modulo;
-      const diff = value - adjustedRefValue;
-      const steps = diff / semitoneValue;
-      const absSteps = Math.abs(steps);
+    // Consider degrees within ±2 of the expected degree
+    for (let degreeOffset = -2; degreeOffset <= 2; degreeOffset++) {
+      let degreeIndex =
+        (idx + degreeOffset + rotatedDegrees.length) % rotatedDegrees.length;
+      const degree = rotatedDegrees[degreeIndex];
+      const baseName = rotatedNoteNames[degreeIndex];
 
-      if (
-        absSteps < minAbsSteps ||
-        (absSteps === minAbsSteps && !usedNotes.has(baseName))
-      ) {
-        minAbsSteps = absSteps;
-        bestBaseName = baseName;
-        bestSteps = steps;
+      // Try octave offsets to find the closest reference value
+      for (let octaveOffset = -1; octaveOffset <= 1; octaveOffset++) {
+        const refValue = (degree * scala.modulo) / 12 + octaveOffset * scala.modulo;
+        const diff = value - refValue;
+        const steps = diff / semitoneValue; // Difference in semitones
+        const absSteps = Math.abs(steps);
+
+        if (absSteps <= 1) {
+          // Limit adjustments to within one semitone (±50 cents)
+          const roundedSteps = Math.round(steps * 2) / 2; // Round to nearest 0.5 for quarter tones
+          const accidentals = Math.abs(roundedSteps);
+          const penalty = usedNotes.has(baseName) ? 1 : 0;
+          const score =
+            absSteps +
+            accidentals +
+            penalty +
+            Math.abs(degreeOffset) * 0.5; // Penalize distant degrees
+
+          if (score < minScore) {
+            minScore = score;
+            bestBaseName = baseName;
+            bestSteps = steps;
+            bestAccidentals = roundedSteps;
+          }
+        }
       }
+    }
+
+    // If no suitable note is found, return a placeholder
+    if (bestBaseName === "") {
+      return "?";
     }
 
     usedNotes.add(bestBaseName);
 
-    if (useCents) {
+    // Generate the note name with appropriate alterations
+        if (useCents) {
       const cents = Math.round(bestSteps * 50);
       if (cents !== 0) {
         return `${bestBaseName} ${cents > 0 ? "↑" : "↓"}${Math.abs(cents)}¢`;
