@@ -15,7 +15,7 @@
 	/>
 	<Play />
 </div>
-<div class="flex w-full flex-row items-start justify-center gap-10">
+<div class="flex w-full flex-col items-start justify-center gap-4 px-4 sm:flex-row sm:gap-10">
 	<Scale />
 	<Chord />
 </div>
