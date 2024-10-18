@@ -92,6 +92,12 @@
 		</div>
 	</Card.Content>
 	<Card.Footer class="flex w-full items-center justify-center gap-2">
-		<p>Chord Notes: {JSON.stringify($chord.notes?.data, null, 2)}</p>
+		<p>
+			Chord Notes: {JSON.stringify(
+				$chord.notes?.names(['it']).map((name) => name.it),
+				null,
+				2
+			)}
+		</p>
 	</Card.Footer>
 </Card.Root>

@@ -1,7 +1,7 @@
 import positionVector from "./positionVector";
 import intervalVector from "./intervalVector";
 import { toIntervals, toPositions } from "./crossOperation";
-import { euclideanDistanceMap, sortByDistance } from "./distances";
+import { euclideanDistanceMap, minRotation, sortByDistance } from "./distances";
 
 export type ScaleParams = {
   intervals?: intervalVector;
