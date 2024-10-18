@@ -12,7 +12,7 @@
 	);
 </script>
 
-<div class="keyboard">
+<div class="keyboard w-full">
 	<div>
 		{#each keys as note}
 			<Key keyWidth={30} noteNum={note} on:noteon on:noteoff pressed={keysPressed.includes(note)} />
