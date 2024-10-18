@@ -5,7 +5,7 @@ export const initScaleOptions: Pick<ScaleType, 'options'>['options'] = {
 	intervals: new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
 	modo: [0],
 	grado: [0],
-	root: [3],
+	root: [0],
 	isInvert: false,
 	isMirror: false,
 	mirrorLeft: false,
