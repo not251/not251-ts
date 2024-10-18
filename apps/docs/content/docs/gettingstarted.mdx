@@ -1,0 +1,45 @@
+---
+title: Getting Started
+description: API reference
+---
+
+## Installation
+
+```bash
+npm install @not251/not251
+```
+
+## Usage
+
+```ts
+import { scale } from "@not251/not251";
+
+const scaleNotes = scale();
+```
+
+## API Reference
+
+### Scale
+
+#### `scale()`
+
+Generates a positionVector based on an input intervalVector, allowing for
+transformations like inversion and mirroring.
+
+```ts
+import { scale } from "@not251/not251";
+
+const scaleNotes = scale();
+```
+
+### Chord
+
+#### `chord()`
+
+Generates chords from intervals or positions depending on parameters.
+
+```ts
+import { chord } from "@not251/not251";
+
+const chordNotes = chord();
+```

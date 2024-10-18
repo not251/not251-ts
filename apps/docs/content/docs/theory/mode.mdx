@@ -1,0 +1,26 @@
+---
+title: Mode
+description: daje fumai
+---
+
+## Basics
+
+The term 'mode' is used to represent a rotation of the intervals in the scale vector.
+
+<p>Major scale: 2 2 1 2 2 2 1</p>
+<p>I mode: 2 2 1 2 2 2 1</p>
+<p>II mode: 2 1 2 2 2 1 2</p>
+<p>III mode: 1 2 2 2 1 2 2</p>
+<p>IV mode: 2 2 2 1 2 2 1 </p>
+<p>V mode: 2 2 1 2 2 1 2</p>
+<p>VI mode: 2 1 2 2 1 2 2 </p>
+<p>VII mode: 1 2 2 1 2 2 2</p>
+
+## Our algorithm
+
+In our algorithm, since the scale vector expresses the distances from the fundamental, to obtain the modes we perform a translation to 0 of the rotated vector, subtracting from all the elements the value of the first.
+
+<p>Major scale: 0 2 4 5 7 9 11</p>
+<p>I mode: 0 2 4 5 7 9 11</p>
+<p>II mode (not translated): 2 4 5 7 9 11 12</p>
+<p>II mode (translated): 0 2 3 5 7 9 10</p>
