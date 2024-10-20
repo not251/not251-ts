@@ -25,9 +25,15 @@ export const usePlaygroundContext = () => {
 export const PlaygroundProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const initVector = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 0);
-  const [notes, setNotes] = useState<positionVector>(initVector);
-  const [scala, setScala] = useState<positionVector>(initVector);
+  const defaultScala = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 0);
+  const defaultNotes = new positionVector(
+    defaultScala.data,
+    defaultScala.modulo,
+    0
+  );
+
+  const [notes, setNotes] = useState<positionVector>(defaultNotes);
+  const [scala, setScala] = useState<positionVector>(defaultScala);
 
   return (
     <PlaygroundContext.Provider value={{ notes, setNotes, scala, setScala }}>

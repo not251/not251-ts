@@ -1,71 +1,65 @@
 import { Dispatch, SetStateAction } from "react";
 
 interface RenderProps<T> {
-  name: string;
+  id: keyof T;
+  label: string;
   params: T;
   setParams: Dispatch<SetStateAction<T>>;
 }
 
 interface SliderProps<T> extends RenderProps<T> {
   max: number;
+  min?: number;
   step?: number;
 }
 
 export function renderSlider<T>({
-  name,
+  id,
+  label,
   params,
   setParams,
   max,
-  step,
+  min = 0,
+  step = 1,
 }: SliderProps<T>) {
-  const paramName = name.toLowerCase() as keyof T;
-  const value =
-    typeof params[paramName] === "number" ? (params[paramName] as number) : 0;
+  const value = typeof params[id] === "number" ? (params[id] as number) : 0;
 
   return (
     <div className="flex items-center space-x-2">
-      <label>{name}:</label>
+      <label>{label}:</label>
       <input
         type="range"
-        min={0}
+        min={min}
         max={max}
-        step={step ?? 1}
+        step={step}
         value={value}
         onChange={(e) =>
-          setParams((prev) => ({
-            ...prev,
-            [paramName]: Number(e.target.value),
-          }))
+          setParams((prev) => ({ ...prev, [id]: Number(e.target.value) }))
         }
         className="w-32"
       />
-      <span>
-        {value +
-          (name === "Modo" || name === "Grado"
-            ? 1
-            : name === "Octave"
-              ? -1
-              : 0)}
-      </span>
+      <span>{value}</span>
     </div>
   );
 }
 
-export function renderCheckbox<T>({ name, params, setParams }: RenderProps<T>) {
-  const paramName = name.toLowerCase() as keyof T;
+export function renderCheckbox<T>({
+  id,
+  label,
+  params,
+  setParams,
+}: RenderProps<T>) {
   const checked =
-    typeof params[paramName] === "boolean"
-      ? (params[paramName] as boolean)
-      : false;
+    typeof params[id] === "boolean" ? (params[id] as boolean) : false;
 
   return (
     <div className="flex items-center space-x-2">
-      <label>{name}:</label>
+      <label>{label}:</label>
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) =>
-          setParams((prev) => ({ ...prev, [paramName]: e.target.checked }))
+          setParams((prev) => ({ ...prev, [id]: e.target.checked }))
         }
       />
     </div>
