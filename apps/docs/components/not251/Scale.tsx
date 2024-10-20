@@ -72,32 +72,34 @@ export default function Scale() {
   return (
     <div className="flex flex-col items-start space-y-4 border border-white p-4 rounded-lg">
       <h2 className="text-2xl">Scale</h2>
-      {/* Grado Slider */}
-      <div className="flex items-center space-x-2">
-        <label>Grado:</label>
-        <input
-          type="range"
-          min="0"
-          max="6"
-          value={grado}
-          onChange={(e) => setGrado(Number(e.target.value))}
-          className="w-32"
-        />
-        <span>{grado}</span>
-      </div>
-
       {/* Modo Slider */}
       <div className="flex items-center space-x-2">
         <label>Modo:</label>
         <input
           type="range"
-          min="0"
-          max="6"
+          min={0}
+          max={7}
+          step={1}
           value={modo}
           onChange={(e) => setModo(Number(e.target.value))}
           className="w-32"
         />
-        <span>{modo}</span>
+        <span>{modo + 1}</span>
+      </div>
+
+      {/* Grado Slider */}
+      <div className="flex items-center space-x-2">
+        <label>Grado:</label>
+        <input
+          type="range"
+          min={0}
+          max={7}
+          step={1}
+          value={grado}
+          onChange={(e) => setGrado(Number(e.target.value))}
+          className="w-32"
+        />
+        <span>{grado + 1}</span>
       </div>
 
       {/* Root Slider */}
@@ -105,8 +107,9 @@ export default function Scale() {
         <label>Root:</label>
         <input
           type="range"
-          min="0"
-          max="11"
+          min={0}
+          max={11}
+          step={1}
           value={root}
           onChange={(e) => setRoot(Number(e.target.value))}
           className="w-32"
@@ -149,8 +152,9 @@ export default function Scale() {
         <label>Mirror Position:</label>
         <input
           type="range"
-          min="0"
-          max="11"
+          min={0}
+          max={11}
+          step={1}
           value={mirrorPos}
           onChange={(e) => setMirrorPos(Number(e.target.value))}
           className="w-32"

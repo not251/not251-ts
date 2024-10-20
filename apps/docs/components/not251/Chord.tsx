@@ -5,6 +5,7 @@ import { usePlaygroundContext } from "./PlaygroundContext"; // Import context ho
 
 function generateChordNotes(
   scala: positionVector,
+  grado: number,
   octave: number,
   position: number,
   preVoices: number,
@@ -17,6 +18,7 @@ function generateChordNotes(
   const chordNotes: positionVector = generateChord({
     scala: scala, // Use scala from context
     octave: octave,
+    grado: grado,
     position: position,
     preVoices: preVoices,
     postVoices: postVoices,
@@ -32,7 +34,8 @@ export default function Chord() {
   const { setNotes, scala } = usePlaygroundContext(); // Get scala from context
 
   // State for chord parameters
-  const [octave, setOctave] = useState<number>(0);
+  const [octave, setOctave] = useState<number>(2);
+  const [grado, setGrado] = useState<number>(0);
   const [position, setPosition] = useState<number>(0);
   const [preVoices, setPreVoices] = useState<number>(3);
   const [postVoices, setPostVoices] = useState<number>(3);
@@ -45,6 +48,7 @@ export default function Chord() {
   const [chordNotes, setChordNotes] = useState<positionVector>(
     generateChordNotes(
       scala,
+      grado,
       octave,
       position,
       preVoices,
@@ -60,6 +64,7 @@ export default function Chord() {
   useEffect(() => {
     const newChordNotes = generateChordNotes(
       scala,
+      grado,
       octave,
       position,
       preVoices,
@@ -73,6 +78,7 @@ export default function Chord() {
     setNotes(newChordNotes); // Update context
   }, [
     scala,
+    grado,
     octave,
     position,
     preVoices,
@@ -93,13 +99,29 @@ export default function Chord() {
         <label>Octave:</label>
         <input
           type="range"
-          min="-2"
-          max="7"
+          min={1}
+          max={3}
+          step={1}
           value={octave}
           onChange={(e) => setOctave(Number(e.target.value))}
           className="w-32"
         />
-        <span>{octave}</span>
+        <span>{octave - 1}</span>
+      </div>
+
+      {/* Octave Slider */}
+      <div className="flex items-center space-x-2">
+        <label>Grado:</label>
+        <input
+          type="range"
+          min={0}
+          max={7}
+          step={1}
+          value={grado}
+          onChange={(e) => setGrado(Number(e.target.value))}
+          className="w-32"
+        />
+        <span>{grado + 1}</span>
       </div>
 
       {/* Position Slider */}
@@ -107,8 +129,8 @@ export default function Chord() {
         <label>Position:</label>
         <input
           type="range"
-          min="-2"
-          max="7"
+          min={0}
+          max={7}
           value={position}
           onChange={(e) => setPosition(Number(e.target.value))}
           className="w-32"
@@ -121,8 +143,9 @@ export default function Chord() {
         <label>Pre Voices:</label>
         <input
           type="range"
-          min="0"
-          max="10"
+          min={0}
+          max={7}
+          step={1}
           value={preVoices}
           onChange={(e) => setPreVoices(Number(e.target.value))}
           className="w-32"
@@ -135,8 +158,9 @@ export default function Chord() {
         <label>Post Voices:</label>
         <input
           type="range"
-          min="0"
-          max="10"
+          min={0}
+          max={7}
+          step={1}
           value={postVoices}
           onChange={(e) => setPostVoices(Number(e.target.value))}
           className="w-32"
@@ -179,8 +203,9 @@ export default function Chord() {
         <label>Negative Position:</label>
         <input
           type="range"
-          min="0"
-          max="11"
+          min={0}
+          max={11}
+          step={1}
           value={negativePos}
           onChange={(e) => setNegativePos(Number(e.target.value))}
           className="w-32"

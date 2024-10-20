@@ -23,8 +23,8 @@ const noteNames = [
 ];
 
 export default function Piano({
-  startNote = 0,
-  endNote = 47,
+  startNote = 12,
+  endNote = 59,
 }: PianoKeyboardProps) {
   const { notes } = usePlaygroundContext(); // Get notes from context
 
