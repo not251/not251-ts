@@ -1,4 +1,13 @@
 import { writable } from 'svelte/store';
-import * as not251 from '@not251/not251';
+import type { ChordType, ScaleType } from './types';
+import { initChordOptions, initScaleOptions } from './utils';
+import { scale as generateScale, chord as generateChord } from '@not251/not251';
 
-export const scaleNotes = writable<not251.positionVector>(not251.scale());
+export const scale = writable<ScaleType>({
+	options: initScaleOptions,
+	notes: generateScale()
+});
+export const chord = writable<ChordType>({
+	options: initChordOptions,
+	notes: generateChord()
+});

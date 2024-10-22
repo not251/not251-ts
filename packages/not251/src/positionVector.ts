@@ -1,4 +1,9 @@
-import { Language, NoteName, NoteNames } from "./constants";
+import {
+  AlterationSymbols,
+  AlteredNoteName,
+  Language,
+  NoteNames,
+} from "./constants";
 import { minRotation } from "./distances";
 import { scale } from "./scale";
 import { modulo, lcm } from "./utility";
@@ -252,7 +257,8 @@ export default class positionVector {
    * @param scaleVector positionVector for the input scale to find note names for.
    * @returns An array of noteNames objects, each containing the English and Italian note names.
    */
-  names(desiredLanguages: Language[] = ["en"]): Partial<NoteName>[] {
+  /*
+  names(desiredLanguages: Language[] = ["en"]): Partial<NoteNames>[] {
     let scaleVector: positionVector = new positionVector(
       this.data,
       this.modulo,
@@ -283,12 +289,12 @@ export default class positionVector {
 
     //l'algoritmo che porta a questo potrebbe essere ottimizzato
 
-    let names: Partial<NoteName>[] = [];
+    let names: Partial<NoteNames>[] = [];
 
     for (let i = 0; i < scaleVector.data.length; i++) {
       let diff = scaleVector.data[i] - dorototraslata.data[i]; // Calcola la differenza senza modulo
 
-      let noteName: Partial<NoteName> = {};
+      let noteName: Partial<NoteNames> = {};
       for (let language of desiredLanguages) {
         noteName[language] =
           NoteNames[modulo(a + i, NoteNames.length)][language];
@@ -306,6 +312,154 @@ export default class positionVector {
       names.push(noteName);
     }
     return names;
+  }
+*/
+
+  /**
+ * funzione per visualizzare web chord notes
+
+let scala = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12);
+let chordNotes = chord({ scala: scala });
+
+let index_chord = inverse_select(chordNotes, scala);
+
+let nomi_scala = scaleNames(scala);
+
+for (let i = 0; i < index_chord.data.length; i++) {
+  console.log(nomi_scala[index_chord.data[i]]);
+}
+ */
+
+  /**
+   * Generates the note names corresponding to the values of a scale.
+   * It matches each value to the closest note in a standard scale,
+   * applying necessary alterations (sharps, flats, microtonal symbols, or cents deviations).
+   *
+   * @param scala - A positionVector representing the scale to analyze.
+   * @param ita - If true, uses Italian note names; otherwise, uses English note names (default is true).
+   * @param useCents - If true, uses cent deviations for microtonal adjustments (default is false).
+   * @returns An array of strings containing the note names corresponding to the scale values.
+   */
+  names(lang: Language = "en"): AlteredNoteName[] {
+    const scala = { ...this };
+    const semitoneValue = scala.modulo / 12; // Each semitone in terms of modulo
+    const cMaj = scale();
+
+    // Determine the key (starting note)
+    const keyValue = modulo(scala.data[0], scala.modulo);
+
+    // Find the closest note name to the key
+    let minDiff = Infinity;
+    let keyNoteIndex = 0;
+
+    for (let i = 0; i < cMaj.data.length; i++) {
+      const degree = cMaj.data[i];
+      const refValue = (degree * scala.modulo) / cMaj.modulo;
+      const diff = Math.abs(refValue - keyValue);
+
+      if (diff < minDiff) {
+        minDiff = diff;
+        keyNoteIndex = i;
+      }
+    }
+
+    // Rotate NoteNames and standardDegrees to match the key
+    const rotatedNoteNames: NoteNames[] = [];
+    const rotatedDegrees: number[] = [];
+
+    for (let i = keyNoteIndex; i < NoteNames.length; i++) {
+      rotatedNoteNames.push(NoteNames[i]);
+      rotatedDegrees.push(cMaj.data[i]);
+    }
+
+    for (let i = 0; i < keyNoteIndex; i++) {
+      rotatedNoteNames.push(NoteNames[i]);
+      rotatedDegrees.push(cMaj.data[i]);
+    }
+
+    let usedNotes: { [key: string]: boolean } = {}; // To prevent duplicate note names
+
+    let output = scala.data.map(function (
+      value: number,
+      idx: number
+    ): AlteredNoteName | undefined {
+      let bestName: NoteNames | undefined = undefined;
+
+      let minScore = Infinity;
+      let bestSteps = 0;
+      let bestAccidentals = 0;
+
+      // Consider degrees within ±2 of the expected degree
+      for (let degreeOffset = -2; degreeOffset <= 2; degreeOffset++) {
+        let degreeIndex =
+          (idx + degreeOffset + rotatedDegrees.length) % rotatedDegrees.length;
+        let degree = rotatedDegrees[degreeIndex];
+        let name = rotatedNoteNames[degreeIndex];
+
+        // Try octave offsets to find the closest reference value
+        for (let octaveOffset = -1; octaveOffset <= 1; octaveOffset++) {
+          let refValue =
+            (degree * scala.modulo) / 12 + octaveOffset * scala.modulo;
+          let diff = value - refValue;
+          let steps = diff / semitoneValue; // Difference in semitones
+          let absSteps = Math.abs(steps);
+
+          if (absSteps <= 1) {
+            // Limit adjustments to within one semitone (±50 cents)
+            let roundedSteps = Math.round(steps * 2) / 2; // Round to nearest 0.5 for quarter tones
+            let accidentals = Math.abs(roundedSteps);
+            let penalty = usedNotes[name[lang]] ? 1 : 0;
+            let score =
+              absSteps + accidentals + penalty + Math.abs(degreeOffset) * 0.5; // Penalize distant degrees
+
+            if (score < minScore) {
+              minScore = score;
+              bestName = name;
+              bestSteps = steps;
+              bestAccidentals = roundedSteps;
+            }
+          }
+        }
+      }
+
+      //// If no suitable note is found, return a placeholder
+      if (bestName === undefined) {
+        return undefined;
+      }
+
+      let out: AlteredNoteName = {
+        name: bestName[lang],
+        base: bestName,
+        cents: undefined,
+        alterations: undefined,
+      };
+
+      if (bestName != undefined) {
+        usedNotes[bestName[lang]] = true;
+
+        let cents = Math.round(bestSteps * 50);
+
+        // Generate the note name with appropriate alterations
+        out.cents =
+          (cents > 0
+            ? AlterationSymbols.positive
+            : AlterationSymbols.negative) +
+          Math.abs(cents) +
+          AlterationSymbols.cents;
+
+        let roundedSteps = Math.round(bestSteps);
+        if (Math.abs(bestSteps) < 1 && bestSteps !== 0) {
+          out.name = out.name + (roundedSteps > 0 ? "𝄲" : "𝄳"); // Microtonal symbols
+        } else if (roundedSteps !== 0) {
+          let alteration = roundedSteps > 0 ? "♯" : "♭";
+          out.name =
+            out.name +
+            Array(Math.min(Math.abs(roundedSteps), 2) + 1).join(alteration);
+        }
+        return out;
+      }
+    });
+    return output.filter((item): item is AlteredNoteName => item !== undefined);
   }
 
   /**
