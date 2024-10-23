@@ -523,12 +523,14 @@ export function inverse_select(
   voicing: positionVector,
   scala: positionVector
 ): positionVector {
+  // Ordina voicing per evitare che possa rompersi
+  voicing.data.sort((a, b) => a - b);
+
   let index: positionVector = new positionVector(
     [],
-    voicing.data.length,
-    voicing.data.length
+    scala.data.length,
+    scala.data.length
   );
-  //aggiungere sort a voicing per evitare che possa rompersi
 
   let j = Math.floor(voicing.data[0] / voicing.modulo);
 

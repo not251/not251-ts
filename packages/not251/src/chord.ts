@@ -298,86 +298,94 @@ export function autovoicingP2P(
   return outPV;
 }
 
-function generateBlockChord(scale: positionVector, degree: number): positionVector {
-  // Convertiamo il grado da 1-based a 0-based
-  const startIndex = degree;
-  let voicing = new positionVector([startIndex], scale.data.length, scale.data.length);
-  let usedDegrees = new Set<number>([1, 2, 4, 6]);
+function generateBlockChord(scale: positionVector, startIndex: number): positionVector {
+  // Inizializza il voicing con l'indice di partenza
+  let voicing = new positionVector([startIndex], scale.modulo, scale.span);
 
-  // Log iniziale per usedDegrees
+  let len = scale.data.length;
+  let usedDegrees = new Set<number>([]);
 
-  // Rimuovi il grado iniziale dalle possibilità
-  if (modulo(startIndex, voicing.modulo) === 0 || modulo(startIndex, voicing.modulo) === 1) {
-    usedDegrees.delete(1);
-  } else if (modulo(startIndex, voicing.modulo) === 2 || modulo(startIndex, voicing.modulo) === 3) {
-    usedDegrees.delete(2);
-  } else if (modulo(startIndex, voicing.modulo) === 4 || modulo(startIndex, voicing.modulo) === 5) {
-    usedDegrees.delete(4);
-  } else if (modulo(startIndex, voicing.modulo) === 6) {
-    usedDegrees.delete(6);
+  // Modifica usedDegrees se la seconda nota è a distanza 1 dalla prima
+  if (Math.abs(scale.element(1) - scale.element(0)) === 1) {
+    usedDegrees.add(0);
+  }
+  else{
+    usedDegrees.add(1);
   }
 
-  // Log dopo la rimozione iniziale
+  usedDegrees.add(2);
+  usedDegrees.add(4);
+  usedDegrees.add(6);
 
-  let i = 1;
+  // Funzione per mappare l'indice modulo al grado
+  function getDegree(index: number): number {
+    let indexModulo = modulo(index, len);
+
+    if (indexModulo === 0 || indexModulo === 1) {
+      if (Math.abs(scale.element(1) - scale.element(0)) === 1) {
+        return 0;
+      }
+      else{
+        return 1;
+      }
+      
+    } else if (indexModulo === 2 || indexModulo === 3) {
+      return 2;
+    } else if (indexModulo === 4 || indexModulo === 5) {
+      return 4;
+    } else if (indexModulo === 6) {
+      return 6;
+    } else {
+      return -1; // Grado non valido
+    }
+  }
+
+  let i = 0;
   let actualDegree = startIndex - i;
 
+  // Rimuovi il grado iniziale da usedDegrees
+  usedDegrees.delete(getDegree(actualDegree));
+
+  // Ciclo per aggiungere note al voicing
+  while (usedDegrees.size > 0) {
+
+    if (usedDegrees.has(modulo(actualDegree, len))) {
+
+
+
   // Verifica specifica per evitare scarto di 1 tra il primo e il secondo valore
-if (Math.abs(scale.element(actualDegree) - scale.element(startIndex)) === 1) {
+  if (voicing.data.length === 1 && Math.abs(scale.element(actualDegree) - scale.element(startIndex)) === 1) {
     i++;
     actualDegree = startIndex - i;
     // Rimuovi la possibilità 6 se il grado scende a 5
     if (modulo(actualDegree, voicing.modulo) == 5) {
       usedDegrees.delete(6);
-    }
-    if (!voicing.data.includes(actualDegree)) {
       voicing.data.push(actualDegree);
+      continue
     }
+
   }
   
-  // Abbassa actualDegree finché non si trova una possibilità disponibile
-  while (!usedDegrees.has(modulo(actualDegree, voicing.modulo))) {
+      // Aggiungi la nota al voicing e rimuovi il grado da usedDegrees
+      voicing.data.push(actualDegree);
+      usedDegrees.delete(getDegree(actualDegree));
+
+    }
+
     i++;
     actualDegree = startIndex - i;
-  }
 
-  // Aggiungi actualDegree se non è già presente in voicing
-  if (!voicing.data.includes(actualDegree)) {
-    voicing.data.push(actualDegree);
-    usedDegrees.delete(modulo(actualDegree, voicing.modulo));
-  }
-
-
-  i++;
-
-  for (i; i < voicing.modulo; i++) {
-    actualDegree = startIndex - i;
-    if (usedDegrees.has(modulo(actualDegree, voicing.modulo))) {
-      if (!voicing.data.includes(actualDegree)) {
-        // Verifica che lo scarto tra l'ultimo grado aggiunto e il nuovo grado non sia 1
-        const lastDegree = scale.element(voicing.data[voicing.data.length - 1]);
-        if (Math.abs(scale.element(actualDegree) - lastDegree) !== 1) {
-          voicing.data.push(actualDegree);
-          // Rimuovi le possibilità in base al valore attuale
-          if (modulo(actualDegree, voicing.modulo) === 0 || modulo(actualDegree, voicing.modulo) === 1) {
-            usedDegrees.delete(1);
-          } else if (modulo(actualDegree, voicing.modulo) === 2 || modulo(actualDegree, voicing.modulo) === 3) {
-            usedDegrees.delete(2);
-          } else if (modulo(actualDegree, voicing.modulo) === 4 || modulo(actualDegree, voicing.modulo) === 5) {
-            usedDegrees.delete(4);
-          } else if (modulo(actualDegree, voicing.modulo) === 6) {
-            usedDegrees.delete(6);
-          }
-          // Rimuovi la possibilità 6 se il grado scende a 5
-          if (modulo(actualDegree, voicing.modulo) == 5) {
-            usedDegrees.delete(6);
-          }
-        }
-      }
+    // Condizione di uscita per evitare loop infiniti
+    if (i > len * 2) {
+      break;
     }
-    // Log per ogni iterazione del ciclo
   }
 
-  // Selezioniamo le note dell'accordo utilizzando la funzione select
-  return scale.selectFromPosition(voicing);
+  // Seleziona le note dell'accordo utilizzando la funzione selectFromPosition
+  let chord = scale.selectFromPosition(voicing);
+
+  // Ordina le note in ordine crescente
+  chord.data.sort((a, b) => a - b);
+
+  return chord;
 }
