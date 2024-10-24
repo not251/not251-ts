@@ -80,6 +80,12 @@
 		</div>
 	</Card.Content>
 	<Card.Footer class="flex w-full items-center justify-center gap-2">
-		<p>Scale Notes: {JSON.stringify($scale.notes?.data, null, 2)}</p>
+		<p>
+			Scale Notes: {JSON.stringify(
+				$scale.notes?.names(['it']).map((name) => name.it),
+				null,
+				2
+			)}
+		</p>
 	</Card.Footer>
 </Card.Root>
