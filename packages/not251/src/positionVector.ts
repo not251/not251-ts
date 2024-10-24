@@ -243,7 +243,7 @@ export default class positionVector {
    * @returns A new positionVector instance with summed values.
    */
   sum(num: number = 0): positionVector {
-    let out = new Array(this.data.length);
+    let out : number[] = [...this.data];
     for (let i = 0; i < this.data.length; i++) {
       out[i] += num;
     }
