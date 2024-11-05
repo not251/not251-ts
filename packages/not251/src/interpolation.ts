@@ -43,7 +43,10 @@ function interpolate(vector: number[], n: number): number[][] {
         if (index === ranges.length) {
             let finalVector: number[] = [];
             for (let i = 0; i < vector.length - 1; i++) {
-                finalVector.push(vector[i], ...currentCombination[i]);
+                finalVector.push(vector[i]);
+                if (currentCombination[i]) {
+                    finalVector.push(...currentCombination[i]);
+                }
             }
             finalVector.push(vector[vector.length - 1]);
             combinations.push(finalVector);
@@ -51,17 +54,19 @@ function interpolate(vector: number[], n: number): number[][] {
         }
 
         const { min, max } = ranges[index];
-        const interpolations = generateInterpolations(min, max, n);
+        if (max - min + 1 < n) {
+            insertInterpolations([...currentCombination, []], index + 1);
+            return;
+        }
 
+        const interpolations = generateInterpolations(min, max, n);
         interpolations.forEach((combination) => {
             insertInterpolations([...currentCombination, combination], index + 1);
         });
     }
 
     insertInterpolations([], 0);
-
     return combinations;
-    
 }
 
 function ultrapolate(vector: number[], n: number): number[][] {
@@ -104,7 +109,10 @@ function ultrapolate(vector: number[], n: number): number[][] {
         if (index === ranges.length) {
             let finalVector: number[] = [];
             for (let i = 0; i < vector.length - 1; i++) {
-                finalVector.push(vector[i], ...currentCombination[i]);
+                finalVector.push(vector[i]);
+                if (currentCombination[i]) {
+                    finalVector.push(...currentCombination[i]);
+                }
             }
             finalVector.push(vector[vector.length - 1]);
             combinations.push(finalVector);
@@ -112,8 +120,12 @@ function ultrapolate(vector: number[], n: number): number[][] {
         }
 
         const { min, max } = ranges[index];
-        const ultrapolations = generateUltrapolations(max, min, n);
+        if (max - min + 1 < n) {
+            insertUltrapolations([...currentCombination, []], index + 1);
+            return;
+        }
 
+        const ultrapolations = generateUltrapolations(max, min, n);
         ultrapolations.forEach((combination) => {
             insertUltrapolations([...currentCombination, combination], index + 1);
         });
@@ -163,7 +175,10 @@ function infrapolate(vector: number[], n: number): number[][] {
         if (index === ranges.length) {
             let finalVector: number[] = [];
             for (let i = 0; i < vector.length - 1; i++) {
-                finalVector.push(vector[i], ...currentCombination[i]);
+                finalVector.push(vector[i]);
+                if (currentCombination[i]) {
+                    finalVector.push(...currentCombination[i]);
+                }
             }
             finalVector.push(vector[vector.length - 1]);
             combinations.push(finalVector);
@@ -171,15 +186,18 @@ function infrapolate(vector: number[], n: number): number[][] {
         }
 
         const { min, max } = ranges[index];
-        const infrapolations = generateInfrapolations(min, max, n);
+        if (max - min + 1 < n) {
+            insertInfrapolations([...currentCombination, []], index + 1);
+            return;
+        }
 
+        const infrapolations = generateInfrapolations(min, max, n);
         infrapolations.forEach((combination) => {
             insertInfrapolations([...currentCombination, combination], index + 1);
         });
     }
 
     insertInfrapolations([], 0);
-
     return combinations;
 }
 
