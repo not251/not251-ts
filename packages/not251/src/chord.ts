@@ -319,7 +319,7 @@ function generateBlockChord(
 ): positionVector {
   const voicing = new positionVector([degree], scale.data.length, scale.data.length);
 
-  const reference = lastChord.rototranslate(3, lastChord.data.length, false);
+  const reference = lastChord.rototranslate(lastChord.data.length -1, lastChord.data.length, false);
   let index = -1;
 
   switch (modulo(degree, voicing.modulo)) {
