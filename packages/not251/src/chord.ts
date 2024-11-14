@@ -298,77 +298,82 @@ export function autovoicingP2P(
   return outPV;
 }
 
-
 /**
- * Generates a block chord from a scale starting at a given degree, based on specified chord degrees.
- * @param scale The positionVector representing the scale.
- * @param degree The degree in the scale to start building the chord.
- * @param chordDegrees A positionVector indicating the degrees that form the base of the chord.
- * @param lastChord A positionVector representing the previous chord, used to determine voicing transitions.
- * @returns A positionVector representing the generated chord.
- * 
- * This function builds a chord starting from a specified degree in the scale (`degree`) by following a set of 
- * logical rules to determine which notes to include in the blockchord. The structure and alterations to the chord 
- * are influenced by the given `chordDegrees`, as well as the `lastChord` to ensure a smooth transition between chords.
+ * Generates a block chord based on the given scale, degree, and chord degrees.
+ * If `cluster` is true, generates cluster chords by adding notes according to specified criteria.
+ *
+ * @param scale - The scale as a **positionVector**.
+ * @param degree - The degree of the scale to base the chord on.
+ * @param chordDegrees - The degrees of the chord within the scale.
+ * @param lastChord - The previous chord as a **positionVector** for comparison.
+ * @param cluster - If `true`, generates cluster chords using the new feature (default is `false`).
+ * @returns A **positionVector** representing the generated block chord.
  */
+
 function generateBlockChord(
   scale: positionVector,
   degree: number,
   chordDegrees: positionVector,
-  lastChord: positionVector
+  lastChord: positionVector,
+  cluster: boolean = false
 ): positionVector {
-
   const voicing = new positionVector([degree], scale.data.length, scale.data.length);
-  // condizioni 
-  const reference = lastChord.rototranslate(3,lastChord.data.length,false);
+
+  const reference = lastChord.rototranslate(3, lastChord.data.length, false);
   let index = -1;
-  switch (modulo(degree,voicing.modulo)){
-  case 0:
-    index = 0;
-    break;
-  case 1:
-    if(chordDegrees.data[1] != 1){
+
+  switch (modulo(degree, voicing.modulo)) {
+    case 0:
       index = 0;
-    } else{
+      break;
+    case 1:
+      if (chordDegrees.data[1] != 1) {
+        index = 0;
+      } else {
+        index = 1;
+      }
+      break;
+    case 2:
       index = 1;
-    }
-    break;
-  case 2:
-    index = 1;
-    break;
-  case 3:
-    index = 1;
-    break;
-  case 4:
-    index = 2;
-    break;
-  case 5:
-    if(chordDegrees.data[3] != 6){
+      break;
+    case 3:
+      index = 1;
+      break;
+    case 4:
       index = 2;
-    } else{
+      break;
+    case 5:
+      if (chordDegrees.data[3] != 6) {
+        index = 2;
+      } else {
+        index = 3;
+      }
+      break;
+    case 6:
       index = 3;
-    } 
-    break;
-  case 6:
-    index = 3
-    break;
-}
+      break;
+  }
 
-if(index == -1){
-  console.log("index broke")
-}
-index++;
-let octave = Math.floor(degree/voicing.modulo) * voicing.modulo;
+  if (index == -1) {
+    console.log("index broke");
+  }
+  index++;
+  let octave = Math.floor(degree / voicing.modulo) * voicing.modulo;
 
-  for (let i = 0; i < 3; i++){
-    let actualDegree = chordDegrees.element(index + i)+ octave;
-    let zeroDegree = modulo(actualDegree,chordDegrees.modulo);
-    switch (zeroDegree){
+  for (let i = 0; i < 3; i++) {
+    let actualDegree = chordDegrees.element(index + i) + octave;
+    let zeroDegree = modulo(actualDegree, chordDegrees.modulo);
+    switch (zeroDegree) {
       case 0:
-        if(chordDegrees.data[1] != 1 && reference.data[i + 1] != scale.element(actualDegree + 1) && scale.element(actualDegree + 1) - scale.element(actualDegree) != 1 && scale.element(chordDegrees.data[1]) - scale.element(zeroDegree + 1) != 1){
+        if (
+          chordDegrees.data[1] != 1 &&
+          reference.data[i + 1] != scale.element(actualDegree + 1) &&
+          scale.element(actualDegree + 1) - scale.element(actualDegree) != 1 &&
+          scale.element(chordDegrees.data[1]) - scale.element(zeroDegree + 1) != 1
+        ) {
           voicing.data.push(actualDegree + 1);
-        } else{
-          voicing.data.push(actualDegree)
+        } else {
+          voicing.data.push(actualDegree);
         }
         break;
       case 1:
@@ -381,28 +386,91 @@ let octave = Math.floor(degree/voicing.modulo) * voicing.modulo;
         voicing.data.push(actualDegree);
         break;
       case 4:
-        if(chordDegrees.data[3] != 5 && reference.data[i + 1] == scale.element(actualDegree) && scale.element(voicing.data[0]) - scale.element(actualDegree + 2 - scale.data.length) != 1){
+        if (
+          chordDegrees.data[3] != 5 &&
+          reference.data[i + 1] == scale.element(actualDegree) &&
+          scale.element(voicing.data[0]) - scale.element(actualDegree + 2 - scale.data.length) != 1
+        ) {
           voicing.data.push(actualDegree + 1);
-        } else{
-        voicing.data.push(actualDegree)
+        } else {
+          voicing.data.push(actualDegree);
         }
         break;
       case 5:
-        if( i == 1 && scale.element(voicing.data[0]) - scale.element(actualDegree - scale.data.length) == 1){
-          voicing.data.push(actualDegree - 1 )
+        if (
+          i == 1 &&
+          scale.element(voicing.data[0]) - scale.element(actualDegree - scale.data.length) == 1
+        ) {
+          voicing.data.push(actualDegree - 1);
         }
         voicing.data.push(actualDegree);
         break;
       case 6:
-        if( i == 2 && scale.element(voicing.data[0]) - scale.element(actualDegree - scale.data.length) == 1){
-          voicing.data.push(actualDegree - 1)
-        } else{
-        voicing.data.push(actualDegree);
+        if (
+          i == 2 &&
+          scale.element(voicing.data[0]) - scale.element(actualDegree - scale.data.length) == 1
+        ) {
+          voicing.data.push(actualDegree - 1);
+        } else {
+          voicing.data.push(actualDegree);
         }
         break;
     }
   }
-  voicing.rototranslate(1 - voicing.data.length);
-  return scale.selectFromPosition(voicing);
 
+  voicing.rototranslate(1 - voicing.data.length);
+  let blockchord = scale.selectFromPosition(voicing);
+
+  if (cluster == true) {
+    let j = 0;
+    let clusterV: positionVector[] = [];
+
+    for (let i = degree - scale.data.length + 1; i < degree; i++) {
+      if (
+        scale.element(degree) - scale.element(i) != 1 &&
+        !voicing.isNote(i) &&
+        !scale.selectFromPosition(chordDegrees).isAvoid(scale.element(i))
+      ) {
+        // Create a new instance of positionVector by copying the data from 'voicing'
+        let candidate = new positionVector([...voicing.data], voicing.modulo, voicing.span);
+        candidate.data.push(i);
+        candidate.data.sort((a, b) => a - b);
+        clusterV.push(candidate);
+      } else {
+        j++;
+      }
+    }
+
+    // Assign a score to each candidate
+    let scoredCandidates = clusterV.map((candidate) => {
+      let score = 0;
+      let minLength = Math.min(candidate.data.length, lastChord.data.length);
+      for (let i = 0; i < minLength; i++) {
+        if (candidate.data[i] == lastChord.data[i]) {
+          score -= 1; // Penalize voices that repeat at the same position
+        }
+      }
+      return { candidate, score };
+    });
+
+    // Find the maximum score
+    let maxScore = Math.max(...scoredCandidates.map((c) => c.score));
+
+    // Select all candidates with the maximum score
+    let bestCandidates = scoredCandidates
+      .filter((c) => c.score == maxScore)
+      .map((c) => c.candidate);
+
+    // If there are multiple candidates with the same score, choose one randomly
+    let selectedCandidate;
+    if (bestCandidates.length == 1) {
+      selectedCandidate = bestCandidates[0];
+    } else {
+      selectedCandidate = bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+    }
+
+    return scale.selectFromPosition(selectedCandidate);
+  } else {
+    return blockchord;
+  }
 }

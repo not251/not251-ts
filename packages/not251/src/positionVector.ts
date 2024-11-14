@@ -488,6 +488,55 @@ for (let i = 0; i < index_chord.data.length; i++) {
 
     return out;
   }
+
+  /**
+     * Checks if a given number is present in this **positionVector**, considering modular equivalence.
+     *
+     * @param num - The number to check for presence in this **positionVector**.
+     * @returns `true` if the number is present in this **positionVector**, considering the modulo; `false` otherwise.
+     */
+  isNote(num: number): boolean {
+    const modNum = modulo(num, this.modulo);
+    for (let i = 0; i < this.data.length; i++) {
+      if (modulo(this.data[i], this.modulo) === modNum) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Determines if a given note is an **avoid note** with respect to this **positionVector** (interpreted as a chord).
+   *
+   * A note is considered an avoid note if:
+   * - It is not already present in the chord.
+   * - The difference between the note and any note in the chord (excluding the root) is equal to half the modulo of the chord.
+   *
+   * The comparison is made for each note in the chord except the fundamental (first note).
+   *
+   * @param num - The note to check as an avoid note.
+   * @returns `true` if the note is an avoid note; `false` otherwise.
+   */
+  isAvoid(num: number): boolean {
+    // Check if the note is already in the chord
+    if (this.isNote(num)) {
+      return false;
+    }
+
+    const halfModulo = this.modulo / 2;
+
+    // Compare with each note in the chord, excluding the fundamental (index 0)
+    for (let i = 1; i < this.data.length; i++) {
+      const chordNoteMod = modulo(this.data[i], this.modulo);
+      const diff = modulo(num - chordNoteMod, this.modulo);
+
+      if (diff === halfModulo) {
+        return true; // The note is an avoid note
+      }
+    }
+
+    return false; // The note is not an avoid note
+  }  
 }
 
 /**
