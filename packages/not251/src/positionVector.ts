@@ -536,7 +536,129 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     return false; // The note is not an avoid note
-  }  
+  }
+  /**
+  * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
+  * It returns an array where each element corresponds to a note in the original data array,
+  * indicating its degree within the scale (e.g., 0 for root, 2 for third, 4 for fifth).
+  * 
+  * @returns An array of numbers representing the degree assigned to each note.
+  */
+  degreeFunction(): number[] {
+    // Shift the vector so that the root is at 0
+    let shiftedVector = this.sum(-this.data[0]);
+    let shiftedData = shiftedVector.data;
+  
+    let degFunc: (number | undefined)[] = new Array(this.data.length);
+    degFunc[0] = 0;
+    let func = new Set<number>();
+  
+    // Search for major third, perfect fifth, and major seventh
+    for (let i = 1; i < shiftedData.length; i++) {
+      if (shiftedData[i] == 4) {
+        degFunc[i] = 2;
+        func.add(2);
+      }
+      if (shiftedData[i] == 7) {
+        degFunc[i] = 4;
+        func.add(4);
+      }
+      if (shiftedData[i] == 11) {
+        degFunc[i] = 6;
+        func.add(6);
+      }
+    }
+  
+    // If major third is not found, look for minor third
+    if (!func.has(2)) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 3) {
+          degFunc[i] = 2;
+          func.add(2);
+          break;
+        }
+      }
+    }
+  
+    // If perfect fifth is not found and third is present, look for augmented fifth
+    if (!func.has(4) && func.has(2)) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 8) {
+          degFunc[i] = 4;
+          func.add(4);
+          break;
+        }
+      }
+    }
+  
+    // If neither major nor minor third is found, look for second as a substitute
+    if (!func.has(2)) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 2) {
+          degFunc[i] = 2;
+          func.add(2);
+          break;
+        }
+      }
+    }
+  
+    // If second is not found, look for fourth as a substitute for the third
+    if (!func.has(2)) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 5) {
+          degFunc[i] = 2;
+          func.add(2);
+          break;
+        }
+      }
+    }
+  
+    // Look for diminished fifth
+    if (!func.has(4)) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 6) {
+          degFunc[i] = 4;
+          func.add(4);
+          break;
+        }
+      }
+    }
+  
+    // Look for minor seventh
+    if (!func.has(6)) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 10) {
+          degFunc[i] = 6;
+          func.add(6);
+          break;
+        }
+      }
+    }
+  
+    // Look for diminished seventh (major sixth)
+    if (!func.has(6)) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 9) {
+          degFunc[i] = 6;
+          func.add(6);
+          break;
+        }
+      }
+    }
+      
+    let j = 1;
+    // Assign seconds, fourths, and sixths where missing by filling in the gaps
+    for (let i = 1; i < degFunc.length; i++) {
+      if (degFunc[i] == undefined) {
+        degFunc[i] = j;
+      }else{
+        j += 2
+      }
+    }
+  
+    return degFunc.map(value => value!);
+  }
+    
 }
 
 /**
