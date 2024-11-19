@@ -537,22 +537,29 @@ for (let i = 0; i < index_chord.data.length; i++) {
 
     return false; // The note is not an avoid note
   }
+
   /**
-  * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
-  * It returns an array where each element corresponds to a note in the original data array,
-  * indicating its degree within the scale (e.g., 0 for root, 2 for third, 4 for fifth).
-  * 
-  * @returns An array of numbers representing the degree assigned to each note.
-  */
+   * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
+   * The degrees are assigned based on standard musical intervals, ensuring that important degrees like
+   * third, fifth, and seventh are prioritized.
+   * The function returns an array where each element corresponds to a note in the original data array,
+   * indicating its degree within the scale (e.g., 0 for root, 2 for third, 4 for fifth, etc.).
+   * 
+   * @returns An array of numbers representing the degree assigned to each note.
+   */
+
   degreeFunction(): number[] {
     // Shift the vector so that the root is at 0
     let shiftedVector = this.sum(-this.data[0]);
     let shiftedData = shiftedVector.data;
-  
+    for (let i = 1 ; i < shiftedData.length ; i++){
+      shiftedData[i] = Math.round((shiftedData[i] * 12) / this.modulo);
+    }
+
     let degFunc: (number | undefined)[] = new Array(this.data.length);
     degFunc[0] = 0;
     let func = new Set<number>();
-  
+
     // Search for major third, perfect fifth, and major seventh
     for (let i = 1; i < shiftedData.length; i++) {
       if (shiftedData[i] == 4) {
@@ -568,7 +575,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
         func.add(6);
       }
     }
-  
+
     // If major third is not found, look for minor third
     if (!func.has(2)) {
       for (let i = 1; i < shiftedData.length; i++) {
@@ -579,7 +586,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
         }
       }
     }
-  
+
     // If perfect fifth is not found and third is present, look for augmented fifth
     if (!func.has(4) && func.has(2)) {
       for (let i = 1; i < shiftedData.length; i++) {
@@ -590,7 +597,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
         }
       }
     }
-  
+
     // If neither major nor minor third is found, look for second as a substitute
     if (!func.has(2)) {
       for (let i = 1; i < shiftedData.length; i++) {
@@ -601,7 +608,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
         }
       }
     }
-  
+
     // If second is not found, look for fourth as a substitute for the third
     if (!func.has(2)) {
       for (let i = 1; i < shiftedData.length; i++) {
@@ -612,7 +619,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
         }
       }
     }
-  
+
     // Look for diminished fifth
     if (!func.has(4)) {
       for (let i = 1; i < shiftedData.length; i++) {
@@ -623,7 +630,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
         }
       }
     }
-  
+
     // Look for minor seventh
     if (!func.has(6)) {
       for (let i = 1; i < shiftedData.length; i++) {
@@ -634,7 +641,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
         }
       }
     }
-  
+
     // Look for diminished seventh (major sixth)
     if (!func.has(6)) {
       for (let i = 1; i < shiftedData.length; i++) {
@@ -645,20 +652,21 @@ for (let i = 0; i < index_chord.data.length; i++) {
         }
       }
     }
-      
-    let j = 1;
+
     // Assign seconds, fourths, and sixths where missing by filling in the gaps
     for (let i = 1; i < degFunc.length; i++) {
-      if (degFunc[i] == undefined) {
-        degFunc[i] = j;
-      }else{
-        j += 2
+      if (degFunc[i] == undefined && shiftedData[i] < 4) {
+        degFunc[i] = 1
+      }else if(degFunc[i] == undefined && shiftedData[i] > 4 && shiftedData[i] < 7){
+        degFunc[i] = 3
+      }else if(degFunc[i] == undefined && shiftedData[i] > 7 && shiftedData[i] < 11){
+        degFunc[i] = 5
       }
     }
-  
+
     return degFunc.map(value => value!);
   }
-    
+
 }
 
 /**
