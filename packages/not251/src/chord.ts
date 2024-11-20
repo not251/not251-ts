@@ -305,13 +305,13 @@ export function autovoicingP2P(
  * - It determines the voicing based on the degree function of the scale.
  * - **Now supports scales of variable lengths**, enhancing flexibility.
  * - It selects notes to avoid voice repetition and avoid notes.
- * - If `cluster` is `true`, it generates cluster chords by adding appropriate notes.
+ * - If `cluster` is `true`, it generates a five-voice block chord by adding appropriate notes.
  *
- * @param scale - The scale as a **positionVector**, which can have variable length.
- * @param degree - The degree of the scale to base the chord on.
- * @param chordDegrees - The degrees of the chord within the scale.
+ * @param scale - The scale as a **positionVector**, which can have a variable length, with a modulo and span of 12.
+ * @param degree - The degree of the lead.
+ * @param chordDegrees - The degrees of the chord within the scale, represented as a **positionVector** (e.g., `[0, 2, 4, 6]`) with `scale.data.length` as the modulo.
  * @param lastChord - The previous chord as a **positionVector** for comparison.
- * @param cluster - If `true`, generates cluster chords (default is `false`).
+ * @param cluster - If `true`, generates a block chord with five voices (default is `false`).
  * @returns A **positionVector** representing the generated block chord.
  */
 
