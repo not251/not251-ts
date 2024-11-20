@@ -299,14 +299,19 @@ export function autovoicingP2P(
 }
 
 /**
- * Generates a block chord based on the given scale, degree, and chord degrees.
- * If `cluster` is true, generates cluster chords by adding notes according to specified criteria.
+ * Generates a block chord based on the given **scale**, **degree**, and **chordDegrees**.
+ * The function considers the **lastChord** for voice leading and can generate cluster chords if specified.
  *
- * @param scale - The scale as a **positionVector**.
+ * - It determines the voicing based on the degree function of the scale.
+ * - **Now supports scales of variable lengths**, enhancing flexibility.
+ * - It selects notes to avoid voice repetition and avoid notes.
+ * - If `cluster` is `true`, it generates cluster chords by adding appropriate notes.
+ *
+ * @param scale - The scale as a **positionVector**, which can have variable length.
  * @param degree - The degree of the scale to base the chord on.
  * @param chordDegrees - The degrees of the chord within the scale.
  * @param lastChord - The previous chord as a **positionVector** for comparison.
- * @param cluster - If `true`, generates cluster chords using the new feature (default is `false`).
+ * @param cluster - If `true`, generates cluster chords (default is `false`).
  * @returns A **positionVector** representing the generated block chord.
  */
 
@@ -317,79 +322,61 @@ function generateBlockChord(
   lastChord: positionVector,
   cluster: boolean = false
 ): positionVector {
-  const voicing = new positionVector([degree], scale.data.length, scale.data.length);
+  let voicing = new positionVector([degree], scale.data.length, scale.data.length);
 
-  const reference = lastChord.rototranslate(lastChord.data.length -1, lastChord.data.length, false);
+  const reference = lastChord.data;
   let index = -1;
 
-  switch (modulo(degree, voicing.modulo)) {
-    case 0:
-      index = 0;
-      break;
-    case 1:
-      if (chordDegrees.data[1] != 1) {
-        index = 0;
-      } else {
-        index = 1;
-      }
-      break;
-    case 2:
-      index = 1;
-      break;
-    case 3:
-      index = 1;
-      break;
-    case 4:
-      index = 2;
-      break;
-    case 5:
-      if (chordDegrees.data[3] != 6) {
-        index = 2;
-      } else {
-        index = 3;
-      }
-      break;
-    case 6:
-      index = 3;
-      break;
+  let degFunc = scale.degreeFunction()[modulo(degree, scale.data.length)];
+  if (degFunc == 0 || (degFunc == 1 && chordDegrees.data[1] != 1)) {
+    index = 0;
+  } else if (
+    (degFunc == 1 && chordDegrees.data[1] == 1) ||
+    degFunc == 2 ||
+    degFunc == 3
+  ) {
+    index = 1;
+  } else if (degFunc == 4 || (degFunc == 5 && chordDegrees.data[3] != 6)) {
+    index = 2;
+  } else {
+    index = 3;
   }
 
-  if (index == -1) {
-    console.log("index broke");
-  }
-  index++;
   let octave = Math.floor(degree / voicing.modulo) * voicing.modulo;
 
-  for (let i = 0; i < 3; i++) {
-    let actualDegree = chordDegrees.element(index + i) + octave;
-    let zeroDegree = modulo(actualDegree, chordDegrees.modulo);
+  for (let i = 1; i < 4; i++) {
+    let actualDegree = chordDegrees.element(index - i) + octave;
+    let scaleDegreeFunction = scale.degreeFunction();
+    let zeroDegree = scaleDegreeFunction[modulo(actualDegree, scale.data.length)];
+    let chord = scale.selectFromPosition(chordDegrees);
     switch (zeroDegree) {
       case 0:
         if (
-          chordDegrees.data[1] != 1 &&
-          reference.data[i + 1] != scale.element(actualDegree + 1) &&
-          scale.element(actualDegree + 1) - scale.element(actualDegree) != 1 &&
-          scale.element(chordDegrees.data[1]) - scale.element(zeroDegree + 1) != 1
+          scaleDegreeFunction[modulo(actualDegree + 1, scale.data.length)] != 2 && // If the next degree is not a third
+          chordDegrees.data[1] != 1 && // If the chord is not sus2
+          reference[reference.length - i - 1] != scale.element(actualDegree + 1) && // If the note is not repeated
+          !chord.isAvoid(scale.element(1)) // If the next note is not an avoid note
         ) {
-          voicing.data.push(actualDegree + 1);
+          voicing.data.push(actualDegree + 1); // Increase the degree
         } else {
-          voicing.data.push(actualDegree);
+          voicing.data.push(actualDegree); // Otherwise, add the fundamental
         }
         break;
       case 1:
-        voicing.data.push(actualDegree);
+        voicing.data.push(actualDegree); // Add the second
         break;
       case 2:
-        voicing.data.push(actualDegree);
+        voicing.data.push(actualDegree); // Add the third
         break;
       case 3:
-        voicing.data.push(actualDegree);
+        voicing.data.push(actualDegree); // Add the fourth
         break;
       case 4:
         if (
-          chordDegrees.data[3] != 5 &&
-          reference.data[i + 1] == scale.element(actualDegree) &&
-          scale.element(voicing.data[0]) - scale.element(actualDegree + 2 - scale.data.length) != 1
+          scaleDegreeFunction[modulo(actualDegree + 1, scale.data.length)] != 6 && // If the next degree is not a seventh
+          chordDegrees.data[3] != 5 && // If the base chord is not a sixth
+          reference[reference.length - i - 1] == scale.element(actualDegree) && // If the note is repeated
+          !chord.isAvoid(scale.element(actualDegree + 1)) // If the next note is not an avoid note
         ) {
           voicing.data.push(actualDegree + 1);
         } else {
@@ -398,7 +385,7 @@ function generateBlockChord(
         break;
       case 5:
         if (
-          i == 1 &&
+          i == 3 &&
           scale.element(voicing.data[0]) - scale.element(actualDegree - scale.data.length) == 1
         ) {
           voicing.data.push(actualDegree - 1);
@@ -407,8 +394,8 @@ function generateBlockChord(
         break;
       case 6:
         if (
-          i == 2 &&
-          scale.element(voicing.data[0]) - scale.element(actualDegree - scale.data.length) == 1
+          i == 1 &&
+          scale.element(voicing.data[0]) - scale.element(actualDegree) == 1
         ) {
           voicing.data.push(actualDegree - 1);
         } else {
@@ -418,7 +405,6 @@ function generateBlockChord(
     }
   }
 
-  voicing.rototranslate(1 - voicing.data.length);
   let blockchord = scale.selectFromPosition(voicing);
 
   if (cluster == true) {
