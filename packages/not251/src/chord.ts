@@ -376,26 +376,21 @@ function generateBlockChord(
           scaleDegreeFunction[modulo(actualDegree + 1, scale.data.length)] != 6 && // If the next degree is not a seventh
           chordDegrees.data[3] != 5 && // If the base chord is not a sixth
           reference[reference.length - i - 1] == scale.element(actualDegree) && // If the note is repeated
-          !chord.isAvoid(scale.element(actualDegree + 1)) // If the next note is not an avoid note
+          !chord.isAvoid(scale.element(actualDegree + 1)) && // If the next degree is not an avoid note
+          voicing.data[1] != (actualDegree + 1) // If the next degree is not the same as the previous one
         ) {
-          voicing.data.push(actualDegree + 1);
+          voicing.data.push(actualDegree + 1);  // Add the next degree
         } else {
-          voicing.data.push(actualDegree);
+          voicing.data.push(actualDegree);  // Add the current degree
         }
         break;
       case 5:
-        if (
-          i == 3 &&
-          scale.element(voicing.data[0]) - scale.element(actualDegree - scale.data.length) == 1
-        ) {
-          voicing.data.push(actualDegree - 1);
-        }
-        voicing.data.push(actualDegree);
+        voicing.data.push(actualDegree);  // Add the current degree
         break;
       case 6:
         if (
           i == 1 &&
-          scale.element(voicing.data[0]) - scale.element(actualDegree) == 1
+          scale.element(voicing.data[0]) - scale.element(actualDegree) == 1 // If the actual degree is at half step from the lead note
         ) {
           voicing.data.push(actualDegree - 1);
         } else {
