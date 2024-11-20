@@ -558,96 +558,96 @@ for (let i = 0; i < index_chord.data.length; i++) {
 
     let degFunc: (number | undefined)[] = new Array(this.data.length);
     degFunc[0] = 0;
-    let func = new Set<number>();
+    let func = new Set<string>();
 
     // Search for major third, perfect fifth, and major seventh
     for (let i = 1; i < shiftedData.length; i++) {
       if (shiftedData[i] == 4) {
         degFunc[i] = 2;
-        func.add(2);
+        func.add("3maj");
       }
       if (shiftedData[i] == 7) {
         degFunc[i] = 4;
-        func.add(4);
+        func.add("5");
       }
       if (shiftedData[i] == 11) {
         degFunc[i] = 6;
-        func.add(6);
+        func.add("7maj");
       }
     }
 
     // If major third is not found, look for minor third
-    if (!func.has(2)) {
+    if (!func.has("3maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 3) {
           degFunc[i] = 2;
-          func.add(2);
+          func.add("3min");
           break;
         }
       }
     }
 
     // If perfect fifth is not found and third is present, look for augmented fifth
-    if (!func.has(4) && func.has(2)) {
+    if (!func.has("5") && func.has("3maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 8) {
           degFunc[i] = 4;
-          func.add(4);
+          func.add("5aug");
           break;
         }
       }
     }
 
     // If neither major nor minor third is found, look for second as a substitute
-    if (!func.has(2)) {
+    if (!func.has("3maj") && !func.has("3min")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 2) {
           degFunc[i] = 2;
-          func.add(2);
+          func.add("3dim");
           break;
         }
       }
     }
 
-    // If second is not found, look for fourth as a substitute for the third
-    if (!func.has(2)) {
+    // If third is not found, look for a fourth as a substitute for the third
+    if (!func.has("3maj") && !func.has("3min") && !func.has("3dim")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 5) {
           degFunc[i] = 2;
-          func.add(2);
+          func.add("3aug");
           break;
         }
       }
     }
 
     // Look for diminished fifth
-    if (!func.has(4)) {
+    if (!func.has("5") && !func.has("5aug")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 6) {
           degFunc[i] = 4;
-          func.add(4);
+          func.add("5dim");
           break;
         }
       }
     }
 
     // Look for minor seventh
-    if (!func.has(6)) {
+    if (!func.has("7maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 10) {
           degFunc[i] = 6;
-          func.add(6);
+          func.add("7min");
           break;
         }
       }
     }
 
     // Look for diminished seventh (major sixth)
-    if (!func.has(6)) {
+    if (!func.has("7maj") && !func.has("7min")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 9) {
           degFunc[i] = 6;
-          func.add(6);
+          func.add("7dim");
           break;
         }
       }
@@ -666,7 +666,6 @@ for (let i = 0; i < index_chord.data.length; i++) {
 
     return degFunc.map(value => value!);
   }
-
 }
 
 /**
