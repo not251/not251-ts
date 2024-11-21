@@ -204,3 +204,84 @@ export function gcd(a: number, b: number): number {
 export function lcm(a: number, b: number): number {
   return (a * b) / gcd(a, b);
 }
+
+
+//Aggiungo qui perchè andrebbe aggiornata la funzione names in positionVector
+
+function scaleNames(
+  scala: positionVector,
+  ita: boolean = true,
+  useCents: boolean = false
+): string[] {
+
+
+  const noteNames = ita ? noteItaliane : noteInglesi;
+  const standard = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12); // Intervalli della scala maggiore in semitoni
+  let scales = lcmPosition(standard, scala);
+  let newstandard = scales[0];
+  let newscale = scales[1];
+
+  // Determina l'ottava di riferimento
+  let octave = Math.floor(newscale.data[0] / newscale.modulo) * newscale.modulo;
+  const octaveZeroScale = newscale.sum(-octave); // => 0 < data[i] < modulo
+  let index = 0;
+  while (newstandard.rototranslate(index, newstandard.data.length, false).data[0] < octaveZeroScale.data[0]) {
+    index++;
+  }
+
+  // Assumendo che degreeFunction() restituisca un array di gradi
+  let noteDegrees = scala.degreeFunction();
+  let steps1 = [];
+  let steps2 = [];
+  let runningTotal1 = 0;
+  let runningTotal2 = 0;
+
+  for (let i = 0; i < octaveZeroScale.data.length; i++) {
+    steps1[i] = (octaveZeroScale.data[i] - newstandard.element(noteDegrees[i] + index))/2;
+    runningTotal1 += steps1[i]; // Somma dei valori assoluti
+    steps2[i] = (octaveZeroScale.data[i] - newstandard.element(noteDegrees[i] + index +1))/2;
+    runningTotal2 += steps2[i]; // Somma dei valori assoluti
+  }
+
+  let steps = [];
+  if (Math.abs(runningTotal1) <= Math.abs(runningTotal2)) {
+    steps = steps1;
+  } else {
+    steps = steps2;
+    index++
+  }
+
+  let baseNames = []; // Inizializza come array vuoto
+  for (let i = 0; i < octaveZeroScale.data.length; i++) {
+    baseNames[i] = noteNames[modulo(noteDegrees[i] + index, 7)];
+  }
+
+  let names = []; // Inizializza come array vuoto
+  for (let i = 0; i < noteDegrees.length; i++) {
+    // Genera il nome della nota con le alterazioni appropriate
+    if (useCents) {
+      const cents = Math.round(steps[i] * 50);
+      if (cents !== 0) {
+        names[i] = `${baseNames[i]} ${cents > 0 ? "↑" : "↓"}${Math.abs(cents)}¢`;
+      } else {
+        names[i] = baseNames[i];
+      }
+    } else {
+      //questi simboli andrebbero rivisti perchè i mezzi diesis non si capiscono bene 
+      //e i ¾ sono sbagliati perchè non esistono i simboli appropriati in unicode
+      if (Math.abs(steps[i]) > 0.25 && Math.abs(steps[i]) < 0.75 ) {
+        names[i] = baseNames[i] + (steps[i] > 0 ? "𝄲" : "𝄳"); // Simboli microtonali
+      } else if (Math.abs(steps[i]) >= 0.75 && Math.abs(steps[i]) < 1.25) {
+        names[i] = baseNames[i] + (steps[i] > 0 ? "♯" : "♭");
+      } else if (Math.abs(steps[i]) >= 1.25 && Math.abs(steps[i]) < 1.75) {
+        names[i] = baseNames[i] + (steps[i] > 0 ? "¾♯" : "¾♭");
+      } else if (Math.abs(steps[i]) >= 1.75) {
+        names[i] = baseNames[i] + (steps[i] > 0 ? "x" : "♭♭")
+      } else  {
+        names[i] = baseNames[i];
+      }
+    }
+  }
+  return names;
+
+}

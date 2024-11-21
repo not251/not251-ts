@@ -621,7 +621,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     // Look for diminished fifth
-    if (!func.has("5") && !func.has("5aug")) {
+    if (!func.has("5") && !func.has("5aug") && !func.has("3maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 6) {
           degFunc[i] = 4;
