@@ -1,4 +1,4 @@
-import positionVector from "./positionVector";
+import positionVector, { inverse_select } from "./positionVector";
 import intervalVector from "./intervalVector";
 import { selectFromInterval } from "./crossOperation";
 import { scale } from "./scale";
@@ -327,7 +327,7 @@ function generateBlockChord(
   const reference = lastChord.data;
   let index = -1;
 
-  let degFunc = scale.degreeFunction()[modulo(degree, scale.data.length)];
+  let degFunc = scale.getDegrees()[modulo(degree, scale.data.length)];
   if (degFunc == 0 || (degFunc == 1 && chordDegrees.data[1] != 1)) {
     index = 0;
   } else if (
@@ -346,7 +346,7 @@ function generateBlockChord(
 
   for (let i = 1; i < 4; i++) {
     let actualDegree = chordDegrees.element(index - i) + octave;
-    let scaleDegreeFunction = scale.degreeFunction();
+    let scaleDegreeFunction = scale.getDegrees();
     let zeroDegree = scaleDegreeFunction[modulo(actualDegree, scale.data.length)];
     let chord = scale.selectFromPosition(chordDegrees);
     switch (zeroDegree) {
@@ -454,4 +454,288 @@ function generateBlockChord(
   } else {
     return blockchord;
   }
+}
+
+/**
+ * Represents the range of a musical voice or instrument.
+ * This class is used to determine if a given note is within the playable range for a particular voice or instrument.
+ * 
+ * @param name - The name of the voice or instrument (e.g., "soprano").
+ * @param range - A tuple representing the minimum and maximum MIDI note numbers that the voice can produce.
+ */
+class VoiceRange {
+  name: string;
+  range: [number, number];
+
+  constructor(name: string, range: [number, number]) {
+    this.name = name;
+    this.range = range;
+  }
+
+  /**
+   * Checks if a given note is within the voice's range.
+   * 
+   * @param num - The MIDI note number to check.
+   * @returns A boolean indicating whether the note is in range.
+   */
+  inRange(num: number): boolean {
+    return num >= this.range[0] && num <= this.range[1];
+  }
+}
+
+/**
+ * Predefined voice ranges for common vocal types.
+ * Each VoiceRange represents a vocal type (e.g., "soprano") with a defined range of MIDI notes.
+ */
+const VoiceRanges: VoiceRange[] = [
+  new VoiceRange("soprano", [60, 84]),
+  new VoiceRange("mezzosoprano", [57, 83]),
+  new VoiceRange("contralto", [53, 79]),
+  new VoiceRange("tenore", [48, 72]),
+  new VoiceRange("baritono", [45, 67]),
+  new VoiceRange("basso", [40, 64]),
+];
+
+
+/**
+ * Spreads a chord based on the given scale, chord degrees, and instrument ranges.
+ * This function distributes the chord notes across the provided instruments, determining the top note and bass note to achieve a well-balanced spread.
+ * 
+ * @param scale - The musical scale represented as a **positionVector**.
+ * @param chordDegrees - The degrees of the chord within the scale as a **positionVector**.
+ * @param instruments - An array of **VoiceRange** objects representing the ranges of the instruments.
+ * @param topDegree - (Optional) The degree for the top note.
+ * @param bassDegree - (Optional) The degree for the bass note.
+ * @param lastChord - (Optional) The previous chord represented as a **positionVector** for smoother transitions.
+ * @returns A **positionVector** representing the assigned notes for the chord spread.
+ */
+function spread(
+  scale: positionVector,
+  chordDegrees: positionVector,
+  instruments: VoiceRange[],
+  topDegree?: number,
+  bassDegree?: number,
+  lastChord?: positionVector
+): positionVector {
+  // Sort instruments according to the lowest note they can play
+  instruments.sort((a, b) => a.range[0] - b.range[0]);
+  const chordDegreesSet = new Set(chordDegrees.data);
+  let usedDegrees = new Set();
+
+  // Ensure the number of voices does not exceed the number of instruments
+  let voices = instruments.length;
+
+  // Determine the top note
+  let topNote: number;
+  const highestInstrument = instruments[voices - 1];
+  let highestCandidateInf: number = Math.trunc(highestInstrument.range[0] / chordDegrees.modulo);
+  let higherReference: number;
+
+  if (topDegree === undefined) {
+    // If topDegree is undefined, assign the highest note of the spread within the correct range
+    if (lastChord === undefined) {
+      // The reference is in the middle register of the instrument
+      higherReference = (highestInstrument.range[1] + highestInstrument.range[0]) / 2;
+    } else {
+      // The reference is the previous note
+      console.log("1");
+      higherReference = inverse_select(lastChord, scale).data[lastChord.data.length - 1];
+    }
+
+    while (scale.element(highestCandidateInf) <= higherReference) {
+      highestCandidateInf++;
+    }
+    let highestCandidateSup = highestCandidateInf;
+
+    // Center the lower candidate on a chord degree
+    while (!chordDegreesSet.has(modulo(highestCandidateInf, chordDegrees.modulo)) || scale.element(highestCandidateInf) > highestInstrument.range[1]) {
+      highestCandidateInf--;
+    }
+
+    // Center the upper candidate on a chord degree
+    while (!chordDegreesSet.has(modulo(highestCandidateSup, chordDegrees.modulo)) || scale.element(highestCandidateSup) < highestInstrument.range[0]) {
+      highestCandidateSup++;
+    }
+
+    let topNoteCandidate;
+
+    // Choose the best candidate
+    if (Math.abs(higherReference - scale.element(highestCandidateInf)) <= Math.abs(higherReference - scale.element(highestCandidateSup))) {
+      topNoteCandidate = scale.element(highestCandidateInf);
+    } else {
+      topNoteCandidate = scale.element(highestCandidateSup);
+    }
+
+    topNote = topNoteCandidate;
+  } else {
+    // Otherwise, set topNote to be exactly equal to topDegree
+    topNote = scale.element(topDegree);
+  }
+
+  // Determine the bass note
+  let bassNote = scale.element(0);
+  const lowestInstrument = instruments[0];
+
+  if (bassDegree === undefined) {
+    // If the bass is undefined, assign the bass of the spread to the fundamental adjusted into the correct range
+    let fundamentalNote = scale.element(0);
+
+    // Start from a comfortable note, one octave below the center of the range
+    let bassReference = lastChord === undefined
+      ? (lowestInstrument.range[0] + lowestInstrument.range[1]) / 2
+      : lastChord.data[0];
+
+    while (fundamentalNote >= lowestInstrument.range[0]) {
+      fundamentalNote -= scale.modulo;
+    }
+    let possibleBasses = [];
+
+    while (fundamentalNote <= lowestInstrument.range[1]) {
+      if (lowestInstrument.inRange(fundamentalNote)) {
+        possibleBasses.push(fundamentalNote);
+      }
+      fundamentalNote += scale.modulo;
+    }
+    let distance = Infinity;
+    // Adjust fundamentalNote into the instrument's range
+    bassNote = possibleBasses[0];
+    for (let i = 0; i < possibleBasses.length; i++) {
+      if (Math.abs(scale.element(possibleBasses[i]) - bassReference) <= distance &&
+        !((Math.abs(scale.element(possibleBasses[i])) - topNote) >= (scale.modulo * 1.5))) {
+        distance = Math.abs(scale.element(possibleBasses[i]) - bassReference);
+        bassNote = possibleBasses[i];
+      } else {
+        if (chordDegreesSet.has(5) && ((Math.abs(scale.element(possibleBasses[0])) - topNote) < (scale.modulo * 1.5))) {
+          chordDegreesSet.delete(5);
+        }
+      }
+    }
+  } else {
+    // If the bass is present, assign the bass of the spread in the correct range not lower than bassDegree
+    let bassNoteCandidate = scale.element(bassDegree);
+
+    // Ensure bassNoteCandidate is not lower than the original bassDegree
+    const originalBassNote = scale.element(bassDegree);
+    while (bassNoteCandidate < originalBassNote || !lowestInstrument.inRange(bassNoteCandidate)) {
+      bassNoteCandidate += scale.modulo;
+    }
+
+    bassNote = bassNoteCandidate;
+  }
+
+  let candidatesPv = new positionVector([bassNote, topNote], scale.data.length, scale.data.length);
+  usedDegrees.add(modulo(inverse_select(candidatesPv, scale).data[0], scale.data.length));
+  usedDegrees.add(modulo(inverse_select(candidatesPv, scale).data[1], scale.data.length));
+
+  let candateDegrees = inverse_select(candidatesPv, scale);
+  // Now assign notes to each voice
+  let possibleDegrees: number[] = [];
+  for (let i = candateDegrees.data[0] + 1; i < candateDegrees.data[1]; i++) {
+    if (chordDegreesSet.has(modulo(i, scale.data.length))) {
+      possibleDegrees.push(i);
+    }
+  }
+  let result = [bassNote];
+
+  let possibilities: number[][] = Array.from({ length: voices - 2 }, () => []);
+
+  let essentialDegrees = new Set<number>();
+  if (chordDegreesSet.has(0) && !usedDegrees.has(0)) {
+    essentialDegrees.add(0); // Root
+  }
+  if (chordDegreesSet.has(2) && !usedDegrees.has(2)) {
+    essentialDegrees.add(2); // Third
+  }
+  if (chordDegreesSet.has(6) && !usedDegrees.has(6)) {
+    essentialDegrees.add(6); // Seventh
+  } else if (chordDegreesSet.has(5) && !usedDegrees.has(5)) {
+    essentialDegrees.add(5); // Sixth if the seventh is not present
+  }
+  if (!essentialDegrees.has(2) && chordDegreesSet.has(1)) {
+    essentialDegrees.add(1); // Second if the third is not present
+  }
+
+  for (let voice = 1; voice < voices - 1; voice++) {
+    for (let possibleDegree of possibleDegrees) {
+      let actualtNote = scale.element(possibleDegree);
+
+      if (instruments[voice].inRange(actualtNote) &&
+        !((voice == 1) && actualtNote < 50 && (actualtNote - bassNote) < 7) &&
+        !((voice == voices - 2) && (actualtNote - topNote) > 1) &&
+        !(scale.isExtension(actualtNote) && (actualtNote - bassNote < scale.modulo))) {
+        possibilities[voice - 1].push(actualtNote);
+      }
+    }
+    if (possibilities[voice - 1].length === 0) {
+      console.warn(`Voice ${voice} has no possible degrees within range.`);
+    }
+  }
+
+  let innerVoicesTar: number[] = [];
+  if (lastChord == undefined) {
+    for (let i = 0; i < voices - 2; i++) {
+      innerVoicesTar[i] = Math.round((topNote - bassNote) / (voices - 1)) * (i + 1) + bassNote;
+    }
+  } else {
+    for (let i = 0; i < voices - 2; i++) {
+      innerVoicesTar[i] = lastChord.data[i + 1];
+    }
+  }
+
+  // Generate all possible combinations for inner voices, respecting ascending order
+  function generateCombinations(possibilities: number[][]): number[][] {
+    let results: number[][] = [];
+
+    function backtrack(current: number[], depth: number) {
+      if (depth === possibilities.length) {
+        results.push([...current]);
+        return;
+      }
+
+      for (let note of possibilities[depth]) {
+        if (current.length === 0 || note > current[current.length - 1]) {
+          current.push(note);
+          backtrack(current, depth + 1);
+          current.pop();
+        }
+      }
+    }
+
+    backtrack([], 0);
+    return results;
+  }
+
+  const innerVoiceCombinations = generateCombinations(possibilities);
+  // Filter combinations that do not respect possibilities for each voice and contain essentialDegrees
+  const validCombinations = innerVoiceCombinations.filter(combination => {
+    const combinationSet = new Set(combination.map(note => modulo(inverse_select(new positionVector([note], scale.data.length, scale.data.length), scale).data[0], scale.data.length)));
+    return combination.every((note, index) => possibilities[index].includes(note)) && Array.from(essentialDegrees).every(degree => combinationSet.has(degree));
+  });
+  // Select the combination that best matches innerVoicesTar (i.e., is closest)
+  function calculateDistance(combination: number[], target: number[]): number {
+    let distance = 0;
+    for (let i = 0; i < combination.length; i++) {
+      distance += Math.abs(combination[i] - target[i]);
+    }
+    return distance;
+  }
+
+  let bestCombination = validCombinations[0];
+  let minDistance = calculateDistance(validCombinations[0], innerVoicesTar);
+
+  for (let combination of validCombinations) {
+    const distance = calculateDistance(combination, innerVoicesTar);
+    if (distance < minDistance) {
+      minDistance = distance;
+      bestCombination = combination;
+    }
+  }
+
+  // Add the best combination to the result notes
+  result.push(...bestCombination);
+
+  result.push(topNote);
+
+  // Return the assigned notes as a positionVector
+  return new positionVector(result, scale.modulo, scale.modulo);
 }

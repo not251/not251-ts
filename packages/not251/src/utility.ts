@@ -1,3 +1,5 @@
+import positionVector , { lcmPosition } from "./positionVector";
+
 /**
  * Computes the positive modulo of two numbers a and b, handling negative values as well.
  * If b is negative, it first adjusts both a and b to be positive.
@@ -214,10 +216,12 @@ function scaleNames(
   useCents: boolean = false
 ): string[] {
 
-
+  const noteItaliane: string[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+  const noteInglesi: string[] = ["C", "D", "E", "F", "G", "A", "B"];
+  
   const noteNames = ita ? noteItaliane : noteInglesi;
   const standard = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12); // Intervalli della scala maggiore in semitoni
-  let scales = lcmPosition(standard, scala);
+  let scales = lcmPosition(standard, scala); // => scala = scala.lcm(standard)
   let newstandard = scales[0];
   let newscale = scales[1];
 
@@ -230,7 +234,7 @@ function scaleNames(
   }
 
   // Assumendo che degreeFunction() restituisca un array di gradi
-  let noteDegrees = scala.degreeFunction();
+  let noteDegrees = scala.getDegrees();
   let steps1 = [];
   let steps2 = [];
   let runningTotal1 = 0;
@@ -285,3 +289,4 @@ function scaleNames(
   return names;
 
 }
+

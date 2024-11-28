@@ -489,185 +489,211 @@ for (let i = 0; i < index_chord.data.length; i++) {
     return out;
   }
 
-  /**
+    /**
      * Checks if a given number is present in this **positionVector**, considering modular equivalence.
      *
      * @param num - The number to check for presence in this **positionVector**.
      * @returns `true` if the number is present in this **positionVector**, considering the modulo; `false` otherwise.
      */
-  isNote(num: number): boolean {
-    const modNum = modulo(num, this.modulo);
-    for (let i = 0; i < this.data.length; i++) {
-      if (modulo(this.data[i], this.modulo) === modNum) {
-        return true;
-      }
+    isNote(note: number): boolean {
+      return this.data.includes(note);
     }
-    return false;
-  }
-
-  /**
-   * Determines if a given note is an **avoid note** with respect to this **positionVector** (interpreted as a chord).
-   *
-   * A note is considered an avoid note if:
-   * - It is not already present in the chord.
-   * - The difference between the note and any note in the chord (excluding the root) is equal to half the modulo of the chord.
-   *
-   * The comparison is made for each note in the chord except the fundamental (first note).
-   *
-   * @param num - The note to check as an avoid note.
-   * @returns `true` if the note is an avoid note; `false` otherwise.
-   */
-  isAvoid(num: number): boolean {
-    // Check if the note is already in the chord
-    if (this.isNote(num)) {
-      return false;
-    }
-
-    const halfModulo = this.modulo / 2;
-
-    // Compare with each note in the chord, excluding the fundamental (index 0)
-    for (let i = 1; i < this.data.length; i++) {
-      const chordNoteMod = modulo(this.data[i], this.modulo);
-      const diff = modulo(num - chordNoteMod, this.modulo);
-
-      if (diff === halfModulo) {
-        return true; // The note is an avoid note
+  
+    /**
+     * Determines if a given note is an **avoid note** with respect to this **positionVector** (interpreted as a chord).
+     *
+     * A note is considered an avoid note if:
+     * - It is not already present in the chord.
+     * - The difference between the note and any note in the chord (excluding the root) is equal to half the modulo of the chord.
+     *
+     * The comparison is made for each note in the chord except the fundamental (first note).
+     *
+     * @param num - The note to check as an avoid note.
+     * @returns `true` if the note is an avoid note; `false` otherwise.
+     */
+    isAvoid(num: number): boolean {
+      // Check if the note is already in the chord
+      if (this.isNote(num)) {
+        return false;
       }
-    }
-
-    return false; // The note is not an avoid note
-  }
-
-  /**
-   * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
-   * The degrees are assigned based on standard musical intervals, ensuring that important degrees like
-   * third, fifth, and seventh are prioritized.
-   * The function returns an array where each element corresponds to a note in the original data array,
-   * indicating its degree within the scale (e.g., 0 for root, 2 for third, 4 for fifth, etc.).
-   * 
-   * @returns An array of numbers representing the degree assigned to each note.
-   */
-
-  degreeFunction(): number[] {
-    // Shift the vector so that the root is at 0
-    let shiftedVector = this.sum(-this.data[0]);
-    let shiftedData = shiftedVector.data;
-    for (let i = 1 ; i < shiftedData.length ; i++){
-      shiftedData[i] = Math.round((shiftedData[i] * 12) / this.modulo);
-    }
-
-    let degFunc: (number | undefined)[] = new Array(this.data.length);
-    degFunc[0] = 0;
-    let func = new Set<string>();
-
-    // Search for major third, perfect fifth, and major seventh
-    for (let i = 1; i < shiftedData.length; i++) {
-      if (shiftedData[i] == 4) {
-        degFunc[i] = 2;
-        func.add("3maj");
-      }
-      if (shiftedData[i] == 7) {
-        degFunc[i] = 4;
-        func.add("5");
-      }
-      if (shiftedData[i] == 11) {
-        degFunc[i] = 6;
-        func.add("7maj");
-      }
-    }
-
-    // If major third is not found, look for minor third
-    if (!func.has("3maj")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 3) {
-          degFunc[i] = 2;
-          func.add("3min");
-          break;
+  
+      const halfModulo = this.modulo / 2;
+  
+      // Compare with each note in the chord, excluding the fundamental (index 0)
+      for (let i = 1; i < this.data.length; i++) {
+        const chordNoteMod = modulo(this.data[i], this.modulo);
+        const diff = modulo(num - chordNoteMod, this.modulo);
+  
+        if (diff === halfModulo) {
+          return true; // The note is an avoid note
         }
       }
-    }
-
-    // If perfect fifth is not found and third is present, look for augmented fifth
-    if (!func.has("5") && func.has("3maj")) {
+  
+      return false; // The note is not an avoid note
+    }  
+  
+    /**
+     * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
+     * Additionally, determines if the note is an extension.
+     * @returns An array of objects representing each note with its degree and whether it is an extension.
+     */
+    degreeFunction(): { degree: number, isExtension: boolean }[] {
+      // Shift the vector so that the root is at 0
+      let shiftedVector = this.sum(-this.data[0]);
+      let shiftedData = shiftedVector.data;
       for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 8) {
+        shiftedData[i] = Math.round((shiftedData[i] * 12) / this.modulo);
+      }
+  
+      let degFunc: (number | undefined)[] = new Array(this.data.length);
+      degFunc[0] = 0;
+      let func = new Set<string>();
+  
+      // Search for major third, perfect fifth, and major seventh
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 4) {
+          degFunc[i] = 2;
+          func.add("3maj");
+        }
+        if (shiftedData[i] == 7) {
           degFunc[i] = 4;
-          func.add("5aug");
-          break;
+          func.add("5");
         }
-      }
-    }
-
-    // If neither major nor minor third is found, look for second as a substitute
-    if (!func.has("3maj") && !func.has("3min")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 2) {
-          degFunc[i] = 2;
-          func.add("3dim");
-          break;
-        }
-      }
-    }
-
-    // If third is not found, look for a fourth as a substitute for the third
-    if (!func.has("3maj") && !func.has("3min") && !func.has("3dim")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 5) {
-          degFunc[i] = 2;
-          func.add("3aug");
-          break;
-        }
-      }
-    }
-
-    // Look for diminished fifth
-    if (!func.has("5") && !func.has("5aug") && !func.has("3maj")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 6) {
-          degFunc[i] = 4;
-          func.add("5dim");
-          break;
-        }
-      }
-    }
-
-    // Look for minor seventh
-    if (!func.has("7maj")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 10) {
+        if (shiftedData[i] == 11) {
           degFunc[i] = 6;
-          func.add("7min");
-          break;
+          func.add("7maj");
         }
       }
-    }
-
-    // Look for diminished seventh (major sixth)
-    if (!func.has("7maj") && !func.has("7min")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 9) {
-          degFunc[i] = 6;
-          func.add("7dim");
-          break;
+  
+      // If major third is not found, look for minor third
+      if (!func.has("3maj")) {
+        for (let i = 1; i < shiftedData.length; i++) {
+          if (shiftedData[i] == 3) {
+            degFunc[i] = 2;
+            func.add("3min");
+            break;
+          }
         }
       }
-    }
-
-    // Assign seconds, fourths, and sixths where missing by filling in the gaps
-    for (let i = 1; i < degFunc.length; i++) {
-      if (degFunc[i] == undefined && shiftedData[i] < 4) {
-        degFunc[i] = 1
-      }else if(degFunc[i] == undefined && shiftedData[i] > 4 && shiftedData[i] < 7){
-        degFunc[i] = 3
-      }else if(degFunc[i] == undefined && shiftedData[i] > 7 && shiftedData[i] < 11){
-        degFunc[i] = 5
+  
+      // If perfect fifth is not found and third is present, look for augmented fifth
+      if (!func.has("5") && func.has("3maj")) {
+        for (let i = 1; i < shiftedData.length; i++) {
+          if (shiftedData[i] == 8) {
+            degFunc[i] = 4;
+            func.add("5aug");
+            break;
+          }
+        }
       }
+  
+      // If neither major nor minor third is found, look for second as a substitute
+      if (!func.has("3maj") && !func.has("3min")) {
+        for (let i = 1; i < shiftedData.length; i++) {
+          if (shiftedData[i] == 2) {
+            degFunc[i] = 2;
+            func.add("3dim");
+            break;
+          }
+        }
+      }
+  
+      // If third is not found, look for a fourth as a substitute for the third
+      if (!func.has("3maj") && !func.has("3min") && !func.has("3dim")) {
+        for (let i = 1; i < shiftedData.length; i++) {
+          if (shiftedData[i] == 5) {
+            degFunc[i] = 2;
+            func.add("3aug");
+            break;
+          }
+        }
+      }
+  
+      // Look for diminished fifth
+      if (!func.has("5") && !func.has("5aug") && !func.has("3maj")) {
+        for (let i = 1; i < shiftedData.length; i++) {
+          if (shiftedData[i] == 6) {
+            degFunc[i] = 4;
+            func.add("5dim");
+            break;
+          }
+        }
+      }
+  
+      // Look for minor seventh
+      if (!func.has("7maj")) {
+        for (let i = 1; i < shiftedData.length; i++) {
+          if (shiftedData[i] == 10) {
+            degFunc[i] = 6;
+            func.add("7min");
+            break;
+          }
+        }
+      }
+  
+      // Look for diminished seventh (major sixth)
+      if (!func.has("7maj") && !func.has("7min")) {
+        for (let i = 1; i < shiftedData.length; i++) {
+          if (shiftedData[i] == 9) {
+            degFunc[i] = 6;
+            func.add("7dim");
+            break;
+          }
+        }
+      }
+  
+      // Assign seconds, fourths, and sixths where missing by filling in the gaps
+      for (let i = 1; i < degFunc.length; i++) {
+        if (degFunc[i] == undefined && shiftedData[i] < 4) {
+          degFunc[i] = 1;
+        } else if (degFunc[i] == undefined && shiftedData[i] > 4 && shiftedData[i] < 7) {
+          degFunc[i] = 3;
+        } else if (degFunc[i] == undefined && shiftedData[i] > 7 && shiftedData[i] < 11) {
+          degFunc[i] = 5;
+        }
+      }
+  
+      // Helper function to determine if a note is an extension
+      const isExtension = (degree: number): boolean => {
+        // Fundamental degrees are 0 (root), 2 (third), 4 (fifth), 6 (seventh)
+        return degree !== 0 && degree !== 2 && degree !== 4 && degree !== 6;
+      };
+  
+      // Generate the detailed output, including the isExtension field
+      return degFunc.map((degree) => ({
+        degree: degree!,
+        isExtension: isExtension(degree!)
+      }));
+    }
+  
+    /**
+     * Gets only the degrees for each note in the scale.
+     * @returns An array of degrees representing each note.
+     */
+    getDegrees(): number[] {
+      return this.degreeFunction().map(item => item.degree);
+    }
+  
+    /**
+     * Gets whether each note in the scale is an extension.
+     * @returns An array of booleans indicating if each note is an extension.
+     */
+    getExtensions(): boolean[] {
+      return this.degreeFunction().map(item => item.isExtension);
+    }
+  
+    /**
+     * Checks if a given note is an extension in the current positionVector.
+     * @param note The note to check.
+     * @returns `true` if the note is an extension, `false` otherwise.
+     */
+    isExtension(note: number): boolean {
+      const degreeObj = this.degreeFunction().find((item, index) => this.data[index] === modulo(note,this.modulo));
+      return degreeObj ? degreeObj.isExtension : false;
     }
 
-    return degFunc.map(value => value!);
-  }
+
 }
-
 /**
  * Calculates the LCM of two positionVector instances and scales their data, modulo and span accordingly.
  *
@@ -675,7 +701,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
  * @param b - The second positionVector instance.
  * @returns A tuple containing two positionVector instances scaled to the same modulo.
  */
-function lcmPosition(
+export function lcmPosition(
   a: positionVector,
   b: positionVector
 ): [positionVector, positionVector] {

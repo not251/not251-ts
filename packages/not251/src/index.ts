@@ -1,5 +1,5 @@
 import intervalVector from "./intervalVector";
-import positionVector from "./positionVector";
+import positionVector , { lcmPosition } from "./positionVector";
 import { ScaleParams, defaultScaleParams, scale, autoMode } from "./scale";
 import {
   ChordParams,
@@ -44,4 +44,5 @@ export {
   generateCounterpoint,
   tihai,
   phraseLength,
+  lcmPosition,
 };
