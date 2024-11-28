@@ -532,167 +532,195 @@ for (let i = 0; i < index_chord.data.length; i++) {
       return false; // The note is not an avoid note
     }  
   
-    /**
-     * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
-     * Additionally, determines if the note is an extension.
-     * @returns An array of objects representing each note with its degree and whether it is an extension.
-     */
-    degreeFunction(): { degree: number, isExtension: boolean }[] {
-      // Shift the vector so that the root is at 0
-      let shiftedVector = this.sum(-this.data[0]);
-      let shiftedData = shiftedVector.data;
-      for (let i = 1; i < shiftedData.length; i++) {
-        shiftedData[i] = Math.round((shiftedData[i] * 12) / this.modulo);
+  /**
+   * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
+   * Additionally, determines the interval types for the scale.
+   * @returns An object containing the degree information and a set of interval types.
+   */
+  degreeFunction(): { degreeFunction: { degree: number, isExtension: boolean }[], intervalTypes: Set<string> } {
+    // Shift the vector so that the root is at 0
+    let shiftedVector = this.sum(-this.data[0]);
+    let shiftedData = shiftedVector.data;
+    for (let i = 1; i < shiftedData.length; i++) {
+      shiftedData[i] = Math.round((shiftedData[i] * 12) / this.modulo);
+    }
+
+    let degFunc: (number | undefined)[] = new Array(this.data.length);
+    degFunc[0] = 0;
+    let intervalTypes = new Set<string>();
+
+    // Search for major third, perfect fifth, and major seventh
+    for (let i = 1; i < shiftedData.length; i++) {
+      if (shiftedData[i] == 4) {
+        degFunc[i] = 2;
+        intervalTypes.add("3maj");
       }
-  
-      let degFunc: (number | undefined)[] = new Array(this.data.length);
-      degFunc[0] = 0;
-      let func = new Set<string>();
-  
-      // Search for major third, perfect fifth, and major seventh
+      if (shiftedData[i] == 7) {
+        degFunc[i] = 4;
+        intervalTypes.add("5");
+      }
+      if (shiftedData[i] == 11) {
+        degFunc[i] = 6;
+        intervalTypes.add("7maj");
+      }
+    }
+
+    // If major third is not found, look for minor third
+    if (!intervalTypes.has("3maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 4) {
+        if (shiftedData[i] == 3) {
           degFunc[i] = 2;
-          func.add("3maj");
+          intervalTypes.add("3min");
+          break;
         }
-        if (shiftedData[i] == 7) {
+      }
+    }
+
+    // If perfect fifth is not found and third is present, look for augmented fifth
+    if (!intervalTypes.has("5") && intervalTypes.has("3maj")) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 8) {
           degFunc[i] = 4;
-          func.add("5");
+          intervalTypes.add("5aug");
+          break;
         }
-        if (shiftedData[i] == 11) {
+      }
+    }
+
+    // If neither major nor minor third is found, look for second as a substitute
+    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min")) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 2) {
+          degFunc[i] = 2;
+          intervalTypes.add("3dim");
+          break;
+        }
+      }
+    }
+
+    // If third is not found, look for a fourth as a substitute for the third
+    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min") && !intervalTypes.has("3dim")) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 5) {
+          degFunc[i] = 2;
+          intervalTypes.add("3aug");
+          break;
+        }
+      }
+    }
+
+    // Look for diminished fifth
+    if (!intervalTypes.has("5") && !intervalTypes.has("5aug") && !intervalTypes.has("3maj")) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 6) {
+          degFunc[i] = 4;
+          intervalTypes.add("5dim");
+          break;
+        }
+      }
+    }
+
+    // Look for minor seventh
+    if (!intervalTypes.has("7maj")) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 10) {
           degFunc[i] = 6;
-          func.add("7maj");
+          intervalTypes.add("7min");
+          break;
         }
       }
-  
-      // If major third is not found, look for minor third
-      if (!func.has("3maj")) {
-        for (let i = 1; i < shiftedData.length; i++) {
-          if (shiftedData[i] == 3) {
-            degFunc[i] = 2;
-            func.add("3min");
-            break;
-          }
-        }
-      }
-  
-      // If perfect fifth is not found and third is present, look for augmented fifth
-      if (!func.has("5") && func.has("3maj")) {
-        for (let i = 1; i < shiftedData.length; i++) {
-          if (shiftedData[i] == 8) {
-            degFunc[i] = 4;
-            func.add("5aug");
-            break;
-          }
-        }
-      }
-  
-      // If neither major nor minor third is found, look for second as a substitute
-      if (!func.has("3maj") && !func.has("3min")) {
-        for (let i = 1; i < shiftedData.length; i++) {
-          if (shiftedData[i] == 2) {
-            degFunc[i] = 2;
-            func.add("3dim");
-            break;
-          }
-        }
-      }
-  
-      // If third is not found, look for a fourth as a substitute for the third
-      if (!func.has("3maj") && !func.has("3min") && !func.has("3dim")) {
-        for (let i = 1; i < shiftedData.length; i++) {
-          if (shiftedData[i] == 5) {
-            degFunc[i] = 2;
-            func.add("3aug");
-            break;
-          }
-        }
-      }
-  
-      // Look for diminished fifth
-      if (!func.has("5") && !func.has("5aug") && !func.has("3maj")) {
-        for (let i = 1; i < shiftedData.length; i++) {
-          if (shiftedData[i] == 6) {
-            degFunc[i] = 4;
-            func.add("5dim");
-            break;
-          }
-        }
-      }
-  
-      // Look for minor seventh
-      if (!func.has("7maj")) {
-        for (let i = 1; i < shiftedData.length; i++) {
-          if (shiftedData[i] == 10) {
-            degFunc[i] = 6;
-            func.add("7min");
-            break;
-          }
-        }
-      }
-  
-      // Look for diminished seventh (major sixth)
-      if (!func.has("7maj") && !func.has("7min")) {
-        for (let i = 1; i < shiftedData.length; i++) {
-          if (shiftedData[i] == 9) {
-            degFunc[i] = 6;
-            func.add("7dim");
-            break;
-          }
-        }
-      }
-  
-      // Assign seconds, fourths, and sixths where missing by filling in the gaps
-      for (let i = 1; i < degFunc.length; i++) {
-        if (degFunc[i] == undefined && shiftedData[i] < 4) {
-          degFunc[i] = 1;
-        } else if (degFunc[i] == undefined && shiftedData[i] > 4 && shiftedData[i] < 7) {
-          degFunc[i] = 3;
-        } else if (degFunc[i] == undefined && shiftedData[i] > 7 && shiftedData[i] < 11) {
-          degFunc[i] = 5;
-        }
-      }
-  
-      // Helper function to determine if a note is an extension
-      const isExtension = (degree: number): boolean => {
-        // Fundamental degrees are 0 (root), 2 (third), 4 (fifth), 6 (seventh)
-        return degree !== 0 && degree !== 2 && degree !== 4 && degree !== 6;
-      };
-  
-      // Generate the detailed output, including the isExtension field
-      return degFunc.map((degree) => ({
-        degree: degree!,
-        isExtension: isExtension(degree!)
-      }));
-    }
-  
-    /**
-     * Gets only the degrees for each note in the scale.
-     * @returns An array of degrees representing each note.
-     */
-    getDegrees(): number[] {
-      return this.degreeFunction().map(item => item.degree);
-    }
-  
-    /**
-     * Gets whether each note in the scale is an extension.
-     * @returns An array of booleans indicating if each note is an extension.
-     */
-    getExtensions(): boolean[] {
-      return this.degreeFunction().map(item => item.isExtension);
-    }
-  
-    /**
-     * Checks if a given note is an extension in the current positionVector.
-     * @param note The note to check.
-     * @returns `true` if the note is an extension, `false` otherwise.
-     */
-    isExtension(note: number): boolean {
-      const degreeObj = this.degreeFunction().find((item, index) => this.data[index] === modulo(note,this.modulo));
-      return degreeObj ? degreeObj.isExtension : false;
     }
 
+    // Look for diminished seventh (major sixth)
+    if (!intervalTypes.has("7maj") && !intervalTypes.has("7min")) {
+      for (let i = 1; i < shiftedData.length; i++) {
+        if (shiftedData[i] == 9) {
+          degFunc[i] = 6;
+          intervalTypes.add("7dim");
+          break;
+        }
+      }
+    }
 
+    // Assign seconds, fourths, and sixths where missing by filling in the gaps
+    for (let i = 1; i < degFunc.length; i++) {
+      if (degFunc[i] == undefined && shiftedData[i] < 4) {
+        degFunc[i] = 1;
+        if (shiftedData[i] == 1) {
+          intervalTypes.add("2min");
+        } else if (shiftedData[i] == 2) {
+          intervalTypes.add("2");
+        } else if (shiftedData[i] == 3) {
+          intervalTypes.add("2aug");
+        }
+      } else if (degFunc[i] == undefined && shiftedData[i] > 4 && shiftedData[i] < 7) {
+        degFunc[i] = 3;
+        if (shiftedData[i] == 5) {
+          intervalTypes.add("4");
+        } else if (shiftedData[i] == 6) {
+          intervalTypes.add("4aug");
+        }
+      } else if (degFunc[i] == undefined && shiftedData[i] > 7 && shiftedData[i] < 11) {
+        degFunc[i] = 5;
+        if (shiftedData[i] == 8) {
+          intervalTypes.add("6min");
+        } else if (shiftedData[i] == 9) {
+          intervalTypes.add("6");
+        } else if (shiftedData[i] == 10) {
+          intervalTypes.add("6aug");
+        }      
+      }
+    }
+
+    // Helper function to determine if a note is an extension
+    const isExtension = (degree: number): boolean => {
+      // Fundamental degrees are 0 (root), 2 (third), 4 (fifth), 6 (seventh)
+      return degree !== 0 && degree !== 2 && degree !== 4 && degree !== 6;
+    };
+
+    // Generate the detailed output, including the isExtension field
+    const degreeFunction = degFunc.map((degree) => ({
+      degree: degree!,
+      isExtension: isExtension(degree!)
+    }));
+
+    return { degreeFunction, intervalTypes };
+  }
+
+  /**
+   * Returns the interval types computed by the degree function, sorted by the first character.
+   * @returns An array of strings representing the interval types identified, sorted by the first character.
+   */
+  getIntervalTypes(): string[] {
+    const intervalTypes = Array.from(this.degreeFunction().intervalTypes);
+    return intervalTypes.sort((a, b) => {
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+      return numA - numB;
+    });
+  }
+
+  /**
+   * Gets only the degrees for each note in the scale.
+   * @returns An array of degrees representing each note.
+   */
+  getDegrees(): number[] {
+    return this.degreeFunction().degreeFunction.map(item => item.degree);
+  }
+
+  /**
+   * Checks if a given note is an extension in the current positionVector.
+   * @param note The note to check.
+   * @returns `true` if the note is an extension, `false` otherwise.
+   */
+  isExtension(note: number): boolean {
+    const degreeData = this.degreeFunction().degreeFunction;
+    const index = this.data.indexOf(note);
+    if (index !== -1 && degreeData[index]) {
+      return degreeData[index].isExtension;
+    }
+    return false;
+  }
 }
 /**
  * Calculates the LCM of two positionVector instances and scales their data, modulo and span accordingly.
