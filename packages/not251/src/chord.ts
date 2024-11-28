@@ -641,7 +641,7 @@ function spread(
 
   let essentialDegrees = new Set<number>();
   if (chordDegreesSet.has(0) && !usedDegrees.has(0)) {
-    essentialDegrees.add(0); // Root
+    essentialDegrees.add(0); // Third
   }
   if (chordDegreesSet.has(2) && !usedDegrees.has(2)) {
     essentialDegrees.add(2); // Third
@@ -706,10 +706,12 @@ function spread(
   }
 
   const innerVoiceCombinations = generateCombinations(possibilities);
-  // Filter combinations that do not respect possibilities for each voice and contain essentialDegrees
+  // Filter combinations that do not respect possibilities for each voice, contain essentialDegrees, or have distances between voices greater than scale.modulo
   const validCombinations = innerVoiceCombinations.filter(combination => {
-    const combinationSet = new Set(combination.map(note => modulo(inverse_select(new positionVector([note], scale.data.length, scale.data.length), scale).data[0], scale.data.length)));
-    return combination.every((note, index) => possibilities[index].includes(note)) && Array.from(essentialDegrees).every(degree => combinationSet.has(degree));
+    const combinationSet = new Set<number>(combination.map(note => modulo(inverse_select(new positionVector([note], scale.data.length, scale.data.length), scale).data[0], scale.data.length)));
+    return combination.every((note, index) => possibilities[index].includes(note)) &&
+           Array.from(essentialDegrees).every(degree => combinationSet.has(degree)) &&
+           combination.every((note, index) => index === 0 || (note - combination[index - 1]) <= scale.modulo);
   });
   // Select the combination that best matches innerVoicesTar (i.e., is closest)
   function calculateDistance(combination: number[], target: number[]): number {
