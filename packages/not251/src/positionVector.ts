@@ -822,7 +822,6 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
     }
 
     let iTCandidate = new Set(candidate.getIntervalTypes());
-        console.log("i: "+i+"   data "+candidate.data)
 
     if ((iTCandidate.has("3maj") || iTCandidate.has("3min")) &&
       (iTCandidate.has("5") || iTCandidate.has("5dim") || iTCandidate.has("5aug")) || i == 0) {
