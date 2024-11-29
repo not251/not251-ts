@@ -535,9 +535,9 @@ for (let i = 0; i < index_chord.data.length; i++) {
   /**
    * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
    * Additionally, determines the interval types for the scale.
-   * @returns An object containing the degree information and a set of interval types.
+   * @returns An object containing the degree information, interval types, and the base chord.
    */
-  degreeFunction(): { degreeFunction: { degree: number, isExtension: boolean }[], intervalTypes: Set<string> } {
+  degreeFunction(): { degreeFunction: { degree: number }[], intervalTypes: Set<string>, baseChord: Set<number> } {
     // Shift the vector so that the root is at 0
     let shiftedVector = this.sum(-this.data[0]);
     let shiftedData = shiftedVector.data;
@@ -546,32 +546,38 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     let degFunc: (number | undefined)[] = new Array(this.data.length);
-    degFunc[0] = 0; // La radice ha grado 0
+    degFunc[0] = 0; // The root has degree 0
     let intervalTypes = new Set<string>();
+    let baseChord = new Set<number>();
+    baseChord.add(0);
 
-    // Determina i gradi principali (terza, quinta, settima)
+    // Determines the main degrees (third, fifth, seventh)
     for (let i = 1; i < shiftedData.length; i++) {
       switch (shiftedData[i]) {
         case 4:
           degFunc[i] = 2;
+          baseChord.add(4);
           intervalTypes.add("3maj");
           break;
         case 7:
           degFunc[i] = 4;
+          baseChord.add(7);
           intervalTypes.add("5");
           break;
         case 11:
           degFunc[i] = 6;
+          baseChord.add(11);
           intervalTypes.add("7maj");
           break;
       }
     }
 
-    // Ricerca di intervalli alternativi se i principali non sono presenti
+    // Searches for alternative intervals if the main ones are not present
     if (!intervalTypes.has("3maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 3) {
           degFunc[i] = 2;
+          baseChord.add(3);
           intervalTypes.add("3min");
           break;
         }
@@ -582,10 +588,12 @@ for (let i = 0; i < index_chord.data.length; i++) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 8) {
           degFunc[i] = 4;
+          baseChord.add(8);
           intervalTypes.add("5aug");
           break;
         } else if (shiftedData[i] == 6) {
           degFunc[i] = 4;
+          baseChord.add(6);
           intervalTypes.add("5dim");
           break;
         }
@@ -596,17 +604,19 @@ for (let i = 0; i < index_chord.data.length; i++) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 10) {
           degFunc[i] = 6;
+          baseChord.add(10);
           intervalTypes.add("7min");
           break;
         } else if (shiftedData[i] == 9) {
           degFunc[i] = 6;
+          baseChord.add(9);
           intervalTypes.add("7dim");
           break;
         }
       }
     }
 
-    // Assegna gli intervalli restanti (seconda, quarta, sesta)
+    // Assigns the remaining intervals (second, fourth, sixth)
     for (let i = 1; i < degFunc.length; i++) {
       if (degFunc[i] === undefined) {
         if (shiftedData[i] < 4) {
@@ -634,26 +644,29 @@ for (let i = 0; i < index_chord.data.length; i++) {
       }
     }
 
-    // Funzione di supporto per determinare se una nota è un'estensione
-    const isExtension = (degree: number): boolean => {
-      // I gradi fondamentali sono: 0 (radice), 2 (terza), 4 (quinta), 6 (settima)
-      return degree !== 0 && degree !== 2 && degree !== 4 && degree !== 6;
-    };
-
-    // Genera l'output dettagliato, incluso il campo isExtension, usando il confronto modulare
-    const degreeFunction = this.data.map((note) => {
-      // Trova l'indice della nota equivalente in modulo
-      const index = this.data.findIndex((n) => n % this.modulo === note % this.modulo);
-      const degree = index !== -1 ? degFunc[index] : undefined;
-
+    // Generates the detailed output
+    const degreeFunction = this.data.map((note, index) => {
+      const degree = degFunc[index];
       return {
-        degree: degree!,
-        isExtension: isExtension(degree!)
+        degree: degree!
       };
     });
 
-    return { degreeFunction, intervalTypes };
+    return { degreeFunction, intervalTypes, baseChord };
   }
+
+  /**
+   * Checks if a given note is an extension in the current positionVector.
+   * @param note The note to check.
+   * @returns `true` if the note is an extension, `false` otherwise.
+   */
+  isExtension(note: number): boolean {
+    const { baseChord } = this.degreeFunction();
+    // Shift the note relative to the root
+    const shiftedNote = Math.round((modulo(note - this.data[0], this.modulo) * 12) / this.modulo);
+    return !baseChord.has(shiftedNote);
+  }
+
   /**
    * Returns the interval types computed by the degree function, sorted by the first character.
    * @returns An array of strings representing the interval types identified, sorted by the first character.
@@ -675,19 +688,6 @@ for (let i = 0; i < index_chord.data.length; i++) {
     return this.degreeFunction().degreeFunction.map(item => item.degree);
   }
 
-  /**
-   * Checks if a given note is an extension in the current positionVector.
-   * @param note The note to check.
-   * @returns `true` if the note is an extension, `false` otherwise.
-   */
-  isExtension(note: number): boolean {
-    const degreeData = this.degreeFunction().degreeFunction;
-    const index = this.data.indexOf(note);
-    if (index !== -1 && degreeData[index]) {
-      return degreeData[index].isExtension;
-    }
-    return false;
-  }
 }
 /**
  * Calculates the LCM of two positionVector instances and scales their data, modulo and span accordingly.
