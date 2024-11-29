@@ -6,7 +6,7 @@ import {
 } from "./constants";
 import { minRotation } from "./distances";
 import { scale } from "./scale";
-import { modulo, lcm } from "./utility";
+import { modulo, lcm , scaleNames} from "./utility";
 
 /**
  * Represents a cyclic vector, supporting various transformations like rototranslation,
@@ -794,4 +794,153 @@ export function inverse_select(
   }
 
   return index;
+}
+
+/**
+ * Determines the name of a chord from a given **positionVector**.
+ *
+ * Analyzes the interval types and chord quality to derive the chord name.
+ * Supports basic and extended chords, including slash chords if specified.
+ *
+ * @param chordVector - The vector representing chord note positions.
+ * @param allowSlashChords - Whether slash chords are allowed; defaults to `false`.
+ * @returns The chord name as a string.
+ */
+function getChordName(chordVector : positionVector, allowSlashChords = false) {
+  let candidates = [];
+  let iTcandidates = [];
+  let chordNames = [];
+  let length = 1;
+  if (allowSlashChords) {
+      length = chordVector.data.length;
+    }
+
+  for (let i = 0; i < length; i++) {
+    let candidate = chordVector.rototranslate(i, chordVector.data.length, false);
+    if (candidate.isExtension(chordVector.element(0)) && i != 0) {
+      candidate.data.splice(candidate.data.length - i, 1);
+    }
+
+    let iTCandidate = new Set(candidate.getIntervalTypes());
+        console.log("i: "+i+"   data "+candidate.data)
+
+    if ((iTCandidate.has("3maj") || iTCandidate.has("3min")) &&
+      (iTCandidate.has("5") || iTCandidate.has("5dim") || iTCandidate.has("5aug")) || i == 0) {
+      iTcandidates.push(iTCandidate);
+      candidates.push(candidate.data);
+
+      let chordBase = "";
+      let chordQuality = [];
+      let inversion = "";
+
+      // Determine the basic chord quality
+      if (iTCandidate.has("3maj")) {
+        if (iTCandidate.has("5")) {
+          chordBase = "maj";
+        } else if (iTCandidate.has("5aug")) {
+          chordBase = "+";
+        }
+      } else if (iTCandidate.has("3min")) {
+        if (iTCandidate.has("5dim")) {
+          chordBase = "dim";
+        } else {
+          chordBase = "m";
+        }
+      } else if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && iTCandidate.has("3dim") && iTCandidate.has("3aug")) {
+        chordBase = "5";
+      }
+
+      // Add seventh, sixth, or extended notes to the chord quality
+      if (iTCandidate.has("7maj")) {
+        chordQuality.push("7");
+      } else if (iTCandidate.has("7min")) {
+        if (chordBase == "maj") {
+          chordBase = "";
+        }
+        if (chordBase == "dim") {
+          chordBase = "ø";
+        }
+        chordQuality.push("7");
+      } else if (iTCandidate.has("7dim")) {
+        if (chordBase != "dim") {
+          chordQuality.push("6");
+        } else {
+          chordQuality.push("7");
+        }
+      }
+      if (iTCandidate.has("4") && iTCandidate.has("3dim")) {
+        chordQuality.push("sus2/4");
+      } else if (iTCandidate.has("3aug")) {
+        chordQuality.push("sus4");
+      } else if (iTCandidate.has("3dim")) {
+        chordQuality.push("sus2");
+      }
+
+      // Add extended notes to the chord quality
+      if (iTCandidate.has("2min")) {
+        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+          chordQuality.push("add");
+        }
+        chordQuality.push("♭9");
+      }
+      if (iTCandidate.has("2")) {
+        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+          chordQuality.push("add");
+        }
+        chordQuality.push("9");
+      }
+      if (iTCandidate.has("2aug")) {
+        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+          chordQuality.push("add");
+        }
+        chordQuality.push("♯9");
+      }
+      if (iTCandidate.has("4") && !iTCandidate.has("3dim")) {
+        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+          chordQuality.push("add");
+        }
+        chordQuality.push("11");
+      }
+      if (iTCandidate.has("4aug")) {
+        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+          chordQuality.push("add");
+        }
+        chordQuality.push("♯11");
+      }
+      if (iTCandidate.has("6min")) {
+        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+          chordQuality.push("add");
+        }
+        chordQuality.push("♭13");
+      }
+      if (iTCandidate.has("6")) {
+        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+          chordQuality.push("add");
+        }
+        chordQuality.push("13");
+      }
+      if (!iTCandidate.has("5") && !iTCandidate.has("5dim")) {
+        chordQuality.push("omit5");
+      }
+
+      // Determine the root note using scaleNames
+      const rootName = scaleNames(candidate, false, false)[0];
+
+      // Determine inversion if applicable and if slash chords are allowed
+      if (allowSlashChords && i !== 0) {
+        inversion = `/${scaleNames(chordVector, false, false)[0]}`;
+      }
+
+      // Store the chord components in an array
+      chordNames.push([rootName, chordBase, chordQuality, inversion]);
+
+    }
+  }
+
+  // Sort chord names based on the length of chordQuality
+  chordNames.sort((a, b) => a[2].length - b[2].length);
+
+  // Compose the final chord name from the best candidate
+  const bestChord = chordNames[0];
+  return `${bestChord[0]}${bestChord[1]}${Array.isArray(bestChord[2]) && bestChord[2].length > 0 ? bestChord[2].join("") : ""}${bestChord[3]}`;
 }

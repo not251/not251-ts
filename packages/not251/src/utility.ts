@@ -210,7 +210,7 @@ export function lcm(a: number, b: number): number {
 
 //Aggiungo qui perchè andrebbe aggiornata la funzione names in positionVector
 
-function scaleNames(
+export function scaleNames(
   scala: positionVector,
   ita: boolean = true,
   useCents: boolean = false
