@@ -807,6 +807,15 @@ export function inverse_select(
  * @returns The chord name as a string.
  */
 function getChordName(chordVector : positionVector, allowSlashChords = false) {
+  let chord = chordVector;
+  chord = chord.sum(-chordVector.data[0]);
+
+  for(let i = 1; i < chord.data.length; i++) {
+    chord.data[i] = modulo(chord.data[i], chord.modulo);
+  }
+  chord.data.sort((a, b) => a - b);
+  chord = chord.sum(+chordVector.data[0]);
+
   let candidates = [];
   let iTcandidates = [];
   let chordNames = [];
@@ -816,9 +825,9 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
     }
 
   for (let i = 0; i < length; i++) {
-    let candidate = chordVector.rototranslate(i, chordVector.data.length, false);
-    if (candidate.isExtension(chordVector.element(0)) && i != 0) {
-      candidate.data.splice(candidate.data.length - i, 1);
+    let candidate = chord.rototranslate(i, chord.data.length, false);
+    if (candidate.isExtension(chord.element(0)) && i != 0) {
+      candidate.data.splice(chord.data.length - i, 1);
     }
 
     let iTCandidate = new Set(candidate.getIntervalTypes());
@@ -878,45 +887,52 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
       // Add extended notes to the chord quality
       if (iTCandidate.has("2min")) {
         if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add");
-        }
+          chordQuality.push("add♭9");
+        } else{
         chordQuality.push("♭9");
+        }
       }
       if (iTCandidate.has("2")) {
         if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add");
-        }
+          chordQuality.push("add9");
+        } else{
         chordQuality.push("9");
+        }
       }
       if (iTCandidate.has("2aug")) {
         if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add");
-        }
+          chordQuality.push("add♯9");
+        } else{
         chordQuality.push("♯9");
+        }
       }
       if (iTCandidate.has("4") && !iTCandidate.has("3dim")) {
-        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add");
-        }
+        if ((!iTCandidate.has("7maj") && !iTCandidate.has("7min")) || iTCandidate.has("3maj")) {
+          chordQuality.push("add11");
+        } else{
         chordQuality.push("11");
+        }
       }
       if (iTCandidate.has("4aug")) {
         if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add");
-        }
+          chordQuality.push("add♯11");
+        } else{
         chordQuality.push("♯11");
+        }
       }
       if (iTCandidate.has("6min")) {
         if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add");
-        }
+          chordQuality.push("add♭13");
+        } else{
         chordQuality.push("♭13");
+        }
       }
       if (iTCandidate.has("6")) {
         if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add");
-        }
+          chordQuality.push("add13");
+        } else{
         chordQuality.push("13");
+        }
       }
       if (!iTCandidate.has("5") && !iTCandidate.has("5dim")) {
         chordQuality.push("omit5");
@@ -927,7 +943,7 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
 
       // Determine inversion if applicable and if slash chords are allowed
       if (allowSlashChords && i !== 0) {
-        inversion = `/${scaleNames(chordVector, false, false)[0]}`;
+        inversion = `/${scaleNames(chord, false, false)[0]}`;
       }
 
       // Store the chord components in an array
