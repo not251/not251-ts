@@ -546,26 +546,28 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     let degFunc: (number | undefined)[] = new Array(this.data.length);
-    degFunc[0] = 0;
+    degFunc[0] = 0; // La radice ha grado 0
     let intervalTypes = new Set<string>();
 
-    // Search for major third, perfect fifth, and major seventh
+    // Determina i gradi principali (terza, quinta, settima)
     for (let i = 1; i < shiftedData.length; i++) {
-      if (shiftedData[i] == 4) {
-        degFunc[i] = 2;
-        intervalTypes.add("3maj");
-      }
-      if (shiftedData[i] == 7) {
-        degFunc[i] = 4;
-        intervalTypes.add("5");
-      }
-      if (shiftedData[i] == 11) {
-        degFunc[i] = 6;
-        intervalTypes.add("7maj");
+      switch (shiftedData[i]) {
+        case 4:
+          degFunc[i] = 2;
+          intervalTypes.add("3maj");
+          break;
+        case 7:
+          degFunc[i] = 4;
+          intervalTypes.add("5");
+          break;
+        case 11:
+          degFunc[i] = 6;
+          intervalTypes.add("7maj");
+          break;
       }
     }
 
-    // If major third is not found, look for minor third
+    // Ricerca di intervalli alternativi se i principali non sono presenti
     if (!intervalTypes.has("3maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 3) {
@@ -576,43 +578,13 @@ for (let i = 0; i < index_chord.data.length; i++) {
       }
     }
 
-    // If perfect fifth is not found and third is present, look for augmented fifth
-    if (!intervalTypes.has("5") && intervalTypes.has("3maj")) {
+    if (!intervalTypes.has("5")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 8) {
           degFunc[i] = 4;
           intervalTypes.add("5aug");
           break;
-        }
-      }
-    }
-
-    // If neither major nor minor third is found, look for second as a substitute
-    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 2) {
-          degFunc[i] = 2;
-          intervalTypes.add("3dim");
-          break;
-        }
-      }
-    }
-
-    // If third is not found, look for a fourth as a substitute for the third
-    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min") && !intervalTypes.has("3dim")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 5) {
-          degFunc[i] = 2;
-          intervalTypes.add("3aug");
-          break;
-        }
-      }
-    }
-
-    // Look for diminished fifth
-    if (!intervalTypes.has("5") && !intervalTypes.has("5aug") && !intervalTypes.has("3maj")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 6) {
+        } else if (shiftedData[i] == 6) {
           degFunc[i] = 4;
           intervalTypes.add("5dim");
           break;
@@ -620,21 +592,13 @@ for (let i = 0; i < index_chord.data.length; i++) {
       }
     }
 
-    // Look for minor seventh
     if (!intervalTypes.has("7maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 10) {
           degFunc[i] = 6;
           intervalTypes.add("7min");
           break;
-        }
-      }
-    }
-
-    // Look for diminished seventh (major sixth)
-    if (!intervalTypes.has("7maj") && !intervalTypes.has("7min")) {
-      for (let i = 1; i < shiftedData.length; i++) {
-        if (shiftedData[i] == 9) {
+        } else if (shiftedData[i] == 9) {
           degFunc[i] = 6;
           intervalTypes.add("7dim");
           break;
@@ -642,51 +606,54 @@ for (let i = 0; i < index_chord.data.length; i++) {
       }
     }
 
-    // Assign seconds, fourths, and sixths where missing by filling in the gaps
+    // Assegna gli intervalli restanti (seconda, quarta, sesta)
     for (let i = 1; i < degFunc.length; i++) {
-      if (degFunc[i] == undefined && shiftedData[i] < 4) {
-        degFunc[i] = 1;
-        if (shiftedData[i] == 1) {
-          intervalTypes.add("2min");
-        } else if (shiftedData[i] == 2) {
-          intervalTypes.add("2");
-        } else if (shiftedData[i] == 3) {
-          intervalTypes.add("2aug");
+      if (degFunc[i] === undefined) {
+        if (shiftedData[i] < 4) {
+          degFunc[i] = 1;
+          if (shiftedData[i] == 1) {
+            intervalTypes.add("2min");
+          } else if (shiftedData[i] == 2) {
+            intervalTypes.add("2");
+          }
+        } else if (shiftedData[i] > 4 && shiftedData[i] < 7) {
+          degFunc[i] = 3;
+          if (shiftedData[i] == 5) {
+            intervalTypes.add("4");
+          } else if (shiftedData[i] == 6) {
+            intervalTypes.add("4aug");
+          }
+        } else if (shiftedData[i] > 7 && shiftedData[i] < 11) {
+          degFunc[i] = 5;
+          if (shiftedData[i] == 8) {
+            intervalTypes.add("6min");
+          } else if (shiftedData[i] == 9) {
+            intervalTypes.add("6");
+          }
         }
-      } else if (degFunc[i] == undefined && shiftedData[i] > 4 && shiftedData[i] < 7) {
-        degFunc[i] = 3;
-        if (shiftedData[i] == 5) {
-          intervalTypes.add("4");
-        } else if (shiftedData[i] == 6) {
-          intervalTypes.add("4aug");
-        }
-      } else if (degFunc[i] == undefined && shiftedData[i] > 7 && shiftedData[i] < 11) {
-        degFunc[i] = 5;
-        if (shiftedData[i] == 8) {
-          intervalTypes.add("6min");
-        } else if (shiftedData[i] == 9) {
-          intervalTypes.add("6");
-        } else if (shiftedData[i] == 10) {
-          intervalTypes.add("6aug");
-        }      
       }
     }
 
-    // Helper function to determine if a note is an extension
+    // Funzione di supporto per determinare se una nota è un'estensione
     const isExtension = (degree: number): boolean => {
-      // Fundamental degrees are 0 (root), 2 (third), 4 (fifth), 6 (seventh)
+      // I gradi fondamentali sono: 0 (radice), 2 (terza), 4 (quinta), 6 (settima)
       return degree !== 0 && degree !== 2 && degree !== 4 && degree !== 6;
     };
 
-    // Generate the detailed output, including the isExtension field
-    const degreeFunction = degFunc.map((degree) => ({
-      degree: degree!,
-      isExtension: isExtension(degree!)
-    }));
+    // Genera l'output dettagliato, incluso il campo isExtension, usando il confronto modulare
+    const degreeFunction = this.data.map((note) => {
+      // Trova l'indice della nota equivalente in modulo
+      const index = this.data.findIndex((n) => n % this.modulo === note % this.modulo);
+      const degree = index !== -1 ? degFunc[index] : undefined;
+
+      return {
+        degree: degree!,
+        isExtension: isExtension(degree!)
+      };
+    });
 
     return { degreeFunction, intervalTypes };
   }
-
   /**
    * Returns the interval types computed by the degree function, sorted by the first character.
    * @returns An array of strings representing the interval types identified, sorted by the first character.
