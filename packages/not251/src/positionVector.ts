@@ -583,7 +583,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     // If perfect fifth is not found and third is present, look for augmented fifth
-    if (!intervalTypes.has("5") && intervalTypes.has("3maj")) {
+    if (!intervalTypes.has("5") && !intervalTypes.has("3min")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 8) {
           degFunc[i] = 4;
@@ -842,17 +842,14 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
       let inversion = "";
 
       // Determine the basic chord quality
-      if (iTCandidate.has("3maj")) {
-        if (iTCandidate.has("5")) {
-          chordBase = "maj";
-        } else if (iTCandidate.has("5aug")) {
+      if (iTCandidate.has("5aug")) {
           chordBase = "+";
-        }
-      } else if (iTCandidate.has("3min")) {
+      } 
+      if (iTCandidate.has("3min")) {
         if (iTCandidate.has("5dim")) {
           chordBase = "dim";
         } else {
-          chordBase = "m";
+          chordBase = "-";
         }
       } else if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && iTCandidate.has("3dim") && iTCandidate.has("3aug")) {
         chordBase = "5";
@@ -860,11 +857,8 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
 
       // Add seventh, sixth, or extended notes to the chord quality
       if (iTCandidate.has("7maj")) {
-        chordQuality.push("7");
+        chordQuality.push("maj7");
       } else if (iTCandidate.has("7min")) {
-        if (chordBase == "maj") {
-          chordBase = "";
-        }
         if (chordBase == "dim") {
           chordBase = "ø";
         }
@@ -876,6 +870,7 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
           chordQuality.push("7");
         }
       }
+
       if (iTCandidate.has("4") && iTCandidate.has("3dim")) {
         chordQuality.push("sus2/4");
       } else if (iTCandidate.has("3aug")) {
@@ -934,7 +929,10 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
         chordQuality.push("13");
         }
       }
-      if (!iTCandidate.has("5") && !iTCandidate.has("5dim")) {
+      if (iTCandidate.has("6aug")){
+        chordQuality.push("♯13")
+      }
+      if (!iTCandidate.has("5") && !iTCandidate.has("5dim") && !iTCandidate.has("5aug")) {
         chordQuality.push("omit5");
       }
 
