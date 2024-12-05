@@ -953,11 +953,12 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
 
   // Sort chord names based on the length of chordQuality
   chordNames.sort((a, b) => a[2].length - b[2].length);
-  
   let i = 0;
   while (i < chordNames.length && 
     ( chordNames[i][2].includes("omit3") || 
-    (chordNames[i][2].includes("omit5") && (chordNames[i][2].includes("sus2") || chordNames[i][2].includes("sus4"))))) 
+    (chordNames[i][2].includes("omit5") && (chordNames[i][2].includes("sus2") || chordNames[i][2].includes("sus4"))) ||
+    chordNames[i][2].includes("sus2") && chordNames[i][2].includes("add♭9") ||
+    chordNames[i][2].includes("sus4") && chordNames[i][2].includes("♯11"))) 
     {
     i++;
   }
