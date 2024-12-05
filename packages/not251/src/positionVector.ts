@@ -832,128 +832,140 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
 
     let iTCandidate = new Set(candidate.getIntervalTypes());
 
-    if ((iTCandidate.has("3maj") || iTCandidate.has("3min")) &&
-      (iTCandidate.has("5") || iTCandidate.has("5dim") || iTCandidate.has("5aug")) || i == 0) {
-      iTcandidates.push(iTCandidate);
-      candidates.push(candidate.data);
+    iTcandidates.push(iTCandidate);
+    candidates.push(candidate.data);
 
-      let chordBase = "";
-      let chordQuality = [];
-      let inversion = "";
+    let chordBase = "";
+    let chordQuality = [];
+    let inversion = "";
 
-      // Determine the basic chord quality
-      if (iTCandidate.has("5aug")) {
-          chordBase = "+";
-      } 
-      if (iTCandidate.has("3min")) {
-        if (iTCandidate.has("5dim")) {
-          chordBase = "dim";
-        } else {
-          chordBase = "-";
-        }
-      } else if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && iTCandidate.has("3dim") && iTCandidate.has("3aug")) {
-        chordBase = "5";
+    // Determine the basic chord quality
+    if (iTCandidate.has("5aug")) {
+        chordBase = "+";
+    } 
+    if (iTCandidate.has("3min")) {
+      if (iTCandidate.has("5dim")) {
+        chordBase = "dim";
+      } else {
+        chordBase = "-";
       }
-
-      // Add seventh, sixth, or extended notes to the chord quality
-      if (iTCandidate.has("7maj")) {
-        chordQuality.push("maj7");
-      } else if (iTCandidate.has("7min")) {
-        if (chordBase == "dim") {
-          chordBase = "ø";
-        }
-        chordQuality.push("7");
-      } else if (iTCandidate.has("7dim")) {
-        if (chordBase != "dim") {
-          chordQuality.push("6");
-        } else {
-          chordQuality.push("7");
-        }
-      }
-
-      if (iTCandidate.has("4") && iTCandidate.has("3dim")) {
-        chordQuality.push("sus2/4");
-      } else if (iTCandidate.has("3aug")) {
-        chordQuality.push("sus4");
-      } else if (iTCandidate.has("3dim")) {
-        chordQuality.push("sus2");
-      }
-
-      // Add extended notes to the chord quality
-      if (iTCandidate.has("2min")) {
-        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add♭9");
-        } else{
-        chordQuality.push("♭9");
-        }
-      }
-      if (iTCandidate.has("2")) {
-        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add9");
-        } else{
-        chordQuality.push("9");
-        }
-      }
-      if (iTCandidate.has("2aug")) {
-        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add♯9");
-        } else{
-        chordQuality.push("♯9");
-        }
-      }
-      if (iTCandidate.has("4") && !iTCandidate.has("3dim")) {
-        if ((!iTCandidate.has("7maj") && !iTCandidate.has("7min")) || iTCandidate.has("3maj")) {
-          chordQuality.push("add11");
-        } else{
-        chordQuality.push("11");
-        }
-      }
-      if (iTCandidate.has("4aug")) {
-        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add♯11");
-        } else{
-        chordQuality.push("♯11");
-        }
-      }
-      if (iTCandidate.has("6min")) {
-        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add♭13");
-        } else{
-        chordQuality.push("♭13");
-        }
-      }
-      if (iTCandidate.has("6")) {
-        if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-          chordQuality.push("add13");
-        } else{
-        chordQuality.push("13");
-        }
-      }
-      if (iTCandidate.has("6aug")){
-        chordQuality.push("♯13")
-      }
-      if (!iTCandidate.has("5") && !iTCandidate.has("5dim") && !iTCandidate.has("5aug")) {
-        chordQuality.push("omit5");
-      }
-
-      // Determine the root note using scaleNames
-      const rootName = scaleNames(candidate, false, false)[0];
-
-      // Determine inversion if applicable and if slash chords are allowed
-      if (allowSlashChords && i !== 0) {
-        inversion = `/${scaleNames(chord, false, false)[0]}`;
-      }
-
-      // Store the chord components in an array
-      chordNames.push([rootName, chordBase, chordQuality, inversion]);
-
+    } else if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && iTCandidate.has("3dim") && iTCandidate.has("3aug")) {
+      chordBase = "5";
     }
+
+    // Add seventh, sixth, or extended notes to the chord quality
+    if (iTCandidate.has("7maj")) {
+      chordQuality.push("maj7");
+    } else if (iTCandidate.has("7min")) {
+      if (chordBase == "dim") {
+        chordBase = "ø";
+      }
+      chordQuality.push("7");
+    } else if (iTCandidate.has("7dim")) {
+      if (chordBase != "dim") {
+        chordQuality.push("6");
+      } else {
+        chordQuality.push("7");
+      }
+    }
+
+    if (iTCandidate.has("4") && iTCandidate.has("3dim")) {
+      chordQuality.push("sus2/4");
+    } else if (iTCandidate.has("3aug")) {
+      chordQuality.push("sus4");
+    } else if (iTCandidate.has("3dim")) {
+      chordQuality.push("sus2");
+    }
+
+    // Add extended notes to the chord quality
+    if (iTCandidate.has("2min")) {
+      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+        chordQuality.push("add♭9");
+      } else{
+      chordQuality.push("♭9");
+      }
+    }
+    if (iTCandidate.has("2")) {
+      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+        chordQuality.push("add9");
+      } else{
+      chordQuality.push("9");
+      }
+    }
+    if (iTCandidate.has("2aug")) {
+      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+        chordQuality.push("add♯9");
+      } else{
+      chordQuality.push("♯9");
+      }
+    }
+    if (iTCandidate.has("4") && !iTCandidate.has("3dim")) {
+      if ((!iTCandidate.has("7maj") && !iTCandidate.has("7min")) || iTCandidate.has("3maj")) {
+        chordQuality.push("add11");
+      } else{
+      chordQuality.push("11");
+      }
+    }
+    if (iTCandidate.has("4aug")) {
+      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+        chordQuality.push("add♯11");
+      } else{
+      chordQuality.push("♯11");
+      }
+    }
+    if (iTCandidate.has("6min")) {
+      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+        chordQuality.push("add♭13");
+      } else{
+      chordQuality.push("♭13");
+      }
+    }
+    if (iTCandidate.has("6")) {
+      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
+        chordQuality.push("add13");
+      } else{
+      chordQuality.push("13");
+      }
+    }
+    if (iTCandidate.has("6aug")){
+      chordQuality.push("♯13")
+    }
+    if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && !iTCandidate.has("3aug") && !iTCandidate.has("3dim") ){
+      chordQuality.push("omit3")
+    }
+    if (!iTCandidate.has("5") && !iTCandidate.has("5dim") && !iTCandidate.has("5aug")) {
+      chordQuality.push("omit5");
+    }
+
+
+    // Determine the root note using scaleNames
+    const rootName = scaleNames(candidate, false, false)[0];
+
+    // Determine inversion if applicable and if slash chords are allowed
+    if (allowSlashChords && i !== 0) {
+      inversion = `/${scaleNames(chord, false, false)[0]}`;
+    }
+
+    // Store the chord components in an array
+    chordNames.push([rootName, chordBase, chordQuality, inversion]);
+
   }
 
   // Sort chord names based on the length of chordQuality
   chordNames.sort((a, b) => a[2].length - b[2].length);
+  
+  let i = 0;
+  while (i < chordNames.length && 
+    ( chordNames[i][2].includes("omit3") || 
+    (chordNames[i][2].includes("omit5") && (chordNames[i][2].includes("sus2") || chordNames[i][2].includes("sus4"))))) 
+    {
+    i++;
+  }
+  if (i >= chordNames.length) {
+    i = 0; 
+  }
 
   // Compose the final chord name from the best candidate
-  const bestChord = chordNames[0];
+  const bestChord = chordNames[i];
   return `${bestChord[0]}${bestChord[1]}${Array.isArray(bestChord[2]) && bestChord[2].length > 0 ? bestChord[2].join("") : ""}${bestChord[3]}`;
 }
