@@ -1,4 +1,4 @@
-import positionVector , { lcmPosition } from "./positionVector";
+import positionVector , { inverse_select, lcmPosition } from "./positionVector";
 
 /**
  * Computes the positive modulo of two numbers a and b, handling negative values as well.
@@ -290,3 +290,79 @@ export function scaleNames(
 
 }
 
+/**
+ * Adjusts a scale to include a target note, ensuring chord degrees are preserved.
+ *
+ * If the target note is already in the scale, no changes are made. If not, the function identifies
+ * the closest degrees in the scale and modifies the closest modifiable one, ensuring that
+ * blocked degrees (representing chord tones) remain intact. If no degrees can be modified,
+ * the target note is added to the scale.
+ *
+ * @param scale - The positionVector representing the scale to modify.
+ * @param chordDegrees - The positionVector representing the chord degrees to preserve.
+ * @param targetNote - The target note to include in the scale.
+ * @returns An object containing the updated scale and updated chord degrees.
+ */
+function adaptScaleToNote(
+  scale: positionVector,
+  chordDegrees: positionVector,
+  targetNote: number
+) {
+  // Check if the target note is already in the scale
+  if (scale.isNote(targetNote)) {
+    return {
+      updatedScale: new positionVector([...scale.data], scale.modulo, scale.span),
+      updatedDegrees: new positionVector([...chordDegrees.data], chordDegrees.modulo, chordDegrees.span),
+    };
+  }
+
+  // Identify the blocked degrees from the chord
+  const blockedDegrees = new Set(
+    chordDegrees.data.map((degree) => modulo(degree, scale.data.length))
+  );
+
+  // Calculate the target note in the scale's modulo
+  let targetMod = modulo(targetNote, scale.modulo);
+
+  // Find the two closest degrees in the scale
+  let lowerIndex = -1;
+  let upperIndex = -1;
+
+  for (let i = 0; i < scale.data.length; i++) {
+    if (scale.data[i] < targetMod) lowerIndex = i;
+    if (scale.data[i] > targetMod && upperIndex === -1) {
+      upperIndex = i;
+      break;
+    }
+  }
+
+  const possibleIndexes = [];
+  if (lowerIndex !== -1) possibleIndexes.push(lowerIndex); // Degree immediately below
+  if (upperIndex !== -1) possibleIndexes.push(upperIndex); // Degree immediately above
+
+  // Remove blocked degrees from the list of possible modifications
+  const modifiableIndexes = possibleIndexes.filter(
+    (index) => !blockedDegrees.has(index)
+  );
+
+  const updatedScaleData = [...scale.data];
+  if (modifiableIndexes.length > 0) {
+    // Modify the first modifiable degree
+    const indexToModify = modifiableIndexes[0];
+    updatedScaleData[indexToModify] = targetMod;
+  } else {
+    // Add the target note if no degrees can be modified
+    updatedScaleData.push(targetMod);
+  }
+
+  // Remove duplicates and sort the updated scale
+  const uniqueSortedScale = Array.from(new Set(updatedScaleData)).sort((a, b) => a - b);
+
+  // Update the chord degrees in the new scale
+  const updatedScale = new positionVector(uniqueSortedScale, scale.modulo, scale.span);
+  const updatedDegrees = inverse_select(scale.selectFromPosition(chordDegrees), updatedScale);
+  return {
+    updatedScale,
+    updatedDegrees,
+  };
+}
