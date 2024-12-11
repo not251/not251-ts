@@ -221,10 +221,9 @@ export function scaleNames(
   
   const noteNames = ita ? noteItaliane : noteInglesi;
   const standard = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12); // Intervalli della scala maggiore in semitoni
-  let scales = lcmPosition(standard, scala); // => scala = scala.lcm(standard)
+  let scales = lcmPosition(standard, scala);
   let newstandard = scales[0];
   let newscale = scales[1];
-
   // Determina l'ottava di riferimento
   let octave = Math.floor(newscale.data[0] / newscale.modulo) * newscale.modulo;
   const octaveZeroScale = newscale.sum(-octave); // => 0 < data[i] < modulo
@@ -234,27 +233,44 @@ export function scaleNames(
   }
 
   // Assumendo che degreeFunction() restituisca un array di gradi
-  let noteDegrees = scala.getDegrees();
+  let noteDegrees1 = scala.getDegrees();
   let steps1 = [];
+  let noteDegrees2 = scala.getDegrees();
   let steps2 = [];
   let runningTotal1 = 0;
   let runningTotal2 = 0;
 
+
   for (let i = 0; i < octaveZeroScale.data.length; i++) {
-    steps1[i] = (octaveZeroScale.data[i] - newstandard.element(noteDegrees[i] + index))/2;
+    const oct = Math.floor((octaveZeroScale.data[i] - octaveZeroScale.data[0]) / octaveZeroScale.modulo) * 7;
+    steps1[i] = octaveZeroScale.data[i] - newstandard.element(noteDegrees1[i] + index + oct);
+    if (Math.abs(steps1[i]) >= 2){
+      const sign = Math.sign(steps1[i]);
+      steps1[i] -= sign * 2;
+      noteDegrees1[i] += sign * 1;
+    }
     runningTotal1 += steps1[i]; // Somma dei valori assoluti
-    steps2[i] = (octaveZeroScale.data[i] - newstandard.element(noteDegrees[i] + index +1))/2;
+    steps2[i] = octaveZeroScale.data[i] - newstandard.element(noteDegrees2[i] + index + oct + 1);
+    if (Math.abs(steps2[i]) >= 2){
+      const sign = Math.sign(steps2[i]);
+      steps2[i] -= sign * 2;
+      noteDegrees2[i] += sign * 1;
+    }
     runningTotal2 += steps2[i]; // Somma dei valori assoluti
   }
 
+
+
   let steps = [];
+  let noteDegrees = [];
   if (Math.abs(runningTotal1) <= Math.abs(runningTotal2)) {
     steps = steps1;
+    noteDegrees = noteDegrees1;
   } else {
     steps = steps2;
+    noteDegrees = noteDegrees2;
     index++
   }
-
   let baseNames = []; // Inizializza come array vuoto
   for (let i = 0; i < octaveZeroScale.data.length; i++) {
     baseNames[i] = noteNames[modulo(noteDegrees[i] + index, 7)];
@@ -271,17 +287,13 @@ export function scaleNames(
         names[i] = baseNames[i];
       }
     } else {
-      //questi simboli andrebbero rivisti perchè i mezzi diesis non si capiscono bene 
-      //e i ¾ sono sbagliati perchè non esistono i simboli appropriati in unicode
-      if (Math.abs(steps[i]) > 0.25 && Math.abs(steps[i]) < 0.75 ) {
+      const roundedSteps = Math.round(steps[i]);
+      if (Math.abs(steps[i]) < 1 && steps[i] !== 0) {
         names[i] = baseNames[i] + (steps[i] > 0 ? "𝄲" : "𝄳"); // Simboli microtonali
-      } else if (Math.abs(steps[i]) >= 0.75 && Math.abs(steps[i]) < 1.25) {
-        names[i] = baseNames[i] + (steps[i] > 0 ? "♯" : "♭");
-      } else if (Math.abs(steps[i]) >= 1.25 && Math.abs(steps[i]) < 1.75) {
-        names[i] = baseNames[i] + (steps[i] > 0 ? "¾♯" : "¾♭");
-      } else if (Math.abs(steps[i]) >= 1.75) {
-        names[i] = baseNames[i] + (steps[i] > 0 ? "x" : "♭♭")
-      } else  {
+      } else if (roundedSteps !== 0) {
+        const alteration = roundedSteps > 0 ? "♯" : "♭";
+        names[i] = baseNames[i] + alteration.repeat(Math.min(Math.abs(roundedSteps), 2));
+      } else {
         names[i] = baseNames[i];
       }
     }

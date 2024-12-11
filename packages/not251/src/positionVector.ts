@@ -547,17 +547,21 @@ for (let i = 0; i < index_chord.data.length; i++) {
     let shiftedVector = this.sum(-this.data[0]);
     let shiftedData = shiftedVector.data;
     for (let i = 1; i < shiftedData.length; i++) {
-      shiftedData[i] = Math.round((shiftedData[i] * 12) / this.modulo);
+      shiftedData[i] = modulo(Math.round((shiftedData[i] * 12) / this.modulo),12);
     }
-
     let degFunc: (number | undefined)[] = new Array(this.data.length);
     degFunc[0] = 0; // The root has degree 0
     let intervalTypes = new Set<string>();
     let baseChord = new Set<number>();
     baseChord.add(0);
 
+
   // Determines the main degrees (third, fifth, seventh)
     for (let i = 1; i < shiftedData.length; i++) {
+      if (shiftedData[i] == 0) {
+        degFunc[i] = 0;
+        baseChord.add(8);
+      }
       if (shiftedData[i] == 4) {
         degFunc[i] = 2;
         baseChord.add(4);
@@ -883,7 +887,7 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
       if (chordBase == "dim") {
         chordBase = "ø";
       }
-      chordQuality.push("7");
+      chordBase += "7";
     } else if (iTCandidate.has("7dim")) {
       if (chordBase != "dim") {
         chordBase += "6";
@@ -975,7 +979,21 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
   }
 
   // Sort chord names based on the length of chordQuality
-  chordNames.sort((a, b) => a[2].length - b[2].length);
+  // Sort chord names with a slight penalty for inversions
+  chordNames.sort((a, b) => {
+    // Primary comparison: length of chordQuality
+    const qualityDifference = a[2].length - b[2].length;
+
+    // Secondary comparison: Penalize inversions slightly
+
+    const inversionPenaltyA = a[3] != undefined ? 1 : 0; // Add a small penalty
+    const inversionPenaltyB = b[3] != undefined ? 1 : 0;
+
+    // Combined score: prioritize qualityDifference, then penalize inversions
+    return qualityDifference !== 0
+      ? qualityDifference // Sort by chordQuality length first
+      : inversionPenaltyA - inversionPenaltyB; // Penalize inversions as a tiebreaker
+  });
   let i = 0;
   while (i < chordNames.length && 
     ( chordNames[i][2].includes("omit3") || 
