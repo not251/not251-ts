@@ -315,15 +315,15 @@ export function autovoicingP2P(
  * @returns A **positionVector** representing the generated block chord.
  */
 
-function generateBlockChord(
+function blockChord(
   scale: positionVector,
   degree: number,
-  chordDegrees: positionVector,
+  chordDegreesValues: positionVector,
   lastChord: positionVector,
   cluster: boolean = false
 ): positionVector {
   let voicing = new positionVector([degree], scale.data.length, scale.data.length);
-
+  const chordDegrees = chordDegreesValues.normalizeToModulo();
   const reference = lastChord.data;
   let index = -1;
 
@@ -357,19 +357,19 @@ function generateBlockChord(
           reference[reference.length - i - 1] != scale.element(actualDegree + 1) && // If the note is not repeated
           !chord.isAvoid(scale.element(1)) // If the next note is not an avoid note
         ) {
-          voicing.data.push(actualDegree + 1); // Increase the degree
+          voicing.data.unshift(actualDegree + 1); // Increase the degree
         } else {
-          voicing.data.push(actualDegree); // Otherwise, add the fundamental
+          voicing.data.unshift(actualDegree); // Otherwise, add the fundamental
         }
         break;
       case 1:
-        voicing.data.push(actualDegree); // Add the second
+        voicing.data.unshift(actualDegree); // Add the second
         break;
       case 2:
-        voicing.data.push(actualDegree); // Add the third
+        voicing.data.unshift(actualDegree); // Add the third
         break;
       case 3:
-        voicing.data.push(actualDegree); // Add the fourth
+        voicing.data.unshift(actualDegree); // Add the fourth
         break;
       case 4:
         if (
@@ -379,22 +379,22 @@ function generateBlockChord(
           !chord.isAvoid(scale.element(actualDegree + 1)) && // If the next degree is not an avoid note
           voicing.data[1] != (actualDegree + 1) // If the next degree is not the same as the previous one
         ) {
-          voicing.data.push(actualDegree + 1);  // Add the next degree
+          voicing.data.unshift(actualDegree + 1);  // Add the next degree
         } else {
-          voicing.data.push(actualDegree);  // Add the current degree
+          voicing.data.unshift(actualDegree);  // Add the current degree
         }
         break;
       case 5:
-        voicing.data.push(actualDegree);  // Add the current degree
+        voicing.data.unshift(actualDegree);  // Add the current degree
         break;
       case 6:
         if (
           i == 1 &&
           scale.element(voicing.data[0]) - scale.element(actualDegree) == 1 // If the actual degree is at half step from the lead note
         ) {
-          voicing.data.push(actualDegree - 1);
+          voicing.data.unshift(actualDegree - 1);
         } else {
-          voicing.data.push(actualDegree);
+          voicing.data.unshift(actualDegree);
         }
         break;
     }
@@ -449,9 +449,8 @@ function generateBlockChord(
     } else {
       selectedCandidate = bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
     }
-
     return scale.selectFromPosition(selectedCandidate);
-  } else {
+  } else { 
     return blockchord;
   }
 }
