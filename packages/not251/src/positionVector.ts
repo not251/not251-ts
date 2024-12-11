@@ -878,7 +878,7 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
 
     // Add seventh, sixth, or extended notes to the chord quality
     if (iTCandidate.has("7maj")) {
-      chordQuality.push("maj7");
+      chordBase += "maj7";
     } else if (iTCandidate.has("7min")) {
       if (chordBase == "dim") {
         chordBase = "ø";
@@ -886,9 +886,9 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
       chordQuality.push("7");
     } else if (iTCandidate.has("7dim")) {
       if (chordBase != "dim") {
-        chordQuality.push("6");
+        chordBase += "6";
       } else {
-        chordQuality.push("7");
+        chordBase += "7";
       }
     }
 
