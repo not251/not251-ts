@@ -733,6 +733,24 @@ for (let i = 0; i < index_chord.data.length; i++) {
     return this.degreeFunction().degreeFunction.map(item => item.degree);
   }
 
+  /**
+ * Normalizes all elements of the position vector to be within the range [0, modulo).
+ * Ensures that the first element in the resulting vector is the lowest value among the normalized elements.
+ * Other elements are adjusted relative to the first to maintain their relative positions.
+ *
+ * @returns A new positionVector instance with normalized values.
+ */
+  normalizeToModulo(): positionVector {
+    const normalizedData = this.data.map((note) => modulo(note, this.modulo));
+    const minVal = normalizedData[0];
+    const adjustedData = normalizedData.map((note) => {
+      if (note < minVal) {
+        return note + this.modulo;
+      }
+      return note;
+    });
+    return new positionVector(adjustedData, this.modulo, this.span);
+  }
 }
 /**
  * Calculates the LCM of two positionVector instances and scales their data, modulo and span accordingly.
