@@ -222,12 +222,14 @@ export function lcm(a: number, b: number): number {
  * @param {boolean} [checkEnharmonic=true] - Whether to enable adjustments for enharmonic equivalents.
  * @returns {string[]} - An array of note names with appropriate alterations or deviations.
  */
-function scaleNames(
+export function scaleNames(
   scala: positionVector,
   ita: boolean = true,
   useCents: boolean = false,
   checkEnharmonic: boolean = true
 ): string[] {
+  const noteItaliane: string[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+  const noteInglesi: string[] = ["C", "D", "E", "F", "G", "A", "B"];
   const noteNames = ita ? noteItaliane : noteInglesi;
   const standard = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12); // Major scale intervals in semitones
   const intervalStandard = new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0);
