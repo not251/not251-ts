@@ -78,10 +78,13 @@ export type optionMatrixElement = {
   data: number[];
 };
 
+
 // An array of optionMatrixElement objects. 
 // This type is used to store various rotation possibilities of a data set, where each element represents a specific rotation and its corresponding data. 
 // It’s often used as an input for functions that calculate distances to find the best match.
-export type optionMatrix = optionMatrixElement[];
+export type optionMatrix = 
+  | optionMatrixElement[] // When findBest is false
+  | (optionMatrixElement & { matchedIndices: number[] }); // When findBest is true
 
 // Creates a map of Euclidean distances between a target vector (v) and each element in an optionMatrix. 
 // Each element in the resulting distanceMap contains the rotation index, data vector, and distance value. 
@@ -97,16 +100,32 @@ export function euclideanDistanceMap(
 ): distanceMap {
   let out: distanceMap = [];
 
-  for (let r in matrix) {
-    let option = matrix[r];
+  if (Array.isArray(matrix)) {
+    // Case: matrix is an array of modes
+    for (let r = 0; r < matrix.length; r++) {
+      let option = matrix[r];
 
+      let distance = isReduced
+        ? reducedEuclideanDistance(v, option.data)
+        : euclideanDistance(v, option.data);
+
+      let outElement: distanceMapElement = {
+        rotation: option.rotation,
+        data: option.data,
+        distance: distance,
+      };
+
+      out.push(outElement);
+    }
+  } else {
+    // Case: matrix is a single best mode
     let distance = isReduced
-      ? reducedEuclideanDistance(v, option.data)
-      : euclideanDistance(v, option.data);
+      ? reducedEuclideanDistance(v, matrix.data)
+      : euclideanDistance(v, matrix.data);
 
     let outElement: distanceMapElement = {
-      rotation: option.rotation,
-      data: option.data,
+      rotation: matrix.rotation,
+      data: matrix.data,
       distance: distance,
     };
 
@@ -115,6 +134,7 @@ export function euclideanDistanceMap(
 
   return out;
 }
+
 
 // Sorts a distanceMap in ascending order based on the distance property of each element. 
 // This allows you to prioritize closer matches to the target vector first. 

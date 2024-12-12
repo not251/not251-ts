@@ -1,3 +1,4 @@
+import intervalVector from "./intervalVector";
 import positionVector , { inverse_select, lcmPosition } from "./positionVector";
 
 /**
@@ -207,91 +208,105 @@ export function lcm(a: number, b: number): number {
   return (a * b) / gcd(a, b);
 }
 
-
-//Aggiungo qui perchè andrebbe aggiornata la funzione names in positionVector
-
-export function scaleNames(
+//andrebbe aggiornata questa funzione in positionVector
+/**
+ * Function: scaleNames
+ *
+ * Generates an array of strings representing the names of the notes in a musical scale.
+ * The function adjusts the notes based on their position relative to a standard scale,
+ * handles enharmonic equivalents, and optionally displays deviations in cents or microtonal symbols.
+ *
+ * @param {positionVector} scala - An object representing the musical scale as a position vector.
+ * @param {boolean} [ita=true] - Whether to use Italian notation ("Do, Re, Mi") or English notation ("C, D, E").
+ * @param {boolean} [useCents=false] - Whether to include deviations in cents for altered notes.
+ * @param {boolean} [checkEnharmonic=true] - Whether to enable adjustments for enharmonic equivalents.
+ * @returns {string[]} - An array of note names with appropriate alterations or deviations.
+ */
+function scaleNames(
   scala: positionVector,
   ita: boolean = true,
-  useCents: boolean = false
+  useCents: boolean = false,
+  checkEnharmonic: boolean = true
 ): string[] {
-
-  const noteItaliane: string[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
-  const noteInglesi: string[] = ["C", "D", "E", "F", "G", "A", "B"];
-  
   const noteNames = ita ? noteItaliane : noteInglesi;
-  const standard = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12); // Intervalli della scala maggiore in semitoni
+  const standard = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12); // Major scale intervals in semitones
+  const intervalStandard = new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0);
+
+  // Align the input scale with the standard scale
   let scales = lcmPosition(standard, scala);
-  let newstandard = scales[0];
-  let newscale = scales[1];
-  // Determina l'ottava di riferimento
-  let octave = Math.floor(newscale.data[0] / newscale.modulo) * newscale.modulo;
-  const octaveZeroScale = newscale.sum(-octave); // => 0 < data[i] < modulo
+  let newStandard = scales[0];
+  let newScale = scales[1];
+
+  // Determine the reference octave
+  let octave = Math.floor(newScale.data[0] / newScale.modulo) * newScale.modulo;
+  const octaveZeroScale = newScale.sum(-octave); // Normalize scale to one octave
+
   let index = 0;
-  while (newstandard.rototranslate(index, newstandard.data.length, false).data[0] < octaveZeroScale.data[0]) {
+  while (newStandard.rototranslate(index, newStandard.data.length, false).data[0] < octaveZeroScale.data[0]) {
     index++;
   }
 
-  // Assumendo che degreeFunction() restituisca un array di gradi
+  // Get degrees and prepare for enharmonic adjustment
   let noteDegrees1 = scala.getDegrees();
-  let steps1 = [];
   let noteDegrees2 = scala.getDegrees();
+  let steps1 = [];
   let steps2 = [];
   let runningTotal1 = 0;
   let runningTotal2 = 0;
 
-
   for (let i = 0; i < octaveZeroScale.data.length; i++) {
     const oct = Math.floor((octaveZeroScale.data[i] - octaveZeroScale.data[0]) / octaveZeroScale.modulo) * 7;
-    steps1[i] = octaveZeroScale.data[i] - newstandard.element(noteDegrees1[i] + index + oct);
-    if (Math.abs(steps1[i]) >= 2){
+
+    // Calculate deviations for the first enharmonic check
+    steps1[i] = octaveZeroScale.data[i] - newStandard.element(noteDegrees1[i] + index + oct);
+    const interval1 = intervalStandard.element(noteDegrees1[i] + index - 1);
+
+    if (checkEnharmonic && Math.abs(steps1[i]) >= interval1) {
       const sign = Math.sign(steps1[i]);
-      steps1[i] -= sign * 2;
-      noteDegrees1[i] += sign * 1;
+      steps1[i] -= sign * interval1;
+      noteDegrees1[i] += sign;
     }
-    runningTotal1 += steps1[i]; // Somma dei valori assoluti
-    steps2[i] = octaveZeroScale.data[i] - newstandard.element(noteDegrees2[i] + index + oct + 1);
-    if (Math.abs(steps2[i]) >= 2){
+    runningTotal1 += steps1[i];
+
+    // Calculate deviations for the second enharmonic check
+    steps2[i] = octaveZeroScale.data[i] - newStandard.element(noteDegrees2[i] + index + oct + 1);
+    const interval2 = intervalStandard.element(noteDegrees1[i] + index);
+
+    if (checkEnharmonic && Math.abs(steps2[i]) >= interval2) {
       const sign = Math.sign(steps2[i]);
-      steps2[i] -= sign * 2;
-      noteDegrees2[i] += sign * 1;
+      steps2[i] -= sign * interval2;
+      noteDegrees2[i] += sign;
     }
-    runningTotal2 += steps2[i]; // Somma dei valori assoluti
+    runningTotal2 += steps2[i];
   }
 
+  // Choose the best set of adjustments based on total deviation
+  let steps = Math.abs(runningTotal1) <= Math.abs(runningTotal2) ? steps1 : steps2;
+  let noteDegrees = Math.abs(runningTotal1) <= Math.abs(runningTotal2) ? noteDegrees1 : noteDegrees2;
+  if (Math.abs(runningTotal1) > Math.abs(runningTotal2)) index++;
 
-
-  let steps = [];
-  let noteDegrees = [];
-  if (Math.abs(runningTotal1) <= Math.abs(runningTotal2)) {
-    steps = steps1;
-    noteDegrees = noteDegrees1;
-  } else {
-    steps = steps2;
-    noteDegrees = noteDegrees2;
-    index++
-  }
-  let baseNames = []; // Inizializza come array vuoto
+  // Generate the base note names
+  let baseNames = [];
   for (let i = 0; i < octaveZeroScale.data.length; i++) {
     baseNames[i] = noteNames[modulo(noteDegrees[i] + index, 7)];
   }
 
-  let names = []; // Inizializza come array vuoto
+  // Generate the final note names with alterations or deviations
+  let names = [];
   for (let i = 0; i < noteDegrees.length; i++) {
-    // Genera il nome della nota con le alterazioni appropriate
     if (useCents) {
       const cents = Math.round(steps[i] * 50);
       if (cents !== 0) {
-        names[i] = `${baseNames[i]} ${cents > 0 ? "↑" : "↓"}${Math.abs(cents)}¢`;
+        names[i] = `${baseNames[i]} ${cents > 0 ? "\u2191" : "\u2193"}${Math.abs(cents)}\u00a2`;
       } else {
         names[i] = baseNames[i];
       }
     } else {
       const roundedSteps = Math.round(steps[i]);
       if (Math.abs(steps[i]) < 1 && steps[i] !== 0) {
-        names[i] = baseNames[i] + (steps[i] > 0 ? "𝄲" : "𝄳"); // Simboli microtonali
+        names[i] = baseNames[i] + (steps[i] > 0 ? "\uD834\uDD32" : "\uD834\uDD33"); // Microtonal symbols
       } else if (roundedSteps !== 0) {
-        const alteration = roundedSteps > 0 ? "♯" : "♭";
+        const alteration = roundedSteps > 0 ? "\u266F" : "\u266D"; // Sharp or flat
         names[i] = baseNames[i] + alteration.repeat(Math.min(Math.abs(roundedSteps), 2));
       } else {
         names[i] = baseNames[i];
@@ -299,82 +314,4 @@ export function scaleNames(
     }
   }
   return names;
-
-}
-
-/**
- * Adjusts a scale to include a target note, ensuring chord degrees are preserved.
- *
- * If the target note is already in the scale, no changes are made. If not, the function identifies
- * the closest degrees in the scale and modifies the closest modifiable one, ensuring that
- * blocked degrees (representing chord tones) remain intact. If no degrees can be modified,
- * the target note is added to the scale.
- *
- * @param scale - The positionVector representing the scale to modify.
- * @param chordDegrees - The positionVector representing the chord degrees to preserve.
- * @param targetNote - The target note to include in the scale.
- * @returns An object containing the updated scale and updated chord degrees.
- */
-function adaptScaleToNote(
-  scale: positionVector,
-  chordDegrees: positionVector,
-  targetNote: number
-) {
-  // Check if the target note is already in the scale
-  if (scale.isNote(targetNote)) {
-    return {
-      updatedScale: new positionVector([...scale.data], scale.modulo, scale.span),
-      updatedDegrees: new positionVector([...chordDegrees.data], chordDegrees.modulo, chordDegrees.span),
-    };
-  }
-
-  // Identify the blocked degrees from the chord
-  const blockedDegrees = new Set(
-    chordDegrees.data.map((degree) => modulo(degree, scale.data.length))
-  );
-
-  // Calculate the target note in the scale's modulo
-  let targetMod = modulo(targetNote, scale.modulo);
-
-  // Find the two closest degrees in the scale
-  let lowerIndex = -1;
-  let upperIndex = -1;
-
-  for (let i = 0; i < scale.data.length; i++) {
-    if (scale.data[i] < targetMod) lowerIndex = i;
-    if (scale.data[i] > targetMod && upperIndex === -1) {
-      upperIndex = i;
-      break;
-    }
-  }
-
-  const possibleIndexes = [];
-  if (lowerIndex !== -1) possibleIndexes.push(lowerIndex); // Degree immediately below
-  if (upperIndex !== -1) possibleIndexes.push(upperIndex); // Degree immediately above
-
-  // Remove blocked degrees from the list of possible modifications
-  const modifiableIndexes = possibleIndexes.filter(
-    (index) => !blockedDegrees.has(index)
-  );
-
-  const updatedScaleData = [...scale.data];
-  if (modifiableIndexes.length > 0) {
-    // Modify the first modifiable degree
-    const indexToModify = modifiableIndexes[0];
-    updatedScaleData[indexToModify] = targetMod;
-  } else {
-    // Add the target note if no degrees can be modified
-    updatedScaleData.push(targetMod);
-  }
-
-  // Remove duplicates and sort the updated scale
-  const uniqueSortedScale = Array.from(new Set(updatedScaleData)).sort((a, b) => a - b);
-
-  // Update the chord degrees in the new scale
-  const updatedScale = new positionVector(uniqueSortedScale, scale.modulo, scale.span);
-  const updatedDegrees = inverse_select(scale.selectFromPosition(chordDegrees), updatedScale);
-  return {
-    updatedScale,
-    updatedDegrees,
-  };
 }
