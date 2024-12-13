@@ -471,23 +471,24 @@ for (let i = 0; i < index_chord.data.length; i++) {
   toZero(autoupdate: boolean = false): positionVector {
     let out = new positionVector(this.data.slice(), this.modulo, this.span);
 
-    this.sum(-out.data[0]);
-    for (let i = 1; i < out.data.length; i++) {
-      out.data[i] = modulo(out.data[i], out.modulo);
+    let offset = out.data[0];
+    for (let i = 0; i < out.data.length; i++) {
+        out.data[i] = modulo(out.data[i] - offset, out.modulo); 
     }
+
     out.data.sort((a, b) => a - b);
+
     out.spanUpdate();
 
-    //TBI: Remove duplicates in out.data!
-
     if (autoupdate) {
-      this.data = out.data;
-      this.span = out.span;
-      this.modulo = out.modulo;
+        this.data = out.data;
+        this.span = out.span;
+        this.modulo = out.modulo;
     }
 
     return out;
   }
+
 
   /**
    * Checks if a given number is present in this **positionVector**, considering modular equivalence.
@@ -824,20 +825,21 @@ export function inverse_select(
 }
 
 /**
- * Determines the name of a chord from a given **positionVector**.
+ * Analyzes a `positionVector` representing a chord, identifying its name and root.
+ * The function supports complex chords, including slash chords, by determining the
+ * chord's quality (e.g., major, minor, diminished) and any extensions.
  *
- * Analyzes the interval types and chord quality to derive the chord name.
- * Supports basic and extended chords, including slash chords if specified.
- *
- * @param chordVector - The vector representing chord note positions.
- * @param allowSlashChords - Whether slash chords are allowed; defaults to `false`.
- * @returns The chord name as a string.
+ * @param chordVector - The `positionVector` representing the chord to analyze.
+ * @param allowSlashChords - A boolean indicating whether to allow slash chords (default: false).
+ * @returns An object containing:
+ *   - `chordName`: The name of the chord as a string.
+ *   - `root`: The root of the chord as a `positionVector`, calculated as the lowest note of the selected candidate.
  */
-function getChordName(chordVector : positionVector, allowSlashChords = false) {
+function getChordName(chordVector :positionVector, allowSlashChords = false) {
   let chord = chordVector;
   chord = chord.sum(-chordVector.data[0]);
 
-  for(let i = 1; i < chord.data.length; i++) {
+  for (let i = 1; i < chord.data.length; i++) {
     chord.data[i] = modulo(chord.data[i], chord.modulo);
   }
   chord.data.sort((a, b) => a - b);
@@ -845,11 +847,11 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
 
   let candidates = [];
   let iTcandidates = [];
-  let chordNames = [];
+  let chordNames: [positionVector, string, string[], string][] = [];
   let length = 1;
   if (allowSlashChords) {
-      length = chordVector.data.length;
-    }
+    length = chordVector.data.length;
+  }
 
   for (let i = 0; i < length; i++) {
     let candidate = chord.rototranslate(i, chord.data.length, false);
@@ -860,7 +862,7 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
     let iTCandidate = new Set(candidate.getIntervalTypes());
 
     iTcandidates.push(iTCandidate);
-    candidates.push(candidate.data);
+    candidates.push(candidate);
 
     let chordBase = "";
     let chordQuality = [];
@@ -868,8 +870,8 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
 
     // Determine the basic chord quality
     if (iTCandidate.has("5aug")) {
-        chordBase = "+";
-    } 
+      chordBase = "+";
+    }
     if (iTCandidate.has("3min")) {
       if (iTCandidate.has("5dim")) {
         chordBase = "dim";
@@ -908,65 +910,64 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
     if (iTCandidate.has("2min")) {
       if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
         chordQuality.push("add♭9");
-      } else{
-      chordQuality.push("♭9");
+      } else {
+        chordQuality.push("♭9");
       }
     }
     if (iTCandidate.has("2")) {
       if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
         chordQuality.push("add9");
-      } else{
-      chordQuality.push("9");
+      } else {
+        chordQuality.push("9");
       }
     }
     if (iTCandidate.has("2aug")) {
       if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
         chordQuality.push("add♯9");
-      } else{
-      chordQuality.push("♯9");
+      } else {
+        chordQuality.push("♯9");
       }
     }
     if (iTCandidate.has("4") && !iTCandidate.has("3dim")) {
       if ((!iTCandidate.has("7maj") && !iTCandidate.has("7min")) || iTCandidate.has("3maj")) {
         chordQuality.push("add11");
-      } else{
-      chordQuality.push("11");
+      } else {
+        chordQuality.push("11");
       }
     }
     if (iTCandidate.has("4aug")) {
       if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
         chordQuality.push("add♯11");
-      } else{
-      chordQuality.push("♯11");
+      } else {
+        chordQuality.push("♯11");
       }
     }
     if (iTCandidate.has("6min")) {
       if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
         chordQuality.push("add♭13");
-      } else{
-      chordQuality.push("♭13");
+      } else {
+        chordQuality.push("♭13");
       }
     }
     if (iTCandidate.has("6")) {
       if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
         chordQuality.push("add13");
-      } else{
-      chordQuality.push("13");
+      } else {
+        chordQuality.push("13");
       }
     }
-    if (iTCandidate.has("6aug")){
-      chordQuality.push("♯13")
+    if (iTCandidate.has("6aug")) {
+      chordQuality.push("♯13");
     }
-    if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && !iTCandidate.has("3aug") && !iTCandidate.has("3dim") ){
-      chordQuality.push("omit3")
+    if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && !iTCandidate.has("3aug") && !iTCandidate.has("3dim")) {
+      chordQuality.push("omit3");
     }
     if (!iTCandidate.has("5") && !iTCandidate.has("5dim") && !iTCandidate.has("5aug")) {
       chordQuality.push("omit5");
     }
 
-
-    // Determine the root note using scaleNames
-    const rootName = scaleNames(candidate, false, false)[0];
+    // Assign the root as the lowest note of the candidate
+    const root = new positionVector([candidate.data[0]], chordVector.modulo, chordVector.span);
 
     // Determine inversion if applicable and if slash chords are allowed
     if (allowSlashChords && i !== 0) {
@@ -974,40 +975,47 @@ function getChordName(chordVector : positionVector, allowSlashChords = false) {
     }
 
     // Store the chord components in an array
-    chordNames.push([rootName, chordBase, chordQuality, inversion]);
-
+    chordNames.push([root, chordBase, chordQuality, inversion]);
   }
 
   // Sort chord names based on the length of chordQuality
-  // Sort chord names with a slight penalty for inversions
   chordNames.sort((a, b) => {
-    // Primary comparison: length of chordQuality
     const qualityDifference = a[2].length - b[2].length;
-
-    // Secondary comparison: Penalize inversions slightly
-
-    const inversionPenaltyA = a[3] != undefined ? 1 : 0; // Add a small penalty
+    const inversionPenaltyA = a[3] != undefined ? 1 : 0;
     const inversionPenaltyB = b[3] != undefined ? 1 : 0;
 
-    // Combined score: prioritize qualityDifference, then penalize inversions
     return qualityDifference !== 0
-      ? qualityDifference // Sort by chordQuality length first
-      : inversionPenaltyA - inversionPenaltyB; // Penalize inversions as a tiebreaker
+      ? qualityDifference
+      : inversionPenaltyA - inversionPenaltyB;
   });
+
   let i = 0;
-  while (i < chordNames.length && 
-    ( chordNames[i][2].includes("omit3") || 
-    (chordNames[i][2].includes("omit5") && (chordNames[i][2].includes("sus2") || chordNames[i][2].includes("sus4"))) ||
-    chordNames[i][2].includes("sus2") && chordNames[i][2].includes("add♭9") ||
-    chordNames[i][2].includes("sus4") && chordNames[i][2].includes("♯11"))) 
-    {
+  while (
+    i < chordNames.length &&
+    (chordNames[i][2].includes("omit3") ||
+      (chordNames[i][2].includes("omit5") &&
+        (chordNames[i][2].includes("sus2") ||
+          chordNames[i][2].includes("sus4"))) ||
+      (chordNames[i][2].includes("sus2") &&
+        chordNames[i][2].includes("add♭9")) ||
+      (chordNames[i][2].includes("sus4") &&
+        chordNames[i][2].includes("♯11")))
+  ) {
     i++;
   }
   if (i >= chordNames.length) {
-    i = 0; 
+    i = 0;
   }
 
-  // Compose the final chord name from the best candidate
   const bestChord = chordNames[i];
-  return `${bestChord[0]}${bestChord[1]}${Array.isArray(bestChord[2]) && bestChord[2].length > 0 ? bestChord[2].join("") : ""}${bestChord[3]}`;
+
+  // Generate the chord name using scaleNames for the output
+  const chordName = `${scaleNames(bestChord[0], false, false)[0]}${bestChord[1]}${Array.isArray(bestChord[2]) && bestChord[2].length > 0 ? bestChord[2].join("") : ""}${bestChord[3]}`;
+
+  // Return the chord name and the calculated root as a positionVector
+  return {
+    chordName,
+    root: bestChord[0].normalizeToModulo(),
+  };
 }
+
