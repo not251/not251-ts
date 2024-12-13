@@ -336,7 +336,7 @@ function blockChord(
     degFunc == 3
   ) {
     index = 1;
-  } else if (degFunc == 4 || (degFunc == 5 && chordDegrees.data[3] != 6)) {
+  } else if (degFunc == 4 || (degFunc == 5 && chordDegrees.data[3] != 5)) {
     index = 2;
   } else {
     index = 3;

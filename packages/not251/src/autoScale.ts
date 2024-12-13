@@ -196,6 +196,9 @@ function adaptScaleToNote(
 
   // Calculate the target note in the scale's modulo
   let targetMod = modulo(targetNote, scale.modulo);
+  while (targetMod < scale.data[0]){
+    targetMod += scale.modulo
+  }
 
   // Find the two closest degrees in the scale
   let lowerIndex = -1;
@@ -227,9 +230,9 @@ function adaptScaleToNote(
     // Add the target note if no degrees can be modified
     updatedScaleData.push(targetMod);
   }
-
+  updatedScaleData.sort((a, b) => a - b);
   // Remove duplicates and sort the updated scale
-  const uniqueSortedScale = Array.from(new Set(updatedScaleData)).sort((a, b) => a - b);
+  const uniqueSortedScale = Array.from(new Set(updatedScaleData));
 
   // Update the chord degrees in the new scale
   const updatedScale = new positionVector(uniqueSortedScale, scale.modulo, scale.span);
@@ -240,18 +243,24 @@ function adaptScaleToNote(
   };
 }
 
-function adaptScale(
-  inputScaleParams: ScaleParams,
-  notes: positionVector
-): ScaleParams {
+function adaptScale(inputScaleParams: ScaleParams, notes: positionVector): ScaleParams {
+  if (!inputScaleParams.intervals) {
+    throw new Error("Intervals in inputScaleParams are undefined.");
+  }
+
   let result = adaptScale_internal(
-    inputScaleParams.intervals as intervalVector,
-    notes
+    new intervalVector(
+      [...inputScaleParams.intervals.data],
+      inputScaleParams.intervals.modulo,
+      inputScaleParams.intervals.offset
+    ),
+    new positionVector([...notes.data], notes.modulo, notes.span)
   );
-  let outputScaleParams = inputScaleParams;
+
+  let outputScaleParams = { ...inputScaleParams };
   outputScaleParams.modo = result.rotation;
   outputScaleParams.intervals = result.data;
-  return outputScaleParams
+  return outputScaleParams;
 }
 
 /**
@@ -302,7 +311,7 @@ function adaptScale_internal(
       scaleIntervals.modulo
     );
 
-    let blocked = bestOption.selectFromPosition(
+    let blocked = notes.selectFromPosition(
       new positionVector(matched, bestOption.modulo, bestOption.span)
     );
 
@@ -321,7 +330,7 @@ function adaptScale_internal(
         matched.sort((a: number, b: number) => a - b);
 
         // Recompute blocked positions and degrees
-        blocked = bestOption.selectFromPosition(
+        blocked = notes.selectFromPosition(
           new positionVector(matched, bestOption.modulo, bestOption.span)
         );
         blockedDeg = inverse_select(blocked, bestOption);
