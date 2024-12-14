@@ -1,5 +1,5 @@
 import intervalVector from "./intervalVector";
-import positionVector , { inverse_select, lcmPosition } from "./positionVector";
+import positionVector , { getChordName, inverse_select, lcmPosition } from "./positionVector";
 
 /**
  * Computes the positive modulo of two numbers a and b, handling negative values as well.
@@ -226,8 +226,9 @@ export function scaleNames(
   scala: positionVector,
   ita: boolean = true,
   useCents: boolean = false,
-  checkEnharmonic: boolean = true
-): string[] {
+  checkEnharmonic: boolean = true,
+  isChord: boolean = false
+  ): string[] {
   const noteItaliane: string[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
   const noteInglesi: string[] = ["C", "D", "E", "F", "G", "A", "B"];
   const noteNames = ita ? noteItaliane : noteInglesi;
@@ -236,7 +237,7 @@ export function scaleNames(
 
   // Align the input scale with the standard scale
   let scales = lcmPosition(standard, scala);
-  let newStandard = scales[0];
+  let lcmStandard = scales[0];
   let newScale = scales[1];
 
   // Determine the reference octave
@@ -244,74 +245,84 @@ export function scaleNames(
   const octaveZeroScale = newScale.sum(-octave); // Normalize scale to one octave
 
   let index = 0;
-  while (newStandard.rototranslate(index, newStandard.data.length, false).data[0] < octaveZeroScale.data[0]) {
-    index++;
+  let finalScale = octaveZeroScale;
+  let root = 0;
+  
+  if (isChord ) {
+    root = inverse_select(getChordName(finalScale, true).root, finalScale).data[0];
+    finalScale = finalScale.rototranslate(root);
   }
-
+  if(lcmStandard.element(index) < finalScale.data[0]){
+    while (lcmStandard.element(index) < finalScale.data[0]) {
+      index++;
+    }
+  } else{
+      while (lcmStandard.element(index) >= finalScale.data[0]) {
+      index++;
+    }
+  }
+  let preDegrees = finalScale.getDegrees();
   // Get degrees and prepare for enharmonic adjustment
-  let noteDegrees1 = scala.getDegrees();
-  let noteDegrees2 = scala.getDegrees();
+  let noteDegrees1 = preDegrees;
+  let noteDegrees2 = preDegrees;
   let steps1 = [];
   let steps2 = [];
   let runningTotal1 = 0;
   let runningTotal2 = 0;
 
-  for (let i = 0; i < octaveZeroScale.data.length; i++) {
-    const oct = Math.floor((octaveZeroScale.data[i] - octaveZeroScale.data[0]) / octaveZeroScale.modulo) * 7;
+  for (let i = 0; i < finalScale.data.length; i++) {
+    const oct = Math.floor((finalScale.data[i] - finalScale.data[0]) / finalScale.modulo) * 7;
 
-    // Calculate deviations for the first enharmonic check
-    steps1[i] = octaveZeroScale.data[i] - newStandard.element(noteDegrees1[i] + index + oct);
-    const interval1 = intervalStandard.element(noteDegrees1[i] + index - 1);
-
-    if (checkEnharmonic && Math.abs(steps1[i]) >= interval1) {
-      const sign = Math.sign(steps1[i]);
-      steps1[i] -= sign * interval1;
-      noteDegrees1[i] += sign;
-    }
+    // Calculate deviations for the first check
+    steps1[i] = finalScale.data[i] - lcmStandard.element(noteDegrees1[i] + index + oct);
     runningTotal1 += steps1[i];
 
-    // Calculate deviations for the second enharmonic check
-    steps2[i] = octaveZeroScale.data[i] - newStandard.element(noteDegrees2[i] + index + oct + 1);
-    const interval2 = intervalStandard.element(noteDegrees1[i] + index);
-
-    if (checkEnharmonic && Math.abs(steps2[i]) >= interval2) {
-      const sign = Math.sign(steps2[i]);
-      steps2[i] -= sign * interval2;
-      noteDegrees2[i] += sign;
-    }
+    // Calculate deviations for the second check
+    steps2[i] = finalScale.data[i] - lcmStandard.element(noteDegrees2[i] + index + oct + 1);
     runningTotal2 += steps2[i];
   }
-
+  
   // Choose the best set of adjustments based on total deviation
   let steps = Math.abs(runningTotal1) <= Math.abs(runningTotal2) ? steps1 : steps2;
   let noteDegrees = Math.abs(runningTotal1) <= Math.abs(runningTotal2) ? noteDegrees1 : noteDegrees2;
   if (Math.abs(runningTotal1) > Math.abs(runningTotal2)) index++;
 
-  // Generate the base note names
-  let baseNames = [];
-  for (let i = 0; i < octaveZeroScale.data.length; i++) {
-    baseNames[i] = noteNames[modulo(noteDegrees[i] + index, 7)];
+  if (checkEnharmonic){
+    for(let i = 0 ; i < steps.length; i++){
+      const su = intervalStandard.element(noteDegrees[i] + index);
+      const giu = intervalStandard.element(noteDegrees[i] + index - 1);
+      if (Math.abs(steps[i]) >= su && Math.sign(steps[i]) == +1 ) {
+        steps[i] -= intervalStandard.element(noteDegrees[i] + index);
+        noteDegrees[i] += 1;
+      } else if(Math.abs(steps[i]) >= giu && Math.sign(steps[i]) == -1 ){
+        steps[i] += intervalStandard.element(noteDegrees[i] + index -1);
+        noteDegrees[i] -= 1;
+      }
+    }
   }
 
   // Generate the final note names with alterations or deviations
   let names = [];
   for (let i = 0; i < noteDegrees.length; i++) {
+    const j = modulo(i - root,steps.length);
+    const actualStep = steps[j];
+    const actualBaseName = noteNames[modulo(noteDegrees[j] + index, 7)];
     if (useCents) {
-      const cents = Math.round(steps[i] * 50);
+      const cents = Math.round(actualStep * 50);
       if (cents !== 0) {
-        names[i] = `${baseNames[i]} ${cents > 0 ? "\u2191" : "\u2193"}${Math.abs(cents)}\u00a2`;
+        names[i] = `${actualBaseName} ${cents > 0 ? "\u2191" : "\u2193"}${Math.abs(cents)}\u00a2`;
       } else {
-        names[i] = baseNames[i];
+        names[i] = actualBaseName;
       }
     } else {
-      const roundedSteps = Math.round(steps[i]);
-      if (Math.abs(steps[i]) < 1 && steps[i] !== 0) {
-        names[i] = baseNames[i] + (steps[i] > 0 ? "\uD834\uDD32" : "\uD834\uDD33"); // Microtonal symbols
+      const roundedSteps = Math.round(actualStep);
+      if (Math.abs(actualStep) < 1 && actualStep !== 0) {
+        names[i] = actualBaseName + (actualStep > 0 ? "\uD834\uDD32" : "\uD834\uDD33"); // Microtonal symbols
       } else if (roundedSteps !== 0) {
         const alteration = roundedSteps > 0 ? "\u266F" : "\u266D"; // Sharp or flat
-        names[i] = baseNames[i] + alteration.repeat(Math.min(Math.abs(roundedSteps), 2));
+        names[i] = actualBaseName + alteration.repeat(Math.min(Math.abs(roundedSteps), 2));
       } else {
-        names[i] = baseNames[i];
+        names[i] = actualBaseName;
       }
     }
   }

@@ -800,11 +800,16 @@ export function inverse_select(
   );
 
   let j = Math.floor(voicing.data[0] / voicing.modulo);
-
-  while (scala.element(j) > voicing.data[0]) {
-    j--;
+  if(scala.element(j) > voicing.data[0]){
+    while (scala.element(j) > voicing.data[0]) {
+      j--;
+    }
+  }else if(scala.element(j) < voicing.data[0]){
+    while (scala.element(j) < voicing.data[0]) {
+      j++;
+    }
+    j--
   }
-
   for (let i = 0; i < voicing.data.length; i++) {
     while (scala.element(j) < voicing.data[i]) {
       j++;
@@ -835,7 +840,7 @@ export function inverse_select(
  *   - `chordName`: The name of the chord as a string.
  *   - `root`: The root of the chord as a `positionVector`, calculated as the lowest note of the selected candidate.
  */
-function getChordName(chordVector :positionVector, allowSlashChords = false) {
+export function getChordName(chordVector :positionVector, allowSlashChords = false) {
   let chord = chordVector;
   chord = chord.sum(-chordVector.data[0]);
 
@@ -971,7 +976,7 @@ function getChordName(chordVector :positionVector, allowSlashChords = false) {
 
     // Determine inversion if applicable and if slash chords are allowed
     if (allowSlashChords && i !== 0) {
-      inversion = `/${scaleNames(chord, false, false)[0]}`;
+      inversion = `/${scaleNames(chord, false, false, true)[0]}`;
     }
 
     // Store the chord components in an array
