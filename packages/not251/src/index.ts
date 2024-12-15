@@ -1,5 +1,5 @@
-import intervalVector from "./intervalVector";
-import positionVector , { lcmPosition } from "./positionVector";
+import { intervalVector, lcmInterval } from "./intervalVector";
+import { positionVector, lcmPosition } from "./positionVector";
 import { ScaleParams, defaultScaleParams, scale, autoMode } from "./scale";
 import {
   ChordParams,
@@ -7,10 +7,20 @@ import {
   chord,
   autoVoicing,
   autovoicingP2P,
+  blockChord,
+  spread,
+  VoiceRange,
+  VoiceRanges,
+  getChordName,
 } from "./chord";
 //import { autoGrado, autoRoot } from "./auto";
 import { transpose } from "./quantize";
-import { selectFromInterval, toIntervals, toPositions } from "./crossOperation";
+import {
+  selectFromInterval,
+  toIntervals,
+  toPositions,
+  names,
+} from "./crossOperation";
 import { grid } from "./grid";
 import { generateCounterpoint } from "./counterpoint";
 import { phraseLength, tihai } from "./indian";
@@ -23,6 +33,11 @@ export {
   autoMode,
   autoVoicing,
   autovoicingP2P,
+  blockChord,
+  getChordName,
+  spread,
+  VoiceRange,
+  VoiceRanges,
   ChordParams,
   defaultChordParams,
   chord,
@@ -33,6 +48,7 @@ export {
   ScaleParams,
   defaultScaleParams,
   scale,
+  names,
   transpose,
   selectFromInterval,
   toIntervals,

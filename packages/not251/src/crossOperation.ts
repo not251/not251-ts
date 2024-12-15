@@ -1,5 +1,9 @@
-import positionVector from "./positionVector";
-import intervalVector from "./intervalVector";
+import { positionVector } from "./positionVector";
+import { intervalVector } from "./intervalVector";
+import { Language, NoteNames } from "./constants";
+import { minRotation } from "./distances";
+import { scale } from "./scale";
+import { modulo } from "./utility";
 
 /**
  *
@@ -61,4 +65,73 @@ export function selectFromInterval(s: positionVector, j: intervalVector) {
   out.spanUpdate();
 
   return out;
+}
+
+/**
+ * TBI: !!!OLD!!!!!
+ *
+ *
+ * It returns the note names for the input scale.
+ * This only works for scales with 7 notes and modulo 12 for the moment.
+ *
+ * @param scaleVector positionVector for the input scale to find note names for.
+ * @returns An array of noteNames objects, each containing the English and Italian note names.
+ */
+
+export function names(
+  vector: positionVector,
+  desiredLanguages: Language[] = ["en"]
+): Partial<NoteNames>[] {
+  let scaleVector: positionVector = new positionVector(
+    vector.data,
+    vector.modulo,
+    vector.span
+  );
+  let cMaj = scale();
+  let a = minRotation(scaleVector, cMaj);
+
+  //sto supponendo che entrambe le scale sia di uguale lunghezza
+
+  let trasp1 = cMaj.rototranslate(a, cMaj.data.length, false);
+  let trasp2 = cMaj.rototranslate(a + 1, cMaj.data.length, false);
+
+  let n = trasp1.data.map((value, index) => value - scaleVector.data[index]); // differenza lineare tra due vettori
+  let m = trasp2.data.map((value, index) => value - scaleVector.data[index]);
+
+  let sum_n = n.reduce((acc, val) => acc + val, 0); //somma delle differenze
+  let sum_m = m.reduce((acc, val) => acc + val, 0);
+
+  let dorototraslata: positionVector;
+
+  if (Math.abs(sum_n) < Math.abs(sum_m)) {
+    dorototraslata = trasp1;
+  } else {
+    a = a + 1;
+    dorototraslata = trasp2;
+  }
+
+  //l'algoritmo che porta a questo potrebbe essere ottimizzato
+
+  let names: Partial<NoteNames>[] = [];
+
+  for (let i = 0; i < scaleVector.data.length; i++) {
+    let diff = scaleVector.data[i] - dorototraslata.data[i]; // Calcola la differenza senza modulo
+
+    let noteName: Partial<NoteNames> = {};
+    for (let language of desiredLanguages) {
+      noteName[language] = NoteNames[modulo(a + i, NoteNames.length)][language];
+
+      if (diff > 0) {
+        for (let j = 0; j < diff; j++) {
+          noteName[language] += "#";
+        }
+      } else if (diff < 0) {
+        for (let j = 0; j < -diff; j++) {
+          noteName[language] += "b";
+        }
+      }
+    }
+    names.push(noteName);
+  }
+  return names;
 }

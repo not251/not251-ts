@@ -1,19 +1,12 @@
-import {
-  AlterationSymbols,
-  AlteredNoteName,
-  Language,
-  NoteNames,
-} from "./constants";
 import { minRotation } from "./distances";
-import { scale } from "./scale";
-import { modulo, lcm , scaleNames} from "./utility";
+import { modulo, lcm } from "./utility";
 
 /**
  * Represents a cyclic vector, supporting various transformations like rototranslation,
  * inversion, and reflection. Defined by elements (data), a modulo constraint for cyclic properties,
  * and a span that represents the total range covered by the elements.
  */
-export default class positionVector {
+export class positionVector {
   data: number[];
   modulo: number;
   span: number;
@@ -243,7 +236,7 @@ export default class positionVector {
    * @returns A new positionVector instance with summed values.
    */
   sum(num: number = 0): positionVector {
-    let out : number[] = [...this.data];
+    let out: number[] = [...this.data];
     for (let i = 0; i < this.data.length; i++) {
       out[i] += num;
     }
@@ -251,83 +244,18 @@ export default class positionVector {
   }
 
   /**
-   * It returns the note names for the input scale.
-   * This only works for scales with 7 notes and modulo 12 for the moment.
-   *
-   * @param scaleVector positionVector for the input scale to find note names for.
-   * @returns An array of noteNames objects, each containing the English and Italian note names.
-   */
-  /*
-  names(desiredLanguages: Language[] = ["en"]): Partial<NoteNames>[] {
-    let scaleVector: positionVector = new positionVector(
-      this.data,
-      this.modulo,
-      this.span
-    );
-    let cMaj = scale();
-    let a = minRotation(scaleVector, cMaj);
-
-    //sto supponendo che entrambe le scale sia di uguale lunghezza
-
-    let trasp1 = cMaj.rototranslate(a, cMaj.data.length, false);
-    let trasp2 = cMaj.rototranslate(a + 1, cMaj.data.length, false);
-
-    let n = trasp1.data.map((value, index) => value - scaleVector.data[index]); // differenza lineare tra due vettori
-    let m = trasp2.data.map((value, index) => value - scaleVector.data[index]);
-
-    let sum_n = n.reduce((acc, val) => acc + val, 0); //somma delle differenze
-    let sum_m = m.reduce((acc, val) => acc + val, 0);
-
-    let dorototraslata: positionVector;
-
-    if (Math.abs(sum_n) < Math.abs(sum_m)) {
-      dorototraslata = trasp1;
-    } else {
-      a = a + 1;
-      dorototraslata = trasp2;
-    }
-
-    //l'algoritmo che porta a questo potrebbe essere ottimizzato
-
-    let names: Partial<NoteNames>[] = [];
-
-    for (let i = 0; i < scaleVector.data.length; i++) {
-      let diff = scaleVector.data[i] - dorototraslata.data[i]; // Calcola la differenza senza modulo
-
-      let noteName: Partial<NoteNames> = {};
-      for (let language of desiredLanguages) {
-        noteName[language] =
-          NoteNames[modulo(a + i, NoteNames.length)][language];
-
-        if (diff > 0) {
-          for (let j = 0; j < diff; j++) {
-            noteName[language] += "#";
-          }
-        } else if (diff < 0) {
-          for (let j = 0; j < -diff; j++) {
-            noteName[language] += "b";
-          }
-        }
-      }
-      names.push(noteName);
-    }
-    return names;
-  }
-*/
-
-  /**
  * funzione per visualizzare web chord notes
+    
+  let scala = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12);
+  let chordNotes = chord({ scala: scala });
 
-let scala = new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 12);
-let chordNotes = chord({ scala: scala });
+  let index_chord = inverse_select(chordNotes, scala);
 
-let index_chord = inverse_select(chordNotes, scala);
+  let nomi_scala = scaleNames(scala);
 
-let nomi_scala = scaleNames(scala);
-
-for (let i = 0; i < index_chord.data.length; i++) {
-  console.log(nomi_scala[index_chord.data[i]]);
-}
+  for (let i = 0; i < index_chord.data.length; i++) {
+    console.log(nomi_scala[index_chord.data[i]]);
+  }
  */
 
   /**
@@ -340,10 +268,12 @@ for (let i = 0; i < index_chord.data.length; i++) {
    * @param useCents - If true, uses cent deviations for microtonal adjustments (default is false).
    * @returns An array of strings containing the note names corresponding to the scale values.
    */
+
+  /*
   names(lang: Language = "en"): AlteredNoteName[] {
     const scala = { ...this };
     const semitoneValue = scala.modulo / 12; // Each semitone in terms of modulo
-    const cMaj = scale();
+    const cMaj = scale(defaultScaleParams);
 
     // Determine the key (starting note)
     const keyValue = modulo(scala.data[0], scala.modulo);
@@ -461,7 +391,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
     });
     return output.filter((item): item is AlteredNoteName => item !== undefined);
   }
-
+*/
   /**
    * This method scales the vector to zero, effectively removing the offset.
    * TBI: remove duplicates in out.data!
@@ -473,7 +403,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
 
     let offset = out.data[0];
     for (let i = 0; i < out.data.length; i++) {
-        out.data[i] = modulo(out.data[i] - offset, out.modulo); 
+      out.data[i] = modulo(out.data[i] - offset, out.modulo);
     }
 
     out.data.sort((a, b) => a - b);
@@ -481,14 +411,13 @@ for (let i = 0; i < index_chord.data.length; i++) {
     out.spanUpdate();
 
     if (autoupdate) {
-        this.data = out.data;
-        this.span = out.span;
-        this.modulo = out.modulo;
+      this.data = out.data;
+      this.span = out.span;
+      this.modulo = out.modulo;
     }
 
     return out;
   }
-
 
   /**
    * Checks if a given number is present in this **positionVector**, considering modular equivalence.
@@ -536,19 +465,26 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     return false; // The note is not an avoid note
-  }  
-  
+  }
+
   /**
    * Computes the degree function for this positionVector, assigning degrees to each note in the scale.
    * Additionally, determines the interval types for the scale.
    * @returns An object containing the degree information, interval types, and the base chord.
    */
-  degreeFunction(): { degreeFunction: { degree: number }[], intervalTypes: Set<string>, baseChord: Set<number> } {
+  degreeFunction(): {
+    degreeFunction: { degree: number }[];
+    intervalTypes: Set<string>;
+    baseChord: Set<number>;
+  } {
     // Shift the vector so that the root is at 0
     let shiftedVector = this.sum(-this.data[0]);
     let shiftedData = shiftedVector.data;
     for (let i = 1; i < shiftedData.length; i++) {
-      shiftedData[i] = modulo(Math.round((shiftedData[i] * 12) / this.modulo),12);
+      shiftedData[i] = modulo(
+        Math.round((shiftedData[i] * 12) / this.modulo),
+        12
+      );
     }
     let degFunc: (number | undefined)[] = new Array(this.data.length);
     degFunc[0] = 0; // The root has degree 0
@@ -556,8 +492,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
     let baseChord = new Set<number>();
     baseChord.add(0);
 
-
-  // Determines the main degrees (third, fifth, seventh)
+    // Determines the main degrees (third, fifth, seventh)
     for (let i = 1; i < shiftedData.length; i++) {
       if (shiftedData[i] == 0) {
         degFunc[i] = 0;
@@ -580,7 +515,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
       }
     }
 
-  // Searches for alternative intervals if the main ones are not present
+    // Searches for alternative intervals if the main ones are not present
     if (!intervalTypes.has("3maj")) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 3) {
@@ -609,7 +544,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 2) {
           degFunc[i] = 2;
-          baseChord.add(2)
+          baseChord.add(2);
           intervalTypes.add("3dim");
           break;
         }
@@ -617,11 +552,15 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     // If third is not found, look for a fourth as a substitute for the third
-    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min") && !intervalTypes.has("3dim")) {
+    if (
+      !intervalTypes.has("3maj") &&
+      !intervalTypes.has("3min") &&
+      !intervalTypes.has("3dim")
+    ) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 5) {
           degFunc[i] = 2;
-          baseChord.add(5)
+          baseChord.add(5);
           intervalTypes.add("3aug");
           break;
         }
@@ -629,11 +568,15 @@ for (let i = 0; i < index_chord.data.length; i++) {
     }
 
     // Look for diminished fifth
-    if (!intervalTypes.has("5") && !intervalTypes.has("5aug") && !intervalTypes.has("3maj")) {
+    if (
+      !intervalTypes.has("5") &&
+      !intervalTypes.has("5aug") &&
+      !intervalTypes.has("3maj")
+    ) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 6) {
           degFunc[i] = 4;
-          baseChord.add(6)
+          baseChord.add(6);
           intervalTypes.add("5dim");
           break;
         }
@@ -657,7 +600,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
       for (let i = 1; i < shiftedData.length; i++) {
         if (shiftedData[i] == 9) {
           degFunc[i] = 6;
-          baseChord.add(9)
+          baseChord.add(9);
           intervalTypes.add("7dim");
           break;
         }
@@ -674,7 +617,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
           } else if (shiftedData[i] == 2) {
             intervalTypes.add("2");
           } else if (shiftedData[i] == 3) {
-            intervalTypes.add("2aug")
+            intervalTypes.add("2aug");
           }
         } else if (shiftedData[i] > 4 && shiftedData[i] < 7) {
           degFunc[i] = 3;
@@ -698,7 +641,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
     const degreeFunction = this.data.map((note, index) => {
       const degree = degFunc[index];
       return {
-        degree: degree!
+        degree: degree!,
       };
     });
 
@@ -713,7 +656,9 @@ for (let i = 0; i < index_chord.data.length; i++) {
   isExtension(note: number): boolean {
     const { baseChord } = this.degreeFunction();
     // Shift the note relative to the root
-    const shiftedNote = Math.round((modulo(note - this.data[0], this.modulo) * 12) / this.modulo);
+    const shiftedNote = Math.round(
+      (modulo(note - this.data[0], this.modulo) * 12) / this.modulo
+    );
     return !baseChord.has(shiftedNote);
   }
 
@@ -735,16 +680,16 @@ for (let i = 0; i < index_chord.data.length; i++) {
    * @returns An array of degrees representing each note.
    */
   getDegrees(): number[] {
-    return this.degreeFunction().degreeFunction.map(item => item.degree);
+    return this.degreeFunction().degreeFunction.map((item) => item.degree);
   }
 
   /**
- * Normalizes all elements of the position vector to be within the range [0, modulo).
- * Ensures that the first element in the resulting vector is the lowest value among the normalized elements.
- * Other elements are adjusted relative to the first to maintain their relative positions.
- *
- * @returns A new positionVector instance with normalized values.
- */
+   * Normalizes all elements of the position vector to be within the range [0, modulo).
+   * Ensures that the first element in the resulting vector is the lowest value among the normalized elements.
+   * Other elements are adjusted relative to the first to maintain their relative positions.
+   *
+   * @returns A new positionVector instance with normalized values.
+   */
   normalizeToModulo(): positionVector {
     const normalizedData = this.data.map((note) => modulo(note, this.modulo));
     const minVal = normalizedData[0];
@@ -757,6 +702,7 @@ for (let i = 0; i < index_chord.data.length; i++) {
     return new positionVector(adjustedData, this.modulo, this.span);
   }
 }
+
 /**
  * Calculates the LCM of two positionVector instances and scales their data, modulo and span accordingly.
  *
@@ -800,15 +746,15 @@ export function inverse_select(
   );
 
   let j = Math.floor(voicing.data[0] / voicing.modulo);
-  if(scala.element(j) > voicing.data[0]){
+  if (scala.element(j) > voicing.data[0]) {
     while (scala.element(j) > voicing.data[0]) {
       j--;
     }
-  }else if(scala.element(j) < voicing.data[0]){
+  } else if (scala.element(j) < voicing.data[0]) {
     while (scala.element(j) < voicing.data[0]) {
       j++;
     }
-    j--
+    j--;
   }
   for (let i = 0; i < voicing.data.length; i++) {
     while (scala.element(j) < voicing.data[i]) {
@@ -817,210 +763,13 @@ export function inverse_select(
     if (scala.element(j) == voicing.data[i]) {
       index.data.push(j);
     } else {
-      // Messaggio di errore e interruzione della funzione
       throw new Error(
-        "Errore: Impossibile trovare la corrispondenza per l'elemento " +
+        "Error: Impossible finding element: " +
           voicing.data[i] +
-          " nella scala."
+          " in the scale."
       );
     }
   }
 
   return index;
 }
-
-/**
- * Analyzes a `positionVector` representing a chord, identifying its name and root.
- * The function supports complex chords, including slash chords, by determining the
- * chord's quality (e.g., major, minor, diminished) and any extensions.
- *
- * @param chordVector - The `positionVector` representing the chord to analyze.
- * @param allowSlashChords - A boolean indicating whether to allow slash chords (default: false).
- * @returns An object containing:
- *   - `chordName`: The name of the chord as a string.
- *   - `root`: The root of the chord as a `positionVector`, calculated as the lowest note of the selected candidate.
- */
-export function getChordName(chordVector :positionVector, allowSlashChords = false) {
-  let chord = chordVector;
-  chord = chord.sum(-chordVector.data[0]);
-
-  for (let i = 1; i < chord.data.length; i++) {
-    chord.data[i] = modulo(chord.data[i], chord.modulo);
-  }
-  chord.data.sort((a, b) => a - b);
-  chord = chord.sum(+chordVector.data[0]);
-
-  let candidates = [];
-  let iTcandidates = [];
-  let chordNames: [positionVector, string, string[], string][] = [];
-  let length = 1;
-  if (allowSlashChords) {
-    length = chordVector.data.length;
-  }
-
-  for (let i = 0; i < length; i++) {
-    let candidate = chord.rototranslate(i, chord.data.length, false);
-    if (candidate.isExtension(chord.element(0)) && i != 0) {
-      candidate.data.splice(chord.data.length - i, 1);
-    }
-
-    let iTCandidate = new Set(candidate.getIntervalTypes());
-
-    iTcandidates.push(iTCandidate);
-    candidates.push(candidate);
-
-    let chordBase = "";
-    let chordQuality = [];
-    let inversion = "";
-
-    // Determine the basic chord quality
-    if (iTCandidate.has("5aug")) {
-      chordBase = "+";
-    }
-    if (iTCandidate.has("3min")) {
-      if (iTCandidate.has("5dim")) {
-        chordBase = "dim";
-      } else {
-        chordBase = "-";
-      }
-    } else if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && iTCandidate.has("3dim") && iTCandidate.has("3aug")) {
-      chordBase = "5";
-    }
-
-    // Add seventh, sixth, or extended notes to the chord quality
-    if (iTCandidate.has("7maj")) {
-      chordBase += "maj7";
-    } else if (iTCandidate.has("7min")) {
-      if (chordBase == "dim") {
-        chordBase = "ø";
-      }
-      chordBase += "7";
-    } else if (iTCandidate.has("7dim")) {
-      if (chordBase != "dim") {
-        chordBase += "6";
-      } else {
-        chordBase += "7";
-      }
-    }
-
-    if (iTCandidate.has("4") && iTCandidate.has("3dim")) {
-      chordQuality.push("sus2/4");
-    } else if (iTCandidate.has("3aug")) {
-      chordQuality.push("sus4");
-    } else if (iTCandidate.has("3dim")) {
-      chordQuality.push("sus2");
-    }
-
-    // Add extended notes to the chord quality
-    if (iTCandidate.has("2min")) {
-      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-        chordQuality.push("add♭9");
-      } else {
-        chordQuality.push("♭9");
-      }
-    }
-    if (iTCandidate.has("2")) {
-      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-        chordQuality.push("add9");
-      } else {
-        chordQuality.push("9");
-      }
-    }
-    if (iTCandidate.has("2aug")) {
-      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-        chordQuality.push("add♯9");
-      } else {
-        chordQuality.push("♯9");
-      }
-    }
-    if (iTCandidate.has("4") && !iTCandidate.has("3dim")) {
-      if ((!iTCandidate.has("7maj") && !iTCandidate.has("7min")) || iTCandidate.has("3maj")) {
-        chordQuality.push("add11");
-      } else {
-        chordQuality.push("11");
-      }
-    }
-    if (iTCandidate.has("4aug")) {
-      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-        chordQuality.push("add♯11");
-      } else {
-        chordQuality.push("♯11");
-      }
-    }
-    if (iTCandidate.has("6min")) {
-      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-        chordQuality.push("add♭13");
-      } else {
-        chordQuality.push("♭13");
-      }
-    }
-    if (iTCandidate.has("6")) {
-      if (!iTCandidate.has("7maj") && !iTCandidate.has("7min")) {
-        chordQuality.push("add13");
-      } else {
-        chordQuality.push("13");
-      }
-    }
-    if (iTCandidate.has("6aug")) {
-      chordQuality.push("♯13");
-    }
-    if (!iTCandidate.has("3maj") && !iTCandidate.has("3min") && !iTCandidate.has("3aug") && !iTCandidate.has("3dim")) {
-      chordQuality.push("omit3");
-    }
-    if (!iTCandidate.has("5") && !iTCandidate.has("5dim") && !iTCandidate.has("5aug")) {
-      chordQuality.push("omit5");
-    }
-
-    // Assign the root as the lowest note of the candidate
-    const root = new positionVector([candidate.data[0]], chordVector.modulo, chordVector.span);
-
-    // Determine inversion if applicable and if slash chords are allowed
-    if (allowSlashChords && i !== 0) {
-      inversion = `/${scaleNames(chord, false, false, true)[0]}`;
-    }
-
-    // Store the chord components in an array
-    chordNames.push([root, chordBase, chordQuality, inversion]);
-  }
-
-  // Sort chord names based on the length of chordQuality
-  chordNames.sort((a, b) => {
-    const qualityDifference = a[2].length - b[2].length;
-    const inversionPenaltyA = a[3] != undefined ? 1 : 0;
-    const inversionPenaltyB = b[3] != undefined ? 1 : 0;
-
-    return qualityDifference !== 0
-      ? qualityDifference
-      : inversionPenaltyA - inversionPenaltyB;
-  });
-
-  let i = 0;
-  while (
-    i < chordNames.length &&
-    (chordNames[i][2].includes("omit3") ||
-      (chordNames[i][2].includes("omit5") &&
-        (chordNames[i][2].includes("sus2") ||
-          chordNames[i][2].includes("sus4"))) ||
-      (chordNames[i][2].includes("sus2") &&
-        chordNames[i][2].includes("add♭9")) ||
-      (chordNames[i][2].includes("sus4") &&
-        chordNames[i][2].includes("♯11")))
-  ) {
-    i++;
-  }
-  if (i >= chordNames.length) {
-    i = 0;
-  }
-
-  const bestChord = chordNames[i];
-
-  // Generate the chord name using scaleNames for the output
-  const chordName = `${scaleNames(bestChord[0], false, false)[0]}${bestChord[1]}${Array.isArray(bestChord[2]) && bestChord[2].length > 0 ? bestChord[2].join("") : ""}${bestChord[3]}`;
-
-  // Return the chord name and the calculated root as a positionVector
-  return {
-    chordName,
-    root: bestChord[0].normalizeToModulo(),
-  };
-}
-
