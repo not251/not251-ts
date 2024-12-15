@@ -15,6 +15,10 @@
       "cache": false,
       "persistent": true
     },
+    "lint": {
+      "cache": false,
+      "persistent": false
+    },
     "maxmsp": {
       "cache": false,
       "persistent": false
