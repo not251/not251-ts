@@ -1,5 +1,5 @@
-import positionVector from "./positionVector";
-import intervalVector from "./intervalVector";
+import { intervalVector } from "./intervalVector";
+import { positionVector } from "./positionVector";
 import { toIntervals, toPositions } from "./crossOperation";
 import { euclideanDistanceMap, minRotation, sortByDistance } from "./distances";
 import { modulo } from "./utility";
@@ -42,7 +42,7 @@ export const defaultScaleParams: ScaleParams = {
  * @returns The resulting positionVector after applying the transformations.
  */
 export function scale({
-  intervals = new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 12),
+  intervals = new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
   root = 0,
   modo = 0,
   grado = 0,
