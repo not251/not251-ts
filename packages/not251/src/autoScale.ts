@@ -1,7 +1,7 @@
 import { toIntervals, toPositions } from "./crossOperation";
 import { euclideanDistance } from "./distances";
-import intervalVector from "./intervalVector";
-import positionVector, { inverse_select } from "./positionVector";
+import { intervalVector } from "./intervalVector";
+import { positionVector, inverse_select } from "./positionVector";
 import { autoModeGO, autoModeOptions, ScaleParams } from "./scale";
 import { modulo } from "./utility";
 
@@ -184,8 +184,16 @@ function adaptScaleToNote(
   // Check if the target note is already in the scale
   if (scale.isNote(targetNote)) {
     return {
-      updatedScale: new positionVector([...scale.data], scale.modulo, scale.span),
-      updatedDegrees: new positionVector([...chordDegrees.data], chordDegrees.modulo, chordDegrees.span),
+      updatedScale: new positionVector(
+        [...scale.data],
+        scale.modulo,
+        scale.span
+      ),
+      updatedDegrees: new positionVector(
+        [...chordDegrees.data],
+        chordDegrees.modulo,
+        chordDegrees.span
+      ),
     };
   }
 
@@ -196,8 +204,8 @@ function adaptScaleToNote(
 
   // Calculate the target note in the scale's modulo
   let targetMod = modulo(targetNote, scale.modulo);
-  while (targetMod < scale.data[0]){
-    targetMod += scale.modulo
+  while (targetMod < scale.data[0]) {
+    targetMod += scale.modulo;
   }
 
   // Find the two closest degrees in the scale
@@ -235,15 +243,25 @@ function adaptScaleToNote(
   const uniqueSortedScale = Array.from(new Set(updatedScaleData));
 
   // Update the chord degrees in the new scale
-  const updatedScale = new positionVector(uniqueSortedScale, scale.modulo, scale.span);
-  const updatedDegrees = inverse_select(scale.selectFromPosition(chordDegrees), updatedScale);
+  const updatedScale = new positionVector(
+    uniqueSortedScale,
+    scale.modulo,
+    scale.span
+  );
+  const updatedDegrees = inverse_select(
+    scale.selectFromPosition(chordDegrees),
+    updatedScale
+  );
   return {
     updatedScale,
     updatedDegrees,
   };
 }
 
-function adaptScale(inputScaleParams: ScaleParams, notes: positionVector): ScaleParams {
+function adaptScale(
+  inputScaleParams: ScaleParams,
+  notes: positionVector
+): ScaleParams {
   if (!inputScaleParams.intervals) {
     throw new Error("Intervals in inputScaleParams are undefined.");
   }
@@ -297,7 +315,9 @@ function adaptScale_internal(
   const maxMatchCount = options[0].matchCount;
 
   // Filter options with the maximum match count
-  const bestOptions = options.filter((option) => option.matchCount === maxMatchCount);
+  const bestOptions = options.filter(
+    (option) => option.matchCount === maxMatchCount
+  );
 
   let bestAdaptedScale: positionVector | null = null;
   let minDistance = Infinity;
@@ -321,7 +341,11 @@ function adaptScale_internal(
     for (let i = 0; i < notes.data.length; i++) {
       if (!matched.includes(i)) {
         // Adapt the scale to include the current note
-        let adaptationResult = adaptScaleToNote(bestOption, blockedDeg, notes.data[i]);
+        let adaptationResult = adaptScaleToNote(
+          bestOption,
+          blockedDeg,
+          notes.data[i]
+        );
 
         bestOption = adaptationResult.updatedScale;
 
@@ -361,7 +385,3 @@ function adaptScale_internal(
     rotation: finalRotation,
   };
 }
-
-
-
-

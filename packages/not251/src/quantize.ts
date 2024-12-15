@@ -1,4 +1,4 @@
-import positionVector from "./positionVector";
+import { positionVector } from "./positionVector";
 
 /**
  * Quantizes a given note to the nearest value in the specified scale.
@@ -28,7 +28,7 @@ export function quantize(note: number, scale: number[], left: boolean = true) {
 }
 
 /**
- * Quantize notes on an input scale and transpose them to an output scale, taking into account 
+ * Quantize notes on an input scale and transpose them to an output scale, taking into account
  * the specified roots for each scale.
  * Returns the corresponding degrees and transposed notes.
  *
