@@ -14,6 +14,7 @@ export const initScaleOptions: Pick<ScaleType, 'options'>['options'] = {
 
 export const initChordOptions: Pick<ChordType, 'options'>['options'] = {
 	scale: new positionVector([0, 2, 4, 5, 7, 9, 11], 12, 0),
+	grado: [0],
 	negativePos: [0],
 	octave: [3],
 	preVoices: [3],

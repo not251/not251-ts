@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { chord as generateChord, intervalVector } from '@not251/not251';
+	import {
+		chord as generateChord,
+		intervalVector,
+		getChordName,
+		positionVector
+	} from '@not251/not251';
 	import { Slider } from '$lib/components/ui/slider';
 	import * as Card from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
@@ -11,8 +16,8 @@
 
 	let chordNotes = $derived(
 		generateChord({
-			grado: $scale.options.grado[0],
 			root: $scale.options.root[0],
+			grado: options.grado[0],
 			isInvert: options.isInvert,
 			isNegative: options.isNegative,
 			standardNegative: options.standardNegative,
@@ -30,6 +35,7 @@
 		$chord = {
 			options: {
 				scale: options.scale,
+				grado: options.grado,
 				octave: options.octave,
 				preVoices: options.preVoices,
 				position: options.position,
@@ -54,6 +60,10 @@
 			<div class="space-y-2">
 				<Label for="preVoices">Pre-Voices: {options.preVoices}</Label>
 				<Slider id="preVoices" bind:value={options.preVoices} min={1} max={7} step={1} />
+			</div>
+			<div class="space-y-2">
+				<Label for="grado">Grado: {options.grado}</Label>
+				<Slider id="grado" bind:value={options.grado} min={0} max={7} step={1} />
 			</div>
 			<div class="space-y-2">
 				<Label for="position">Position: {options.position}</Label>
@@ -92,12 +102,6 @@
 		</div>
 	</Card.Content>
 	<Card.Footer class="flex w-full items-center justify-center gap-2">
-		<p>
-			Chord Notes: {JSON.stringify(
-				$chord.notes?.names(['it']).map((name) => name.it),
-				null,
-				2
-			)}
-		</p>
+		<p></p>
 	</Card.Footer>
 </Card.Root>
