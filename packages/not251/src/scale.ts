@@ -31,7 +31,7 @@ export const defaultScaleParams: ScaleParams = {
  * It rotates the interval vector by modo, adjusts the root, and optionally inverts or mirrors it.
  * The output is then converted to a position vector, which is roto-translated by grado to finalize its configuration.
  *
- * @param intervalli - The base intervals that define the scale.
+ * @param intervals - The base intervals that define the scale.
  * @param root - Starting pitch or offset for the scale (default is 0).
  * @param modo - Rotation step to define the starting position of the scale (default is 0).
  * @param grado - Degree of roto-translation applied to the final scale (default is 0).
@@ -103,17 +103,17 @@ export function autoModeGO(scale: intervalVector): modeMap {
 
 /**
  * Analyzes a set of modes and compares them to a given set of notes.
- * 
+ *
  * The function has two modes of operation controlled by the `findBest` parameter:
- * 
+ *
  * - When `findBest` is `false` (default):
  *   - Returns only the modes that match **all** the given notes.
  *   - Useful for identifying exact matches.
- * 
+ *
  * - When `findBest` is `true`:
  *   - Returns all modes, including partial matches, ranked by the number of matching notes.
  *   - Includes additional metadata such as the indices of matched notes and the total match count for each mode.
- * 
+ *
  * @param modes - A list of modes (modeMap) to analyze.
  * @param notes - A positionVector representing the set of notes to compare against.
  * @param findBest - If `true`, returns all modes ranked by match count. If `false`, returns only modes that match all notes (default is `false`).
@@ -208,7 +208,6 @@ export function autoModeOptions(
     return out;
   }
 }
-
 
 /**
  * !!! simplify!!!
