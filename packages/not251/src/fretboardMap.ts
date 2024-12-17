@@ -148,7 +148,7 @@ function findProximityChordVoicings(
 // Helper function to find all MIDI number locations on the fretboard
 function findMidiNumberLocations(
   midiNumber: number,
-  tuning: number[] = [40, 45, 50, 55, 59, 64],
+  tuning: number[] = [40, 45, 50, 55, 59, 64], // Standard tuning
   numberOfFrets: number = 12
 ): FretNote[] {
   const locations: FretNote[] = [];
@@ -156,12 +156,12 @@ function findMidiNumberLocations(
   tuning.forEach((openStringNote, stringIndex) => {
     for (let fret = 0; fret <= numberOfFrets; fret++) {
       const currentNote = openStringNote + fret;
-      
+
       if (currentNote === midiNumber) {
         locations.push({
           midiNumber,
           fret,
-          string: stringIndex + 1
+          string: tuning.length - stringIndex // Reverse the string numbering
         });
       }
     }
@@ -169,7 +169,6 @@ function findMidiNumberLocations(
 
   return locations;
 }
-
 // Helper function to log voicings
 function logVoicings(voicings: FretNote[][]) {
   voicings.forEach((voicing, index) => {
