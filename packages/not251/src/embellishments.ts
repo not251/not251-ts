@@ -13,6 +13,43 @@ function run(degree: number, length: number, direction: boolean): number[] {
 }
 
 /**
+ * Generates an array of numbers where the first and last elements are equal to the degree,
+ * and middle elements form a sequence that either increases or decreases.
+ * 
+ * @param degree - The value to use for the first and last elements of the array
+ * @param length - The desired length of the resulting array
+ * @param up - If true, middle elements increase; if false, they decrease
+ * @returns An array of numbers with the specified pattern. Returns empty array if length <= 0
+ */
+function run2(degree: number, length: number, up: boolean): number[] {
+    if (length <= 0) return [];
+    if (length === 1) return [degree];
+    
+    const result: number[] = new Array(length);
+    result[0] = degree;
+    result[length - 1] = degree;
+    
+    // The distance from degree should be equal to length - 2
+    const distance = length - 2;
+    
+    // Calculate the first number in the sequence
+    const firstNum = up ? 
+        degree - distance : 
+        degree + distance;
+    
+    // Fill the middle values
+    for (let i = 1; i < length - 1; i++) {
+        if (up) {
+            result[i] = firstNum + (i - 1);
+        } else {
+            result[i] = firstNum - (i - 1);
+        }
+    }
+    
+    return result;
+}
+
+/**
  * Generates a vector based on a degree, length, and shape, ensuring the result ends with the shape pattern.
  * 
  * @param degree - The central value (e.g., scale degree) around which the pattern is created.
@@ -47,6 +84,23 @@ console.log("Run (ascending scale) approaching 5th degree:", run(0, 7, true));
 console.log("Run (descending scale) approaching 5th degree:", run(4, 7, false)); 
 // Output: [10, 9, 8, 7, 6, 5, 4]  (descending scale ending on the fifth degree)
 
+
+console.log("Run 2 (5 increasing notes on 1st degree):");
+console.log(run2(0, 5, true));  
+// [0, -3, -2, -1, 0]
+
+console.log("Run 2 (5 decreasing notes on 1st degree):");
+console.log(run2(0, 5, false));  
+// [0, 3, 2, 1, 0]
+
+console.log("Run 2 (6 increasing notes on 5th degree):"),
+console.log(run2(4, 6, true));  
+ // [4, 0, 1, 2, 3, 4]
+
+console.log("Run 2 (6 decreasing notes on 5th degree):"),
+console.log(run2(4, 6, false));  
+// [4, 8, 7, 6, 5, 4]
+
 console.log("Embellishment (gruppetto around 1st degree):", embellishment(0, 6, [1, 0, -1, 0]));  
 // Output: [1, 0, -1, 0, 1, 0]  (gruppetto pattern around the first degree)
 
@@ -61,5 +115,6 @@ console.log("Embellishment (descending mordent on the 3rd degree):", embellishme
 
 console.log("Embellishment (double descending mordent on the 1st degree):", embellishment(0, 4, [-1, 0]));  
 // Output: [-1, 0, -1, 0]  (double mordent pattern around the first degree)
+
 console.log("Embellishment (double mordent with gruppetto on the 1st degree):", embellishment(0, 8, [1, 0, 1, 0, -1, 0]));  
 // Output: [-1, 0, 1, 0, 1, 0, -1, 0]   (double mordent with gruppetto)
