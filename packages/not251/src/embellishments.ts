@@ -13,6 +13,34 @@ function run(degree: number, length: number, direction: boolean): number[] {
 }
 
 /**
+ * Generates a vector of integers from `start` to `end`.
+ * 
+ * - If `start < end`, the vector is in ascending order.
+ * - If `start > end`, the vector is in descending order.
+ * 
+ * @param start - The starting integer.
+ * @param end - The ending integer.
+ * @returns An array of integers from `start` to `end`.
+ */
+function run2(start: number, end: number): number[] {
+    const result: number[] = [];
+    
+    if (start < end) {
+        for (let i = start; i <= end; i++) {
+            result.push(i);
+        }
+    } else {
+        for (let i = start; i >= end; i--) {
+            result.push(i);
+        }
+    }
+    
+    return result;
+}
+
+
+
+/**
  * Generates an array of numbers where the first and last elements are equal to the degree,
  * and middle elements form a sequence that either increases or decreases.
  * 
@@ -21,7 +49,7 @@ function run(degree: number, length: number, direction: boolean): number[] {
  * @param up - If true, middle elements increase; if false, they decrease
  * @returns An array of numbers with the specified pattern. Returns empty array if length <= 0
  */
-function run2(degree: number, length: number, up: boolean): number[] {
+function diminution(degree: number, length: number, up: boolean): number[] {
     if (length <= 0) return [];
     if (length === 1) return [degree];
     
@@ -78,27 +106,31 @@ function embellishment(degree: number, length: number, shape: number[]): number[
 
 // Test cases 
 
-console.log("Run (ascending scale) approaching 5th degree:", run(0, 7, true));  
+console.log("Run (ascending scale of 7 notes) approaching 5th degree:", run(0, 7, true));  
 // Output: [-6, -5, -4, -3, -2, -1, 0]  (ascending scale ending on the first degree)
 
-console.log("Run (descending scale) approaching 5th degree:", run(4, 7, false)); 
+console.log("Run (descending scale of 7 notes) approaching 5th degree:", run(4, 7, false)); 
 // Output: [10, 9, 8, 7, 6, 5, 4]  (descending scale ending on the fifth degree)
 
+console.log("Run (ascending scale) from 4th degree to 9th degree:", run2(3, 8));
+// Output: [3, 4, 5, 6, 7, 8]
+console.log("Run (descending scale) from 9th degree to 4th degree:", run2(3, 8));
+console.log(run2(8, 3)); // Output: [8, 7, 6, 5, 4, 3]
 
-console.log("Run 2 (5 increasing notes on 1st degree):");
-console.log(run2(0, 5, true));  
+console.log("Diminution (5 increasing notes on 1st degree):");
+console.log(diminution(0, 5, true));  
 // [0, -3, -2, -1, 0]
 
-console.log("Run 2 (5 decreasing notes on 1st degree):");
-console.log(run2(0, 5, false));  
+console.log("Diminution (5 decreasing notes on 1st degree):");
+console.log(diminution(0, 5, false));  
 // [0, 3, 2, 1, 0]
 
-console.log("Run 2 (6 increasing notes on 5th degree):"),
-console.log(run2(4, 6, true));  
+console.log("Diminution (6 increasing notes on 5th degree):"),
+console.log(diminution(4, 6, true));  
  // [4, 0, 1, 2, 3, 4]
 
-console.log("Run 2 (6 decreasing notes on 5th degree):"),
-console.log(run2(4, 6, false));  
+console.log("Diminution (6 decreasing notes on 5th degree):"),
+console.log(diminution(4, 6, false));  
 // [4, 8, 7, 6, 5, 4]
 
 console.log("Embellishment (gruppetto around 1st degree):", embellishment(0, 6, [1, 0, -1, 0]));  
