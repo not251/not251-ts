@@ -563,8 +563,8 @@ const ornamentTests: {
 
 ornamentTests.forEach((test, index) => {
     console.log(`\nTest ${index + 1}: ${test.description}`);
-    console.log(`Embellishments: [${test.ornaments.join(', ')}]`);
-    console.log(`Types: [${test.types.join(', ')}]`);
+    console.log(`Ornament pattern: [${test.ornaments.join(', ')}]`);
+    console.log(`Type: [${test.types.join(', ')}]`);
     
     // Apply the test case
     applyTripleSelect(
