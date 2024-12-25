@@ -16,41 +16,55 @@ type Analysis = {
     scale: NoteInfo;
     chromatic: NoteInfo;
 };
-
 /**
  * Generates an array of numbers where the first and last elements are equal to the degree,
  * and middle elements form a sequence that either increases or decreases.
+ * Optionally, the middle elements can be sorted in ascending or descending order.
  * 
  * @param degree - The value to use for the first and last elements of the array
  * @param length - The desired length of the resulting array
  * @param up - If true, middle elements increase; if false, they decrease
+ * @param sortAscending - If true, sort middle elements in ascending order; if false, sort in descending order
  * @returns An array of numbers with the specified pattern. Returns empty array if length <= 0
  */
-function diminution(degree: number, length: number, up: boolean): number[] {
+function diminution(degree: number, length: number, up: boolean, left: boolean): number[] {
     if (length <= 0) return [];
     if (length === 1) return [degree];
-    
+
     const result: number[] = new Array(length);
     result[0] = degree;
     result[length - 1] = degree;
-    
+
     // The distance from degree should be equal to length - 2
     const distance = length - 2;
-    
+
     // Calculate the first number in the sequence
     const firstNum = up ? 
         degree - distance : 
         degree + distance;
-    
-    // Fill the middle values
+
+    // Generate the middle values
+    const middleValues: number[] = [];
     for (let i = 1; i < length - 1; i++) {
         if (up) {
-            result[i] = firstNum + (i - 1);
+            middleValues.push(firstNum + (i - 1));
         } else {
-            result[i] = firstNum - (i - 1);
+            middleValues.push(firstNum - (i - 1));
         }
     }
-    
+
+    // Sort the middle values based on sortAscending
+    if (left) {
+        middleValues.sort((a, b) => a - b);
+    } else {
+        middleValues.sort((a, b) => b - a);
+    }
+
+    // Insert the sorted middle values into the result
+    for (let i = 0; i < middleValues.length; i++) {
+        result[i + 1] = middleValues[i];
+    }
+
     return result;
 }
 
@@ -462,7 +476,7 @@ function applyTripleSelect(
 const chord = [0, 4, 7]; // Major triad
 const scale = [0, 2, 4, 5, 7, 9, 11]; // Major scale
 const chromatic = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; // Chromatic scale
-const mod = 12; // Modulo for note wrapping
+const mod = 12; // Modulo
 const testNotes = [60]; // Middle C
 
 
@@ -472,7 +486,7 @@ const ornamentTests: {
     types: ('chord' | 'scale' | 'chromatic')[];
     description: string;
 }[] = [
-    { 
+ { 
         ornaments: ornamentLoop([1, 0], 7), 
         types: ['scale'], 
         description: "Trill (7 notes)" 
@@ -483,20 +497,25 @@ const ornamentTests: {
         description: "Double descending mordente (5 notes)" 
     },
     { 
-        ornaments: ornamentLoop([1, 0, -1, 0], 4), 
+        ornaments: ornamentLoop([1, 0, -1, 0], 5), 
         types: ['scale', 'chromatic'], 
-        description: "Gruppetto (4 notes)" 
+        description: "Gruppetto (5 notes)" 
     },
     // Diminution patterns
     {
-        ornaments: diminution(0, 5, true),
+        ornaments: diminution(0, 4, false, true),
         types: ['scale'],
-        description: "Diminution: Ascending scale (5 notes)"
+        description: "Diminution: Ascending scale (4 notes)"
     },
     {
-        ornaments: diminution(0, 5, false),
+        ornaments: diminution(0, 5, false, false),
         types: ['scale'],
         description: "Diminution: Descending scale (5 notes)"
+    },
+ {
+        ornaments: diminution(0, 4, false, false),
+        types: ['scale'],
+        description: "Diminution: Descending scale (3 notes)"
     },
     
     // Run patterns
@@ -530,7 +549,7 @@ const ornamentTests: {
     
     // Combined patterns
     {
-        ornaments: [...run(2, 3, true), ...diminution(2, 3, false)],
+        ornaments: [...run(2, 3, true), ...diminution(2, 4, true, false)],
         types: ['scale'],
         description: "Combined: Ascending run followed by descending diminution"
     },
@@ -543,19 +562,20 @@ const ornamentTests: {
     // Mixed scale context patterns
     {
         ornaments: run(2, 4, true),
-        types: ['scale', 'chromatic', 'chord', 'scale'],
+        types: ['chord', 'chromatic', 'scale', 'scale'],
         description: "Mixed: Ascending run through different contexts"
     },
     
     // Longer complex patterns
     {
         ornaments: [
-            ...run2(-3, 0),    // Approach from below
-            ...diminution(0, 3, true),  // Ornament around target
-            ...run(0, 3, false)  // Descend away
+            ...diminution(0, 4, false, true),
+            ...diminution(0, 4, false, true),  
+            ...run2(2, 4),
+            ...run2(2, 4)
         ],
-        types: ['scale'],
-        description: "Complex: Approach, ornament, and departure pattern"
+        types: ['chord'],
+        description: "Fra martino"
     },
     
 ];
@@ -577,4 +597,3 @@ ornamentTests.forEach((test, index) => {
         test.types
     );
 });
-
