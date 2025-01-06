@@ -1081,7 +1081,7 @@ export function scaleNames(
     }
   } else {
     while (lcmStandard.element(index) >= finalScale.data[0]) {
-      index++;
+      index--;
     }
   }
   let preDegrees = finalScale.getDegrees();
