@@ -6,6 +6,11 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "vai": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": false
+    },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
