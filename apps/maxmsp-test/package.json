@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "Example Max Project using Typescript with NPM dependencies",
   "scripts": {
-    "build": "pnpm maxmsp build",
-    "dev": "pnpm maxmsp dev"
+    "build": "pnpm maxmsp build"
+
   },
   "keywords": [
     "maxmsp",

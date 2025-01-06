@@ -22,6 +22,12 @@ export const baseOptions: HomeLayoutProps = {
       url: "/playground",
       active: "nested-url",
     },
+    {
+      text: "MaxMSP",
+      url: "/maxmsp",
+      active: "nested-url",
+    },
   ],
   githubUrl: "https://github.com/not251/not251-ts",
 };
+

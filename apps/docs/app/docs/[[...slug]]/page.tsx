@@ -8,6 +8,13 @@ import {
 } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import { ComponentPazzo } from '@/components/not251/ComponentPazzo';
+import  Scale  from '@/components/not251/Scale';
+import { PlaygroundProvider } from '@/components/not251/PlaygroundContext';
+import  Piano  from '@/components/not251/Piano';
+import  Chord  from '@/components/not251/Chord';
+
+
 
 export default async function Page({
   params,
@@ -24,7 +31,9 @@ export default async function Page({
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
-        <MDX components={{ ...defaultMdxComponents }} />
+        <PlaygroundProvider>
+        <MDX components={{ ...defaultMdxComponents, ComponentPazzo, Scale, Piano, Chord } } />
+        </PlaygroundProvider>
       </DocsBody>
     </DocsPage>
   );
