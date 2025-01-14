@@ -298,6 +298,109 @@ export function autovoicingP2P(
   return outPV;
 }
 
+function degreeAreasMap(
+  scale: positionVector,
+  chord: positionVector
+) :  [number[], number[], number[], number[]]{
+    const scaleDegrees = scale.getIntervalTypes();
+
+    const chordNorm = chord.normalizeToModulo();
+    const chordDegTypes = new Set(chordNorm.getIntervalTypes());
+
+    let degreeAreas : [number[], number[], number[], number[]] = [[],[],[],[]];
+    for ( let i = 0 ; i < scale.data.length ; i++ ){
+    const actual = scaleDegrees[i];
+    switch (actual) {
+      case "f":
+        degreeAreas[0].push(i);
+        break;
+      case "2min":
+        degreeAreas[0].push(i);
+        break;
+      case "2":
+        if(!chordDegTypes.has("3dim")){
+          degreeAreas[0].unshift(i)
+        } else{
+          degreeAreas[1].push(i)
+        }
+        break;
+      case "2aug":
+        degreeAreas[0].unshift(i);
+      break;
+      case "3dim":
+        degreeAreas[1].unshift(i);
+        break;
+      case "3min":
+        degreeAreas[1].unshift(i);
+        break;
+      case "3maj":
+        degreeAreas[1].unshift(i);
+        break;
+      case "3aug":
+        degreeAreas[1].unshift(i);
+        break;
+      case "4":
+        if(!chordDegTypes.has("3aug")){
+          degreeAreas[1].push(i)
+        } else{
+          degreeAreas[1].unshift(i)
+        }
+        break;
+      case "4aug":
+        if(!chordDegTypes.has("5dim")){
+          degreeAreas[1].push(i)
+        } else{
+          degreeAreas[2].push(i)
+        }
+        break;
+      case "5dim":
+        degreeAreas[2].push(i);
+        break;
+      case "5":
+        degreeAreas[2].push(i);
+        break;
+      case "5aug":
+        if(chordDegTypes.has("5aug")){
+          degreeAreas[2].unshift(i)
+        } else{
+          degreeAreas[3].push(i)
+        }
+        break;
+      case "6min":
+        if(chordDegTypes.has("5aug")){
+          degreeAreas[2].unshift(i)
+        } else{
+          degreeAreas[2].push(i)
+        }
+        break;
+      case "6":
+        if(chordDegTypes.has("7dim")){
+          degreeAreas[3].push(i)
+        } else {
+          degreeAreas[2].push(i)
+        }
+        break;
+      case "6aug":
+        if(chordDegTypes.has("7min")){
+          degreeAreas[3].push(i)
+        } else {
+          degreeAreas[2].push(i)
+        }
+        break;
+      case "7dim":
+        degreeAreas[3].unshift(i);
+        break;
+      case "7min":
+        degreeAreas[3].unshift(i);
+        break;
+      case "7maj":
+        degreeAreas[3].unshift(i);
+        break;
+    }
+  }
+  return degreeAreas
+}
+
 /**
  * Generates a block chord based on the given **scale**, **degree**, and **chordDegrees**.
  * The function considers the **lastChord** for voice leading and can generate cluster chords if specified.
@@ -318,94 +421,81 @@ export function autovoicingP2P(
 export function blockChord(
   scale: positionVector,
   degree: number,
-  chordDegreesValues: positionVector,
-  lastChord: positionVector | undefined,
+  chord: positionVector,
+  lastChord: positionVector,
   cluster: boolean = false
 ): positionVector {
-  let voicing = new positionVector(
-    [degree],
-    scale.data.length,
-    scale.data.length
-  );
-  const chordDegrees = chordDegreesValues.normalizeToModulo();
-  const reference = lastChord == undefined ? [0] : lastChord.data;
+
+  let voicing = new positionVector([degree], scale.data.length, scale.data.length);
+  
+  const chordNorm = chord.normalizeToModulo();  //andrebbe raffinata la scelta di questi gradi
+  //const rotScale = scale.rototranslate(inverse_select(getChordName(chordNorm,true).root,scale).data[0],scale.data.length,false);
+  const rotScale = scale;
+  let degreeAreas : [number[], number[], number[], number[]] = degreeAreasMap(rotScale,chordNorm);
+  const octave = Math.trunc(degree / scale.data.length);
+  const degreeMod = modulo(degree, scale.data.length);
   let index = -1;
-
-  let degFunc = scale.getDegrees()[modulo(degree, scale.data.length)];
-  if (degFunc == 0 || (degFunc == 1 && chordDegrees.data[1] != 1)) {
-    index = 0;
-  } else if (
-    (degFunc == 1 && chordDegrees.data[1] == 1) ||
-    degFunc == 2 ||
-    degFunc == 3
-  ) {
-    index = 1;
-  } else if (degFunc == 4 || (degFunc == 5 && chordDegrees.data[3] != 5)) {
-    index = 2;
-  } else {
-    index = 3;
-  }
-
-  let octave = Math.floor(degree / voicing.modulo) * voicing.modulo;
-
-  for (let i = 1; i < 4; i++) {
-    let actualDegree = chordDegrees.element(index - i) + octave;
-    let scaleDegreeFunction = scale.getDegrees();
-    let zeroDegree =
-      scaleDegreeFunction[modulo(actualDegree, scale.data.length)];
-    let chord = scale.selectFromPosition(chordDegrees);
-    switch (zeroDegree) {
-      case 0:
-        if (
-          scaleDegreeFunction[modulo(actualDegree + 1, scale.data.length)] !=
-            2 && // If the next degree is not a third
-          chordDegrees.data[1] != 1 && // If the chord is not sus2
-          reference[reference.length - i - 1] !=
-            scale.element(actualDegree + 1) && // If the note is not repeated
-          !chord.isAvoid(scale.element(1)) // If the next note is not an avoid note
-        ) {
-          voicing.data.unshift(actualDegree + 1); // Increase the degree
-        } else {
-          voicing.data.unshift(actualDegree); // Otherwise, add the fundamental
-        }
-        break;
-      case 1:
-        voicing.data.unshift(actualDegree); // Add the second
-        break;
-      case 2:
-        voicing.data.unshift(actualDegree); // Add the third
-        break;
-      case 3:
-        voicing.data.unshift(actualDegree); // Add the fourth
-        break;
-      case 4:
-        if (
-          scaleDegreeFunction[modulo(actualDegree + 1, scale.data.length)] !=
-            6 && // If the next degree is not a seventh
-          chordDegrees.data[3] != 5 && // If the base chord is not a sixth
-          reference[reference.length - i - 1] == scale.element(actualDegree) && // If the note is repeated
-          !chord.isAvoid(scale.element(actualDegree + 1)) && // If the next degree is not an avoid note
-          voicing.data[1] != actualDegree + 1 // If the next degree is not the same as the previous one
-        ) {
-          voicing.data.unshift(actualDegree + 1); // Add the next degree
-        } else {
-          voicing.data.unshift(actualDegree); // Add the current degree
-        }
-        break;
-      case 5:
-        voicing.data.unshift(actualDegree); // Add the current degree
-        break;
-      case 6:
-        if (
-          i == 1 &&
-          scale.element(voicing.data[0]) - scale.element(actualDegree) == 1 // If the actual degree is at half step from the lead note
-        ) {
-          voicing.data.unshift(actualDegree - 1);
-        } else {
-          voicing.data.unshift(actualDegree);
-        }
-        break;
+  for (let i = 0; i < 4; i++) {
+    if (degreeAreas[i].includes(degreeMod)) {
+      index = i;
+      break;
     }
+  }
+  const degreeModValue = scale.element(degreeMod);
+  for (let i = 1; i < 4; i++){
+    const j = modulo(index - i , 4);
+    let voice: number = Infinity;
+    let foundVoice = false; // Indica se un voice valido è stato trovato
+
+    for (let k = 0; k < degreeAreas[j].length; k++){
+      let candidate = degreeAreas[j][k];
+      if (index - i < 0){
+        candidate -= scale.data.length;
+      }
+      const candidateValue = scale.element(candidate);
+      if (( i == 1 && degreeModValue - candidateValue < 2) ||
+      candidateValue == lastChord.data[4 - i] ||
+      scale.isAvoid(scale.element(candidate))){
+        console.warn(( i == 1 && degreeModValue - candidateValue < 2),candidateValue == lastChord.data[4 - i],scale.isAvoid(scale.element(candidate)))
+        continue;
+      }
+
+      voice = candidate + scale.data.length * octave;
+      foundVoice = true;
+      break;
+    }
+
+    if (!foundVoice) {
+      console.warn("foundVoice algorithm for value ", i, "j:", j)
+      // Fallback in caso nessun voice valido sia trovato
+      let firstValue = scale.element(degreeAreas[j][0]);
+      if(index - i < 0){
+        firstValue -= scale.modulo;
+      }
+      if ( i == 1) {
+        if(!(degreeModValue - firstValue < 2)){
+          voice = degreeAreas[j][0];
+        } else if(degreeAreas[j].length != 1 && 
+        modulo(degreeModValue - scale.element(degreeAreas[j][1]), scale.data.length) < 2) {
+          voice = degreeAreas[j][1];
+        }else if ( degreeAreas[j].length == 1 && degreeAreas[modulo(j-1,4)].length > 1) {  // se è possibile "rubare" dall'area j-1 il valore più grande allora bene
+          const nextJ = modulo(j-1,4);
+          const indexJ = degreeAreas[nextJ].length - 1;
+          voice = degreeAreas[nextJ][indexJ];
+          degreeAreas[j].push(voice)
+          degreeAreas[nextJ].splice(indexJ,1);
+          if( index < j - 1){
+            voice -= scale.data.length;
+          }
+        } else {
+          const nextJ = modulo(j-1,4);
+          const indexJ = degreeAreas[nextJ].length - 1;
+          voice = degreeAreas[nextJ][indexJ];
+        }
+      }
+      voice += scale.data.length * octave; 
+    }
+    voicing.data.unshift(voice);
   }
 
   let blockchord = scale.selectFromPosition(voicing);
@@ -418,14 +508,10 @@ export function blockChord(
       if (
         scale.element(degree) - scale.element(i) != 1 &&
         !voicing.isNote(i) &&
-        !scale.selectFromPosition(chordDegrees).isAvoid(scale.element(i))
+        !scale.selectFromPosition(chordNorm).isAvoid(scale.element(i))
       ) {
         // Create a new instance of positionVector by copying the data from 'voicing'
-        let candidate = new positionVector(
-          [...voicing.data],
-          voicing.modulo,
-          voicing.span
-        );
+        let candidate = new positionVector([...voicing.data], voicing.modulo, voicing.span);
         candidate.data.push(i);
         candidate.data.sort((a, b) => a - b);
         clusterV.push(candidate);
@@ -437,16 +523,16 @@ export function blockChord(
     // Assign a score to each candidate
     let scoredCandidates = clusterV.map((candidate) => {
       let score = 0;
-      let minLength = Math.min(candidate.data.length, reference.length);
+      let minLength = Math.min(candidate.data.length, lastChord.data.length);
       for (let i = 0; i < minLength; i++) {
-        if (candidate.data[i] == reference[i]) {
+        if (candidate.data[i] == lastChord.data[i]) {
           score -= 1; // Penalize voices that repeat at the same position
         }
       }
       return { candidate, score };
     });
 
-    // Find the maximum score ,0'
+    // Find the maximum score
     let maxScore = Math.max(...scoredCandidates.map((c) => c.score));
 
     // Select all candidates with the maximum score
@@ -459,11 +545,10 @@ export function blockChord(
     if (bestCandidates.length == 1) {
       selectedCandidate = bestCandidates[0];
     } else {
-      selectedCandidate =
-        bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+      selectedCandidate = bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
     }
     return scale.selectFromPosition(selectedCandidate);
-  } else {
+  } else { 
     return blockchord;
   }
 }

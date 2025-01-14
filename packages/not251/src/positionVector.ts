@@ -493,10 +493,11 @@ export class positionVector {
     baseChord.add(0);
 
     // Determines the main degrees (third, fifth, seventh)
-    for (let i = 1; i < shiftedData.length; i++) {
+    for (let i = 0; i < shiftedData.length; i++) {
       if (shiftedData[i] == 0) {
         degFunc[i] = 0;
         baseChord.add(8);
+        intervalTypes.add("f");
       }
       if (shiftedData[i] == 4) {
         degFunc[i] = 2;
@@ -736,40 +737,40 @@ export function inverse_select(
   voicing: positionVector,
   scala: positionVector
 ): positionVector {
-  // Ordina voicing per evitare che possa rompersi
-  voicing.data.sort((a, b) => a - b);
-
-  let index: positionVector = new positionVector(
-    [],
-    scala.data.length,
-    scala.data.length
-  );
-
-  let j = Math.floor(voicing.data[0] / voicing.modulo);
+    // Ordina voicing per evitare che possa rompersi
+    scala.spanUpdate()
+    
+    let index: positionVector = new positionVector(
+      [],
+      scala.data.length,
+      scala.data.length
+    );
+  
+    let j = Math.floor(voicing.data[0] / voicing.modulo);
   if (scala.element(j) > voicing.data[0]) {
-    while (scala.element(j) > voicing.data[0]) {
-      j--;
-    }
+      while (scala.element(j) > voicing.data[0]) {
+        j--;
+      }
   } else if (scala.element(j) < voicing.data[0]) {
-    while (scala.element(j) < voicing.data[0]) {
-      j++;
-    }
+      while (scala.element(j) < voicing.data[0]) {
+        j++;
+      }
     j--;
-  }
-  for (let i = 0; i < voicing.data.length; i++) {
-    while (scala.element(j) < voicing.data[i]) {
-      j++;
     }
-    if (scala.element(j) == voicing.data[i]) {
-      index.data.push(j);
-    } else {
-      throw new Error(
+    for (let i = 0; i < voicing.data.length; i++) {
+      while (scala.element(j) < voicing.data[i]) {
+        j++;
+      }
+      if (scala.element(j) == voicing.data[i]) {
+        index.data.push(j);
+      } else {
+        throw new Error(
         "Error: Impossible finding element: " +
-          voicing.data[i] +
-          " in the scale."
-      );
+            voicing.data[i] +
+            " nella scale."  +scala.data
+        );
+      }
     }
+  
+    return index;
   }
-
-  return index;
-}
