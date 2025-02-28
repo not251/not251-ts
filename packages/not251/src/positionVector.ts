@@ -472,19 +472,15 @@ export class positionVector {
    * Additionally, determines the interval types for the scale.
    * @returns An object containing the degree information, interval types, and the base chord.
    */
-  degreeFunction(): {
-    degreeFunction: { degree: number }[];
-    intervalTypes: Set<string>;
-    baseChord: Set<number>;
-  } {
+  degreeFunction(): { degreeFunction: { degree: number }[], intervalTypes: Set<string>, baseChord: Set<number> } {
     // Shift the vector so that the root is at 0
-    let shiftedVector = this.sum(-this.data[0]);
+    let shiftedVector = this.sum(-this.data[0]).normalizeToModulo();
     let shiftedData = shiftedVector.data;
+    let binaryData = shiftedVector.toBinary().data;
+    let pool = Array.from({ length: this.data.length }, (_, i) => i);
+
     for (let i = 1; i < shiftedData.length; i++) {
-      shiftedData[i] = modulo(
-        Math.round((shiftedData[i] * 12) / this.modulo),
-        12
-      );
+      shiftedData[i] = modulo(Math.round((shiftedData[i] * 12) / this.modulo),12);
     }
     let degFunc: (number | undefined)[] = new Array(this.data.length);
     degFunc[0] = 0; // The root has degree 0
@@ -492,148 +488,149 @@ export class positionVector {
     let baseChord = new Set<number>();
     baseChord.add(0);
 
-    // Determines the main degrees (third, fifth, seventh)
-    for (let i = 0; i < shiftedData.length; i++) {
+
+  // Determines the main degrees (third, fifth, seventh)
+    for (const i of pool.slice()) {
       if (shiftedData[i] == 0) {
         degFunc[i] = 0;
-        baseChord.add(8);
         intervalTypes.add("f");
+        pool.splice(pool.indexOf(i), 1);
       }
       if (shiftedData[i] == 4) {
         degFunc[i] = 2;
         baseChord.add(4);
         intervalTypes.add("3maj");
+        pool.splice(pool.indexOf(i), 1);
       }
       if (shiftedData[i] == 7) {
         degFunc[i] = 4;
         baseChord.add(7);
         intervalTypes.add("5");
+        pool.splice(pool.indexOf(i), 1);
       }
       if (shiftedData[i] == 11) {
         degFunc[i] = 6;
         baseChord.add(11);
         intervalTypes.add("7maj");
+        pool.splice(pool.indexOf(i), 1);
       }
     }
 
-    // Searches for alternative intervals if the main ones are not present
-    if (!intervalTypes.has("3maj")) {
-      for (let i = 1; i < shiftedData.length; i++) {
+  // Searches for alternative intervals if the main ones are not present
+    if (!intervalTypes.has("3maj") && binaryData[3] == true) {
+      for (const i of pool) {
         if (shiftedData[i] == 3) {
           degFunc[i] = 2;
           baseChord.add(3);
           intervalTypes.add("3min");
+          pool.splice(pool.indexOf(i), 1);
           break;
         }
       }
     }
 
     // If perfect fifth is not found and third is present, look for augmented fifth
-    if (!intervalTypes.has("5") && !intervalTypes.has("3min")) {
-      for (let i = 1; i < shiftedData.length; i++) {
+    if (!intervalTypes.has("5") && !intervalTypes.has("3min") && binaryData[8] == true) {
+      for (const i of pool) {
         if (shiftedData[i] == 8) {
           degFunc[i] = 4;
           baseChord.add(8);
           intervalTypes.add("5aug");
+          pool.splice(pool.indexOf(i), 1);
           break;
         }
       }
     }
 
     // If neither major nor minor third is found, look for second as a substitute
-    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min")) {
-      for (let i = 1; i < shiftedData.length; i++) {
+    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min") && binaryData[2] == true) {
+      for (const i of pool) {
         if (shiftedData[i] == 2) {
           degFunc[i] = 2;
-          baseChord.add(2);
+          baseChord.add(2)
           intervalTypes.add("3dim");
+          pool.splice(pool.indexOf(i), 1);
           break;
         }
       }
     }
 
     // If third is not found, look for a fourth as a substitute for the third
-    if (
-      !intervalTypes.has("3maj") &&
-      !intervalTypes.has("3min") &&
-      !intervalTypes.has("3dim")
-    ) {
-      for (let i = 1; i < shiftedData.length; i++) {
+    if (!intervalTypes.has("3maj") && !intervalTypes.has("3min") && !intervalTypes.has("3dim") && binaryData[5] == true) {
+      for (const i of pool) {
         if (shiftedData[i] == 5) {
           degFunc[i] = 2;
-          baseChord.add(5);
+          baseChord.add(5)
           intervalTypes.add("3aug");
+          pool.splice(pool.indexOf(i), 1);
           break;
         }
       }
     }
 
     // Look for diminished fifth
-    if (
-      !intervalTypes.has("5") &&
-      !intervalTypes.has("5aug") &&
-      !intervalTypes.has("3maj")
-    ) {
-      for (let i = 1; i < shiftedData.length; i++) {
+    if (!intervalTypes.has("5") && !intervalTypes.has("5aug") && !intervalTypes.has("3maj") && binaryData[6] == true) {
+      for (const i of pool) {
         if (shiftedData[i] == 6) {
           degFunc[i] = 4;
-          baseChord.add(6);
+          baseChord.add(6)
           intervalTypes.add("5dim");
+          pool.splice(pool.indexOf(i), 1);
           break;
         }
       }
     }
 
     // Look for minor seventh
-    if (!intervalTypes.has("7maj")) {
-      for (let i = 1; i < shiftedData.length; i++) {
+    if (!intervalTypes.has("7maj") && binaryData[10] == true) {
+      for (const i of pool) {
         if (shiftedData[i] == 10) {
           degFunc[i] = 6;
           baseChord.add(10);
           intervalTypes.add("7min");
+          pool.splice(pool.indexOf(i), 1);
           break;
         }
       }
     }
 
     // Look for diminished seventh (major sixth)
-    if (!intervalTypes.has("7maj") && !intervalTypes.has("7min")) {
-      for (let i = 1; i < shiftedData.length; i++) {
+    if (!intervalTypes.has("7maj") && !intervalTypes.has("7min") && binaryData[9] == true) {
+      for (const i of pool) {
         if (shiftedData[i] == 9) {
           degFunc[i] = 6;
-          baseChord.add(9);
+          baseChord.add(9)
           intervalTypes.add("7dim");
+          pool.splice(pool.indexOf(i), 1);
           break;
         }
       }
     }
 
     // Assigns the remaining intervals (second, fourth, sixth)
-    for (let i = 1; i < degFunc.length; i++) {
-      if (degFunc[i] === undefined) {
-        if (shiftedData[i] < 4) {
-          degFunc[i] = 1;
-          if (shiftedData[i] == 1) {
-            intervalTypes.add("2min");
-          } else if (shiftedData[i] == 2) {
-            intervalTypes.add("2");
-          } else if (shiftedData[i] == 3) {
-            intervalTypes.add("2aug");
-          }
-        } else if (shiftedData[i] > 4 && shiftedData[i] < 7) {
-          degFunc[i] = 3;
-          if (shiftedData[i] == 5) {
-            intervalTypes.add("4");
-          } else if (shiftedData[i] == 6) {
-            intervalTypes.add("4aug");
-          }
-        } else if (shiftedData[i] > 7 && shiftedData[i] < 11) {
-          degFunc[i] = 5;
-          if (shiftedData[i] == 8) {
-            intervalTypes.add("6min");
-          } else if (shiftedData[i] == 9) {
-            intervalTypes.add("6");
-          }
+    for (const i of pool) {
+      if (shiftedData[i] < 4) {
+        degFunc[i] = 1;
+        if (shiftedData[i] == 1) {
+          intervalTypes.add("2min");
+        } else if (shiftedData[i] == 2) {
+          intervalTypes.add("2");
+        } else if (shiftedData[i] == 3) {
+          intervalTypes.add("2aug")
+        }
+      } else if (shiftedData[i] > 4 && shiftedData[i] < 7) {
+        degFunc[i] = 3;
+        if (shiftedData[i] == 5) {
+          intervalTypes.add("4");
+        } else if (shiftedData[i] == 6) {
+          intervalTypes.add("4aug");
+        }
+      } else if (shiftedData[i] > 7 && shiftedData[i] < 11) {
+        degFunc[i] = 5;
+        if (shiftedData[i] == 8) {
+          intervalTypes.add("6min");
+        } else if (shiftedData[i] == 9) {
+          intervalTypes.add("6");
         }
       }
     }
@@ -642,7 +639,7 @@ export class positionVector {
     const degreeFunction = this.data.map((note, index) => {
       const degree = degFunc[index];
       return {
-        degree: degree!,
+        degree: degree!
       };
     });
 
