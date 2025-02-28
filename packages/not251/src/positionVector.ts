@@ -702,6 +702,32 @@ export class positionVector {
     });
     return new positionVector(adjustedData, this.modulo, this.span);
   }
+
+    /**
+   * Converts the current positionVector into a binaryVector.
+   * The resulting binaryVector has a boolean array with length equal to the span,
+   * where each position is set to true if the corresponding normalized value from the positionVector's data
+   * (after shifting so that the first element is zero) falls at that index modulo span.
+   *
+   * @returns A binaryVector representing the binary mapping of the positionVector's data.
+   */
+  toBinary(): binaryVector {
+    // Create a new binaryVector with a boolean array of length equal to the span, all initialized to false.
+    // The offset is set to the first element of the positionVector's data.
+    let result = new binaryVector(new Array(this.span).fill(false), this.modulo, this.data[0]);
+
+    // Normalize the positionVector so that the first element becomes zero.
+    let transposed = this.sum(-this.data[0]);
+
+    // For each number in the normalized data, compute its index modulo the span
+    // and set the corresponding position in the binary vector to true.
+    for (const num of transposed.data) {
+      let index = modulo(num, this.span);
+      result.data[index] = true;
+    }
+
+    return result;
+  }
 }
 
 /**
