@@ -17,6 +17,7 @@ export type ScaleType = {
 export type ChordType = {
 	options: {
 		scale?: positionVector;
+		grado: number[];
 		octave: number[];
 		preVoices: number[];
 		position: number[];

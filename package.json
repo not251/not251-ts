@@ -2,6 +2,7 @@
   "name": "monorepo",
   "private": true,
   "scripts": {
+    "vai": "turbo vai",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",

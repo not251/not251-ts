@@ -4,7 +4,7 @@ import { modulo, lcm } from "./utility";
  * Represents a cyclic vector of intervals, supporting transformations like rotation, inversion, and reflection.
  * Defined by elements (data), a modulo constraint for cyclic properties, and an offset for shifting operations.
  */
-export default class intervalVector {
+export class intervalVector {
   data: number[];
   modulo: number;
   offset: number;

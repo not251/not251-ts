@@ -1,10 +1,9 @@
-import positionVector from "./positionVector";
+import { positionVector } from "./positionVector";
 import { reduceVectors } from "./utility";
 
-
-// Calculates the Euclidean distance between two vectors, v1 and v2. 
-// The function iterates through both vectors up to their shortest length, calculating the square of the difference for each element. 
-// The sum of these squared differences is then square-rooted to return the Euclidean distance. 
+// Calculates the Euclidean distance between two vectors, v1 and v2.
+// The function iterates through both vectors up to their shortest length, calculating the square of the difference for each element.
+// The sum of these squared differences is then square-rooted to return the Euclidean distance.
 // This represents how far apart the two vectors are in a multi-dimensional space.
 // @param {number[]} v1 - The first vector for distance calculation.
 // @param {number[]} v2 - The second vector for distance calculation.
@@ -21,7 +20,7 @@ export function euclideanDistance(v1: number[], v2: number[]): number {
   return Math.sqrt(out);
 }
 
-// Computes the Euclidean distance between two vectors after they have been reduced to common dimensions by the reduceVectors function. 
+// Computes the Euclidean distance between two vectors after they have been reduced to common dimensions by the reduceVectors function.
 // This ensures the vectors are comparable in terms of length and structure before calculating the Euclidean distance.
 // @param {number[]} v1 - The first vector to be reduced and compared.
 // @param {number[]} v2 - The second vector to be reduced and compared.
@@ -31,18 +30,23 @@ export function reducedEuclideanDistance(v1: number[], v2: number[]): number {
   return euclideanDistance(r1, r2);
 }
 
-// Determines the minimal rotation needed for a positionVector (v2) to align its minimum element with the minimum element in another positionVector (v1). 
-// It calculates an octave difference based on the smallest element in v1 and positions the rotation index accordingly. 
+// Determines the minimal rotation needed for a positionVector (v2) to align its minimum element with the minimum element in another positionVector (v1).
+// It calculates an octave difference based on the smallest element in v1 and positions the rotation index accordingly.
 // The function iterates through v2 until the closest alignment is found, returning the rotation index at this point.
 // @param {positionVector} v1 - The reference positionVector used for alignment.
 // @param {positionVector} v2 - The positionVector that will be rotated.
 // @returns {number} The rotation index needed for alignment.
 
-//reference è il vettore che rimane fisso, target è quello che viene ruotato per arrivare a reference 
+//reference è il vettore che rimane fisso, target è quello che viene ruotato per arrivare a reference
 //potrei aver confuso il significato dei nomi, nel caso invertire la logica
-export function minRotation(reference: positionVector, target: positionVector): number {
+export function minRotation(
+  reference: positionVector,
+  target: positionVector
+): number {
   let minV = Math.min.apply(Math, reference.data);
-  let diffOct = Math.floor(minV / reference.span) - Math.floor(target.data[0] / target.span);
+  let diffOct =
+    Math.floor(minV / reference.span) -
+    Math.floor(target.data[0] / target.span);
   let size = target.data.length;
   let i = diffOct * size;
 
@@ -57,8 +61,8 @@ export function minRotation(reference: positionVector, target: positionVector): 
   return i;
 }
 
-// Represents an element in a map of distances. 
-// This type is used to store the result of comparing a single rotation of a data set to another data set. 
+// Represents an element in a map of distances.
+// This type is used to store the result of comparing a single rotation of a data set to another data set.
 // It encapsulates the rotation index, the rotated data, and the calculated distance.
 export type distanceMapElement = {
   rotation: number;
@@ -66,25 +70,27 @@ export type distanceMapElement = {
   distance: number;
 };
 
-// An array of distanceMapElement objects. 
-// This type represents a collection of rotated data comparisons, each with its associated rotation index, data, and distance. 
+// An array of distanceMapElement objects.
+// This type represents a collection of rotated data comparisons, each with its associated rotation index, data, and distance.
 // It’s useful for determining which rotation of the data set most closely matches a reference data set.
 export type distanceMap = distanceMapElement[];
 
-// Represents an element in an option matrix, which typically holds different rotation possibilities for a data set. 
+// Represents an element in an option matrix, which typically holds different rotation possibilities for a data set.
 // It includes the rotation index and the data in its rotated form.
 export type optionMatrixElement = {
   rotation: number;
   data: number[];
 };
 
-// An array of optionMatrixElement objects. 
-// This type is used to store various rotation possibilities of a data set, where each element represents a specific rotation and its corresponding data. 
+// An array of optionMatrixElement objects.
+// This type is used to store various rotation possibilities of a data set, where each element represents a specific rotation and its corresponding data.
 // It’s often used as an input for functions that calculate distances to find the best match.
-export type optionMatrix = optionMatrixElement[];
+export type optionMatrix =
+  | optionMatrixElement[] // When findBest is false
+  | (optionMatrixElement & { matchedIndices: number[] }); // When findBest is true
 
-// Creates a map of Euclidean distances between a target vector (v) and each element in an optionMatrix. 
-// Each element in the resulting distanceMap contains the rotation index, data vector, and distance value. 
+// Creates a map of Euclidean distances between a target vector (v) and each element in an optionMatrix.
+// Each element in the resulting distanceMap contains the rotation index, data vector, and distance value.
 // The function also provides an option to use reducedEuclideanDistance by setting isReduced to true.
 // @param {optionMatrix} matrix - The matrix containing different rotation possibilities.
 // @param {number[]} v - The target vector to compare against the options in the matrix.
@@ -97,16 +103,32 @@ export function euclideanDistanceMap(
 ): distanceMap {
   let out: distanceMap = [];
 
-  for (let r in matrix) {
-    let option = matrix[r];
+  if (Array.isArray(matrix)) {
+    // Case: matrix is an array of modes
+    for (let r = 0; r < matrix.length; r++) {
+      let option = matrix[r];
 
+      let distance = isReduced
+        ? reducedEuclideanDistance(v, option.data)
+        : euclideanDistance(v, option.data);
+
+      let outElement: distanceMapElement = {
+        rotation: option.rotation,
+        data: option.data,
+        distance: distance,
+      };
+
+      out.push(outElement);
+    }
+  } else {
+    // Case: matrix is a single best mode
     let distance = isReduced
-      ? reducedEuclideanDistance(v, option.data)
-      : euclideanDistance(v, option.data);
+      ? reducedEuclideanDistance(v, matrix.data)
+      : euclideanDistance(v, matrix.data);
 
     let outElement: distanceMapElement = {
-      rotation: option.rotation,
-      data: option.data,
+      rotation: matrix.rotation,
+      data: matrix.data,
       distance: distance,
     };
 
@@ -116,8 +138,8 @@ export function euclideanDistanceMap(
   return out;
 }
 
-// Sorts a distanceMap in ascending order based on the distance property of each element. 
-// This allows you to prioritize closer matches to the target vector first. 
+// Sorts a distanceMap in ascending order based on the distance property of each element.
+// This allows you to prioritize closer matches to the target vector first.
 // The function returns a distanceMap with elements sorted by increasing distance.
 // @param {distanceMap} distances - The distance map to be sorted.
 // @returns {distanceMap} A sorted distanceMap in ascending order of distance.
@@ -131,10 +153,10 @@ export function sortByDistance(distances: distanceMap): distanceMap {
   return out;
 }
 
-// Calculates the Levenshtein edit distance between two vectors, v1 and v2, using dynamic programming. 
-// The function initializes a two-dimensional array (dp) to keep track of minimum edit operations needed to convert prefixes of v1 into prefixes of v2. 
-// For each element in v1 and v2, the function checks if they are the same. 
-// If not, it computes the minimum number of operations needed (insert, delete, replace) to make them equal. 
+// Calculates the Levenshtein edit distance between two vectors, v1 and v2, using dynamic programming.
+// The function initializes a two-dimensional array (dp) to keep track of minimum edit operations needed to convert prefixes of v1 into prefixes of v2.
+// For each element in v1 and v2, the function checks if they are the same.
+// If not, it computes the minimum number of operations needed (insert, delete, replace) to make them equal.
 // The function returns the final value as the minimum edit distance, representing how many changes are needed to convert one vector into the other.
 // @param {number[]} v1 - The first vector for calculating edit distance.
 // @param {number[]} v2 - The second vector for calculating edit distance.
@@ -171,7 +193,6 @@ export function editDistance(v1: number[], v2: number[]): number {
 
   return dp[n][m];
 }
-
 
 // other distances
 

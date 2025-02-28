@@ -1,4 +1,4 @@
-import intervalVector from "./intervalVector";
+import { intervalVector } from "./intervalVector";
 
 export function subdiv(n: number, group: intervalVector, p: number): number[] {
   let length = n;

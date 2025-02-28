@@ -3,7 +3,7 @@
 	import { Slider } from '$lib/components/ui/slider';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
-	import { scale as generateScale, positionVector } from '@not251/not251';
+	import { scale as generateScale, positionVector, names } from '@not251/not251';
 	import { scale } from '$lib/components/not251/store';
 	import { initScaleOptions } from './utils';
 
@@ -80,6 +80,14 @@
 		</div>
 	</Card.Content>
 	<Card.Footer class="flex w-full items-center justify-center gap-2">
-		<p>Scale Notes: {JSON.stringify($scale.notes?.data, null, 2)}</p>
+		<p>
+			{#if $scale.notes != undefined}
+				Scale Notes: {JSON.stringify(
+					names($scale.notes, ['it']).map((noteName) => noteName.it),
+					null,
+					2
+				)}
+			{/if}
+		</p>
 	</Card.Footer>
 </Card.Root>

@@ -1,7 +1,8 @@
-import positionVector from "./positionVector";
-import intervalVector from "./intervalVector";
+import { intervalVector } from "./intervalVector";
+import { positionVector } from "./positionVector";
 import { toIntervals, toPositions } from "./crossOperation";
-import { euclideanDistanceMap, sortByDistance } from "./distances";
+import { euclideanDistanceMap, minRotation, sortByDistance } from "./distances";
+import { modulo } from "./utility";
 
 export type ScaleParams = {
   intervals?: intervalVector;
@@ -30,7 +31,7 @@ export const defaultScaleParams: ScaleParams = {
  * It rotates the interval vector by modo, adjusts the root, and optionally inverts or mirrors it.
  * The output is then converted to a position vector, which is roto-translated by grado to finalize its configuration.
  *
- * @param intervalli - The base intervals that define the scale.
+ * @param intervals - The base intervals that define the scale.
  * @param root - Starting pitch or offset for the scale (default is 0).
  * @param modo - Rotation step to define the starting position of the scale (default is 0).
  * @param grado - Degree of roto-translation applied to the final scale (default is 0).
@@ -41,7 +42,7 @@ export const defaultScaleParams: ScaleParams = {
  * @returns The resulting positionVector after applying the transformations.
  */
 export function scale({
-  intervals = new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 12),
+  intervals = new intervalVector([2, 2, 1, 2, 2, 2, 1], 12, 0),
   root = 0,
   modo = 0,
   grado = 0,
@@ -82,7 +83,7 @@ type modeMap = modeMapElement[];
  * @param scale The intervalVector containing the scale to be analyzed.
  * @returns A modeMap containing the generated modes with their respective rotations.
  */
-function autoModeGO(scale: intervalVector): modeMap {
+export function autoModeGO(scale: intervalVector): modeMap {
   let out: modeMap = [];
   let max = scale.data.length;
 
@@ -101,52 +102,111 @@ function autoModeGO(scale: intervalVector): modeMap {
 }
 
 /**
- * Checks each mode in the mode map and returns matching rotation and data as an array of objects.
- * Determines all compatible modes that contain all the given notes from a position vector.
+ * Analyzes a set of modes and compares them to a given set of notes.
  *
- * @param modes The modeMap containing the modes to be analyzed.
- * @param notes The positionVector containing the notes to be analyzed.
- * @returns An array of objects, each containing a rotation and the corresponding mode data.
+ * The function has two modes of operation controlled by the `findBest` parameter:
+ *
+ * - When `findBest` is `false` (default):
+ *   - Returns only the modes that match **all** the given notes.
+ *   - Useful for identifying exact matches.
+ *
+ * - When `findBest` is `true`:
+ *   - Returns all modes, including partial matches, ranked by the number of matching notes.
+ *   - Includes additional metadata such as the indices of matched notes and the total match count for each mode.
+ *
+ * @param modes - A list of modes (modeMap) to analyze.
+ * @param notes - A positionVector representing the set of notes to compare against.
+ * @param findBest - If `true`, returns all modes ranked by match count. If `false`, returns only modes that match all notes (default is `false`).
+ * @returns
+ *   - If `findBest` is `false`: An array of modes that match all notes, each with `rotation` and `data`.
+ *   - If `findBest` is `true`: An array of all modes, sorted by match count, each with `rotation`, `data`, `matchedIndices`, and `matchCount`.
  */
-function autoModeOptions(
+export function autoModeOptions(
   modes: modeMap,
-  notes: positionVector
-): {
-  rotation: number;
-  data: number[];
-}[] {
-  let out: {
-    rotation: number;
-    data: number[];
-  }[] = [];
+  notes: positionVector,
+  findBest: boolean = false
+):
+  | {
+      rotation: number;
+      data: number[];
+    }[]
+  | {
+      rotation: number;
+      data: number[];
+      matchedIndices: number[];
+      matchCount: number;
+    }[] {
+  if (findBest) {
+    // Return all modes, ordered by the number of matches
+    let result: {
+      rotation: number;
+      data: number[];
+      matchedIndices: number[];
+      matchCount: number;
+    }[] = [];
 
-  for (let mode in modes) {
-    let allNotesFound = true;
-    let modePositions = modes[mode].data.data;
+    for (let mode of modes) {
+      let matchedIndices: number[] = [];
+      let modePositions = mode.data.data;
 
-    for (let i = 0; i < notes.data.length; i++) {
-      let note = notes.data[i];
-      let found = false;
+      // Collect indices of matched notes
+      for (let noteIndex = 0; noteIndex < notes.data.length; noteIndex++) {
+        let note = notes.data[noteIndex];
+        for (let modeNote of modePositions) {
+          if (modulo(note, notes.modulo) === modulo(modeNote, notes.modulo)) {
+            matchedIndices.push(noteIndex);
+            break;
+          }
+        }
+      }
 
-      for (let j = 0; j < modePositions.length; j++) {
-        if (note % notes.modulo === modePositions[j]) {
-          found = true;
+      // Add mode to result with match information
+      result.push({
+        rotation: mode.rotation,
+        data: modePositions,
+        matchedIndices,
+        matchCount: matchedIndices.length,
+      });
+    }
+
+    // Sort by match count in descending order
+    result.sort((a, b) => b.matchCount - a.matchCount);
+
+    return result;
+  } else {
+    // Return only modes that match all notes
+    let out: {
+      rotation: number;
+      data: number[];
+    }[] = [];
+
+    for (let mode of modes) {
+      let allNotesFound = true;
+      let modePositions = mode.data.data;
+
+      for (let note of notes.data) {
+        let found = false;
+
+        for (let modeNote of modePositions) {
+          if (modulo(note, notes.modulo) === modulo(modeNote, notes.modulo)) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          allNotesFound = false;
           break;
         }
       }
 
-      if (!found) {
-        allNotesFound = false;
-        break;
+      if (allNotesFound) {
+        out.push({ rotation: mode.rotation, data: modePositions });
       }
     }
 
-    if (allNotesFound) {
-      out[mode] = { data: modePositions, rotation: modes[mode].rotation };
-    }
+    return out;
   }
-
-  return out;
 }
 
 /**

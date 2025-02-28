@@ -1,5 +1,5 @@
 import { toIntervals, toPositions } from "./crossOperation";
-import positionVector from "./positionVector";
+import { positionVector } from "./positionVector";
 
 /**
  * Generates counterpoint based on the given melody and various transformation parameters.

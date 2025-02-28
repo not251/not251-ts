@@ -1,3 +1,6 @@
+import { intervalVector } from "./intervalVector";
+import { positionVector, inverse_select, lcmPosition } from "./positionVector";
+
 /**
  * Computes the positive modulo of two numbers a and b, handling negative values as well.
  * If b is negative, it first adjusts both a and b to be positive.
