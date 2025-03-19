@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Griglia</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #controls {
+      margin-bottom: 20px;
+    }
+    .control-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: inline-block;
+      width: 180px;
+    }
+    .row {
+      margin-bottom: 10px;
+      white-space: nowrap;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ddd;
+    }
+    .row-label {
+      display: inline-block;
+      width: 60px;
+      text-align: right;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    .bar {
+      display: inline-block;
+      width: 20px;
+      margin-right: 2px;
+      background-color: #3498db;
+      vertical-align: bottom;
+      text-align: center;
+      color: white;
+      font-size: 10px;
+      line-height: 1;
+    }
+    .player-button {
+      margin-left: 10px;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+    #audio-controls {
+      margin-top: 20px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Griglia</h1>
+  <div id="controls">
+    <!-- Grid and visualization controls -->
+    <div class="control-group">
+      <label for="nInput">Steps:</label>
+      <input type="number" id="nInput" value="16" min="1">
+    </div>
+        <div class="control-group">
+      <label for="kInput">Eventi (Euclidean, Clough-Douthett, Deep Rhythm):</label>
+      <input type="number" id="kInput" value="5" min="1">
+    </div>
+    <div class="control-group">
+      <label for="groupDataInput">Raggruppamenti (vettore degli intervalli, valori separati da virgola):</label>
+      <input type="text" id="groupDataInput" value="3, 2">
+    </div>
+        <div class="control-group">
+      <label for="mInput">Molteplicità (Deep Rhythm):</label>
+      <input type="number" id="mInput" value="3" min="1">
+    </div>
+    <div class="control-group">
+      <label for="subdivisionType">Algoritmo:</label>
+      <select id="subdivisionType">
+              <option value="subdiv">Subdiv</option>
+        <option value="euclid">Euclidean</option>
+        <option value="clough">Clough-Douthett</option>
+        <option value="deep">Deep Rhythm</option>
+      </select>
+
+    <div class="control-group">
+      <label for="irregularity">Posizione delle irregolarità (Subdiv):</label>
+      <input type="number" id="irregularity" value="0" min="0" max="n">
+    </div>
+    <div class="control-group">
+      <label for="leftInput">Left/Right:</label>
+      <input type="checkbox" id="leftInput">
+    </div>
+
+
+    </div>
+    <!-- Global Audio Controls -->
+    <div id="audio-controls">
+      <div class="control-group">
+        <label for="bpmInput">BPM:</label>
+        <input type="number" id="bpmInput" value="80" min="30" max="300">
+      </div>
+      <div class="control-group">
+        <label for="freqInput">Frequenza (Hz):</label>
+        <input type="number" id="freqInput" value="150" min="20" max="2000">
+      </div>
+    </div>
+  </div>
+  <div id="histogram-container"></div>
+
+  <script>
+    // --- Global Variables ---
+    let audioCtx = null;
+    let rowPlayers = {};
+    let gridVersion = 0;
+    let pendingGrid = null;
+
+    // --- Utility DOM Functions for Row Updates ---
+    function createRow(rowIndex, rowData, globalMax) {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'row';
+      rowDiv.id = 'row-div-' + rowIndex;
+      
+      const label = document.createElement('span');
+      label.className = 'row-label';
+      label.textContent = 'Stadio ' + rowIndex + ':';
+      rowDiv.appendChild(label);
+      
+      const barContainer = document.createElement('span');
+      barContainer.className = 'bar-container';
+      rowData.forEach(val => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        const maxHeight = 100, minHeight = 10;
+        let height = (val === 0)
+                      ? minHeight
+                      : (globalMax === 1)
+                        ? maxHeight
+                        : minHeight + (maxHeight - minHeight) * ((globalMax - val) / (globalMax - 1));
+        bar.style.height = height + 'px';
+        bar.title = val;
+        bar.textContent = val;
+        barContainer.appendChild(bar);
+      });
+      rowDiv.appendChild(barContainer);
+      
+      const playerBtn = document.createElement('button');
+      playerBtn.className = 'player-button';
+      playerBtn.id = 'player-' + rowIndex;
+      playerBtn.textContent = "Play";
+      playerBtn.addEventListener('click', () => toggleRowPlayback(rowIndex, playerBtn, rowData));
+      rowDiv.appendChild(playerBtn);
+      return rowDiv;
+    }
+
+    function updateRowBars(rowDiv, rowData, globalMax) {
+      const barContainer = rowDiv.querySelector('.bar-container');
+      if (!barContainer) return;
+      barContainer.innerHTML = '';
+      const maxHeight = 100, minHeight = 10;
+      rowData.forEach(val => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        let height = (val === 0)
+                      ? minHeight
+                      : (globalMax === 1)
+                        ? maxHeight
+                        : minHeight + (maxHeight - minHeight) * ((globalMax - val) / (globalMax - 1));
+        bar.style.height = height + 'px';
+        bar.title = val;
+        bar.textContent = val;
+        barContainer.appendChild(bar);
+      });
+    }
+
+    function updateHistogram(newGrid) {
+      const container = document.getElementById('histogram-container');
+      let globalMax = 0;
+      newGrid.forEach(row => {
+        row.forEach(val => { if(val > globalMax) globalMax = val; });
+      });
+      if (globalMax < 1) globalMax = 1;
+      
+      for (let i = 0; i < newGrid.length; i++) {
+        let rowDiv = document.getElementById('row-div-' + i);
+        if (!rowDiv) {
+          rowDiv = createRow(i, newGrid[i], globalMax);
+          container.appendChild(rowDiv);
+        } else {
+          if (!rowPlayers[i] || !rowPlayers[i].isPlaying) {
+            updateRowBars(rowDiv, newGrid[i], globalMax);
+          }
+        }
+        if (!rowPlayers[i]) {
+          rowPlayers[i] = { isPlaying: false, currentStep: 0, timer: null, sequence: newGrid[i], version: gridVersion };
+        } else if (!rowPlayers[i].isPlaying) {
+          rowPlayers[i].sequence = newGrid[i];
+          rowPlayers[i].version = gridVersion;
+        }
+      }
+      while (container.children.length > newGrid.length) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    function cumulativeSum(arr) {
+      let result = [];
+      let sum = 0;
+      for (let i = 0; i < arr.length; i++) {
+        result.push(sum);
+        sum += arr[i];
+      }
+      return result;
+    }
+    
+    // Euclidean division (used by Clough–Douthett)
+    function euclideanDivision(a, b) {
+      const absB = Math.abs(b);
+      let r = a % absB;
+      if (r < 0) { r += absB; }
+      let q = (a - r) / b;
+      return { q: q, r: r };
+    }
+    
+    // -------------------- Transformation Helper Functions --------------------
+    function rotateBinaryPattern(pattern, rotationSteps) {
+      const n = pattern.length;
+      let rotated = new Array(n);
+      for (let i = 0; i < n; i++) {
+        rotated[(i + rotationSteps + n) % n] = pattern[i];
+      }
+      return rotated;
+    }
+    
+    function invertBinaryPattern(pattern) {
+      return pattern.map(val => val === 1 ? 0 : 1);
+    }
+    
+    function reverseBinaryPattern(pattern) {
+      return pattern.slice().reverse();
+    }
+    
+    function rotatePositions(positions, rotationSteps, n) {
+      return positions.map(pos => (pos + rotationSteps + n) % n).sort((a, b) => a - b);
+    }
+
+    function tildeP(j, P, m) {
+      const L = P.length;
+      const div = euclideanDivision(j, L);
+      let q_j = div.q;
+      let r_j = div.r;
+      const g = (Math.max(...P) - P[0]);
+      const divG = euclideanDivision(g, m);
+      const c = m * (divG.q + 1);
+      return P[r_j] + c * q_j;
+    }
+
+    function tildeI(j, I) {
+      const n = I.length;
+      const div = euclideanDivision(j, n);
+      return I[div.r];
+    }
+
+    function intervalsToPositions(I, s) {
+      let P = [];
+      P[0] = s;
+      for (let k = 0; k < I.length - 1; k++) {
+        P[k + 1] = P[k] + I[k];
+      }
+      return P;
+    }
+
+    function positionsToIntervals(P, m) {
+      let I = [];
+      const n = P.length;
+      for (let k = 0; k < n; k++) {
+        I[k] = tildeP(k + 1, P, m) - tildeP(k, P, m);
+      }
+      return I;
+    }
+
+    function binaryToPositions(binary) {
+      let P = [];
+      for (let i = 0; i < binary.length; i++) {
+        if (binary[i] === 1) {
+          P.push(i);
+        }
+      }
+      return P;
+    }
+
+    function positionsToBinary(P, m) {
+      let binary = new Array(m).fill(0);
+      for (let i = 0; i < P.length; i++) {
+        let pitch = ((P[i] % m) + m) % m;
+        binary[pitch] = 1;
+      }
+      return binary;
+    }
+
+    function modePos(P, k, m) {
+      const I = positionsToIntervals(P, m);
+      const n = I.length;
+      let rotatedIntervals = [];
+      for (let j = 0; j < n; j++) {
+        rotatedIntervals.push(tildeI(k + j, I));
+      }
+      const rotatedPositions = intervalsToPositions(rotatedIntervals, 0);
+      return rotatedPositions;
+    }
+
+    function modeInt(I, k) {
+      const n = I.length;
+      let rotatedIntervals = [];
+      for (let j = 0; j < n; j++) {
+        rotatedIntervals.push(tildeI(k + j, I));
+      }
+      const rotatedPositions = intervalsToPositions(rotatedIntervals, 0);
+      return rotatedPositions;
+    }
+
+    function modeBin(binary, k, m) {
+      const positions = binaryToPositions(binary);
+      const intervals = positionsToIntervals(positions, m);
+      const rotatedPositions = modeInt(intervals, k);
+      const newBinary = positionsToBinary(rotatedPositions, m);
+      return newBinary;
+    }
+    
+    function invertPositions(positions, n) {
+      let inverted = [];
+      for (let i = 0; i < n; i++) {
+        if (!positions.includes(i)) {
+          inverted.push(i);
+        }
+      }
+      return inverted;
+    }
+    
+    function reversePositions(positions, n) {
+      return positions.map(pos => n - 1 - pos).sort((a, b) => a - b);
+    }
+
+    // --- Griglia Core Functions ---
+    function modulo(a, b) {
+      if (b < 0) return -modulo(-a, -b);
+      let out = ((a % b) + b) % b;
+      if (out < 0) out += b;
+      return out;
+    }
+
+    class IntervalVector {
+      constructor(data, mod, offset) {
+        this.data = data;
+        this.mod = mod;
+        this.offset = offset;
+      }
+      element(i) {
+        return this.data[modulo(i, this.data.length)];
+      }
+      rotate(r, n = this.data.length, autoupdate = true) {
+        let out = new Array(n);
+        for (let i = 0; i < n; i++) {
+          out[i] = this.element(r + i);
+        }
+        if (autoupdate) this.data = out;
+        return new IntervalVector(out, this.mod, this.offset);
+      }
+      invert(autoupdate = true) {
+        let n = this.data.length;
+        let out = new Array(n);
+        for (let i = 0; i < n; i++) {
+          out[i] = this.data[n - 1 - i];
+        }
+        if (autoupdate) this.data = out;
+        return new IntervalVector(out, this.mod, this.offset);
+      }
+      singleMirror(position, left, autoupdate = true) {
+        let out = this.data.slice();
+        let n = out.length;
+        position = modulo(position, n);
+        if (left) {
+          for (let i = 0; i < position / 2; ++i) {
+            let temp = out[i];
+            out[i] = out[position - 1 - i];
+            out[position - 1 - i] = temp;
+          }
+        } else {
+          let end = position + (n - position) / 2;
+          for (let i = position; i < end; ++i) {
+            let temp = out[i];
+            out[i] = out[n - 1 - (i - position)];
+            out[n - 1 - (i - position)] = temp;
+          }
+        }
+        if (autoupdate) this.data = out;
+        return new IntervalVector(out, this.mod, this.offset);
+      }
+    }
+
+    // --- Subdivision Algorithms ---
+    // "subdiv" mode: use the group vector and a parameter p.
+    function subdiv(n, group, p) {
+      let length = n;
+      let g = 0;
+      for (let i = 0; i < group.data.length; i++) {
+        g += group.data[i];
+      }
+      if (n % g !== 0) {
+        length -= n % g;
+      }
+      let out = [];
+      for (let i = 0; i < length; i += g) {
+        out.push(1);
+        for (let j = 1; j < g; j++) {
+          out.push(0);
+        }
+      }
+      let irregular = [];
+      if (out.length < n) {
+        irregular.push(1);
+        while (irregular.length < n - length) {
+          irregular.push(0);
+        }
+      }
+      let index = out.length - (p * g);
+      if (index < 0) {
+        index = 0;
+      }
+      out.splice(index, 0, ...irregular);
+      return out;
+    }
+
+    function recursiveInsert(inArr, group, num, left) {
+      let out = [...inArr];
+      let tot = 0;
+      let g = 0;
+      for (let i = 0; i < group.data.length; i++) {
+        g += group.data[i];
+      }
+      group.mod = g;
+      let i = 0;
+      while (tot < inArr.length) {
+        if (tot % group.mod !== 0) {
+          out[tot] = num;
+        }
+        tot += group.element(i);
+        i++;
+      }
+      return out;
+    }
+
+    function insertAtMidpoint(inArr, n, left) {
+      let out = [...inArr];
+      let l = inArr.length;
+      if (l < 2) return out;
+      let zeroGroup = false;
+      let start = 0;
+      for (let i = 1; i < l; i++) {
+        if (inArr[i] === 0) {
+          if (!zeroGroup) {
+            zeroGroup = true;
+            start = i;
+          }
+        } else {
+          if (zeroGroup) {
+            let groupSize = i - start;
+            let midpoint = left
+              ? start + Math.floor((groupSize - 1) / 2)
+              : start + Math.floor(groupSize / 2);
+            out[midpoint] = n;
+            zeroGroup = false;
+          }
+        }
+      }
+      if (zeroGroup) {
+        let last = l - 1;
+        let groupSize = last - start + 1;
+        let midpoint = left
+          ? start + Math.floor((groupSize - 1) / 2)
+          : last - Math.floor((groupSize - 1) / 2);
+        out[midpoint] = n;
+      }
+      return out;
+    }
+
+    // Euclidean intervals
+    function getEuclidIntervals(n, k) {
+      if (k > n) { throw new Error("k deve essere minore o uguale a n."); }
+      let q = Math.floor(n / k);
+      let r = n % k;
+      if (r === 0) { return Array(k).fill(q); }
+      else {
+        let subIntervals = getEuclidIntervals(k, r);
+        let intervals = [];
+        for (let i = 0; i < subIntervals.length; i++) {
+          for (let j = 0; j < subIntervals[i] - 1; j++) { intervals.push(q); }
+          intervals.push(q + 1);
+        }
+        return intervals;
+      }
+    }
+    
+    function clough(n, k) {
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let div = euclideanDivision(i * n, k);
+        pattern.push(div.q);
+      }
+      return pattern;
+    }
+    
+    // Updated "deep" function: use parameter m instead of mInput.
+    function deep(n, k, m) {
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let r = (i * m) % n;
+        pattern.push(r);
+      }
+      pattern.sort((a, b) => a - b);
+      return pattern;
+    }
+    
+    // The griglia function now receives n, k, m, group, left, p and the chosen type.
+    function griglia(n, k, m, group, left, p, type = "euclid") {
+      let subdivisionsRes = [];
+      let out = [];
+      if (type === "subdiv") {
+        subdivisionsRes = subdiv(n, group, p);
+      }
+      if (type === "euclid") {
+        let interv = getEuclidIntervals(n, k);
+        let pos = intervalsToPositions(interv, 0);
+        subdivisionsRes = positionsToBinary(pos, n);
+      }
+      if (type === "clough") {
+        let pos = clough(n, k);
+        subdivisionsRes = positionsToBinary(pos, n);
+      }
+      if (type === "deep") {
+        let pos = deep(n, k, m);
+        subdivisionsRes = positionsToBinary(pos, n);
+      }
+      
+      out.push(subdivisionsRes);
+      let num = 2;
+      if (group.data.length > 1) {
+        let stage2 = recursiveInsert(subdivisionsRes, group, num, true);
+        out.push(stage2);
+        num++;
+      }
+      while (true) {
+        let stage = insertAtMidpoint(out[out.length - 1], num, left);
+        out.push(stage);
+        if (!stage.some(val => val === 0)) break;
+        num++;
+      }
+      return out;
+    }
+
+    // --- Audio Playback Functions ---
+    function toggleRowPlayback(rowIndex, button, sequence) {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } else if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (!rowPlayers[rowIndex]) {
+        rowPlayers[rowIndex] = { isPlaying: false, currentStep: 0, timer: null, sequence: sequence, version: gridVersion };
+      }
+      const player = rowPlayers[rowIndex];
+      if (!player.isPlaying) {
+        player.isPlaying = true;
+        player.currentStep = 0;
+        button.textContent = "Stop";
+        playStep(rowIndex);
+      } else {
+        player.isPlaying = false;
+        if (player.timer) clearTimeout(player.timer);
+        button.textContent = "Play";
+      }
+    }
+
+    function playStep(rowIndex) {
+      const player = rowPlayers[rowIndex];
+      if (!pendingGrid || pendingGrid[rowIndex] === undefined) {
+        player.isPlaying = false;
+        if (player.timer) clearTimeout(player.timer);
+        const playerBtn = document.getElementById('player-' + rowIndex);
+        if (playerBtn) {
+          playerBtn.textContent = "Play";
+        }
+        return;
+      }
+
+      const bpm = parseInt(document.getElementById('bpmInput').value, 10) || 120;
+      const freq = parseFloat(document.getElementById('freqInput').value) || 150;
+      const stepDuration = (60 / (4 * bpm)) * 1000;
+      const sequence = player.sequence;
+      const cellValue = sequence[player.currentStep];
+
+      if (cellValue > 0) {
+        const amplitude = 1 / cellValue;
+        const osc = audioCtx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(amplitude, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+      }
+
+      player.currentStep = (player.currentStep + 1) % sequence.length;
+
+      if (player.currentStep === 0 && gridVersion > player.version && pendingGrid && pendingGrid[rowIndex] !== undefined) {
+        player.sequence = pendingGrid[rowIndex];
+        player.version = gridVersion;
+        const rowDiv = document.getElementById('row-div-' + rowIndex);
+        if (rowDiv) {
+          let globalMax = 0;
+          pendingGrid.forEach(row => { row.forEach(val => { if(val > globalMax) globalMax = val; }); });
+          if (globalMax < 1) globalMax = 1;
+          updateRowBars(rowDiv, pendingGrid[rowIndex], globalMax);
+        }
+      }
+
+      player.timer = setTimeout(() => playStep(rowIndex), stepDuration);
+    }
+
+    // --- Update Demo (Deferred Update with Versioning) ---
+    function runDemo() {
+      const n = parseInt(document.getElementById('nInput').value, 10) || 13;
+      const groupDataRaw = document.getElementById('groupDataInput').value;
+      const groupData = groupDataRaw.split(',')
+                           .map(s => parseInt(s.trim(), 10))
+                           .filter(n => !isNaN(n));
+      const groupMod = n;
+      const groupOffset = 0;
+      const left = document.getElementById('leftInput').checked;
+      const p = parseFloat(document.getElementById('irregularity').value);
+      
+      // New subdivision parameters from the UI
+      const k = parseInt(document.getElementById('kInput').value, 10) || 3;
+      const m = parseInt(document.getElementById('mInput').value, 10) || 16;
+      const type = document.getElementById('subdivisionType').value;
+      
+      const group = new IntervalVector(groupData, groupMod, groupOffset);
+      gridVersion++;
+      const grid = griglia(n, k, m, group, left, p, type);
+      pendingGrid = grid;
+      updateHistogram(grid);
+    }
+
+    // --- Auto-Update Setup ---
+    document.querySelectorAll('#controls input, #controls select').forEach(input => {
+      input.addEventListener('input', runDemo);
+      input.addEventListener('change', runDemo);
+    });
+    
+    window.onload = runDemo;
+  </script>
+</body>
+</html>

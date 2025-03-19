@@ -12,6 +12,76 @@ import { toIntervals, toPositions, selectFromInterval } from "./crossOperation";
 import { findPC, scaleMap, modulo } from "./utility";
 import { autoVoicing } from "./chord";
 
+export function autoVoicing(
+	reference: PV.PositionVector,
+	target: PV.PositionVector
+): { pv: PV.PositionVector; inversion: number } {
+	reference.spanUpdate();
+	target.spanUpdate();
+
+	let center = Distances.minRotation(reference, target);
+
+	let options = target.options(center);
+
+	let matrix: Distances.OptionMatrix = [];
+	for (let i = 0; i < options.length; ++i) {
+		matrix.push({
+			rotation: center - target.data.length + i,
+			data: options[i].data,
+		});
+	}
+
+	let distances = Distances.euclideanDistanceMap(matrix, reference.data);
+	let sortedDistances = Distances.sortByDistance(distances);
+
+	let r = sortedDistances[0].rotation;
+	let firstElement = sortedDistances[0].data;
+
+	let pv = new PV.PositionVector(firstElement, target.modulo, target.span);
+
+	return { pv: pv, inversion: r };
+}
+
+export function autovoicingP2P(v1: PV.PositionVector, v2: PV.PositionVector): PV.PositionVector {
+    let out = v2.data.slice();
+    let used = new Array(out.length).fill(false);
+    let mod = v2.modulo;
+
+    for (let i = 0; i < v1.data.length && i < out.length; ++i) {
+        let target = v1.data[i];
+        let closest_diff = Infinity;
+        let closest_index = i;
+
+        for (let j = i; j < out.length; ++j) {
+            if (!used[j]) {
+                let diff = Math.abs((target % mod - out[j] % mod + mod) % mod);
+                let abs_diff = Math.abs(target - out[j]);
+
+                if (diff < closest_diff || (diff === closest_diff && abs_diff < Math.abs(target - out[closest_index]))) {
+                    closest_diff = diff;
+                    closest_index = j;
+                }
+            }
+        }
+
+        [out[i], out[closest_index]] = [out[closest_index], out[i]];
+        used[i] = true;
+
+        let octave_diff = target - out[i];
+        out[i] += Math.floor(octave_diff / mod) * mod;
+
+        if (Math.abs(target - (out[i] + mod)) < Math.abs(target - out[i])) {
+            out[i] += mod;
+        } else if (Math.abs(target - (out[i] - mod)) < Math.abs(target - out[i])) {
+            out[i] -= mod;
+        }
+    }
+
+    out.sort((a, b) => a - b);
+	let outPV = new PV.PositionVector (out, v1.modulo, v1.span);
+	outPV.spanUpdate();
+    return outPV;
+}
 /**
  * Represents an element in the auto grado map, which stores different voicing results for a given scale.
  * Includes scale, result position vector, grado (degree), and distance.

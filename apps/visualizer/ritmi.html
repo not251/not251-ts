@@ -1,0 +1,1006 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ritmi</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    h1, h2 { margin-bottom: 0.3em; }
+    label { display: inline-block; width: 180px; margin-bottom: 0.3em; }
+    input { margin-bottom: 0.5em; }
+    button { margin: 5px 0; }
+    hr { margin: 20px 0; }
+    .section { margin-bottom: 30px; }
+    .output { margin-top: 10px; font-weight: bold; }
+    /* Visualizer styling */
+    .visualizer {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #ccc;
+      margin: 2px;
+      text-align: center;
+      line-height: 30px;
+      font-size: 0.8em;
+    }
+    .onset { background-color: lightgreen; }
+    .rest { background-color: #f0f0f0; }
+    .current { border: 2px solid red; }
+  </style>
+</head>
+<body>
+  <h1>Ritmi</h1>
+  
+  <!-- Global BPM Input -->
+  <div class="section">
+    <label for="bpmInput"><strong>BPM:</strong></label>
+    <input type="number" id="bpmInput" value="80">
+  </div>
+
+  <!-- ================================================== -->
+  <!-- Euclidean Rhythm Section -->
+  <!-- ================================================== -->
+  <div class="section" id="euclidSection">
+    <h2>Algoritmo euclideo delle divisioni successive</h2>
+    <div>
+      <label for="euclid_nValue">Steps (n):</label>
+      <input type="number" id="euclid_nValue" value="11">
+      <br>
+      <label for="euclid_kValue">Eventi (k):</label>
+      <input type="number" id="euclid_kValue" value="4">
+      <br>
+      <label for="euclidMode">Modo:</label>
+      <input type="number" id="euclidMode" value="0">
+      <br>
+      <label for="euclidRotation">Rotazione:</label>
+      <input type="number" id="euclidRotation" value="0">
+      <br>
+      <label for="euclidComplement">Complemento:</label>
+      <input type="checkbox" id="euclidComplement">
+      <br>
+      <label for="euclidReverse">Inversione:</label>
+      <input type="checkbox" id="euclidReverse">
+    </div>
+    <button id="euclidPlayButton">Play</button>
+    <button id="euclidStopButton">Stop</button>
+    <div id="euclidStatus" class="output"></div>
+    <div id="euclidVisualizer" class="visualizer"></div>
+  </div>
+
+  <hr>
+
+  <!-- ================================================== -->
+  <!-- Tihai Rhythm Section -->
+  <!-- ================================================== -->
+  <div class="section" id="tihaiSection">
+    <h2>Tihai</h2>
+    <div>
+      <label for="tihai_nValue">Steps (n):</label>
+      <input type="number" id="tihai_nValue" value="16">
+      <br>
+      <label for="tihai_mValue">Modularità (m):</label>
+      <input type="number" id="tihai_mValue" value="3">
+      <br>
+      <label for="tihai_pseudoToggle">Pseudo-Tihai:</label>
+      <input type="checkbox" id="tihai_pseudoToggle">
+      <br>
+      <label for="tihaiRotation">Rotazione:</label>
+      <input type="number" id="tihaiRotation" value="0">
+      <br>
+      <label for="tihaiComplement">Complemento:</label>
+      <input type="checkbox" id="tihaiComplement">
+      <br>
+      <label for="tihaiReverse">Inversione:</label>
+      <input type="checkbox" id="tihaiReverse">
+    </div>
+    <button id="tihaiPlayButton">Play</button>
+    <button id="tihaiStopButton">Stop</button>
+    <div id="tihaiStatus" class="output"></div>
+    <div id="tihaiResult" class="output"></div>
+    <div id="tihaiVisualizer" class="visualizer"></div>
+  </div>
+
+  <hr>
+
+  <!-- ================================================== -->
+  <!-- Clough–Douthett Rhythm Section -->
+  <!-- ================================================== -->
+  <div class="section" id="cdSection">
+    <h2>Algoritmo di Clough–Douthett</h2>
+    <div>
+      <label for="cd_nValue">Steps (n):</label>
+      <input type="number" id="cd_nValue" value="12">
+      <br>
+      <label for="cd_kValue">Eventi (k):</label>
+      <input type="number" id="cd_kValue" value="7">
+      <br>
+      <label for="cdMode">Modo:</label>
+      <input type="number" id="cdMode" value="0">
+      <br>
+      <label for="cdRotation">Rotazione:</label>
+      <input type="number" id="cdRotation" value="0">
+      <br>
+      <label for="cdComplement">Complemento:</label>
+      <input type="checkbox" id="cdComplement">
+      <br>
+      <label for="cdReverse">Inversione:</label>
+      <input type="checkbox" id="cdReverse">
+    </div>
+    <button id="cdPlayButton">Play</button>
+    <button id="cdStopButton">Stop</button>
+    <div id="cdStatus" class="output"></div>
+    <div id="cdResult" class="output"></div>
+    <div id="cdVisualizer" class="visualizer"></div>
+  </div>
+
+  <hr>
+
+  <!-- ================================================== -->
+  <!-- Deep Rhythm Section -->
+  <!-- ================================================== -->
+  <div class="section" id="deepSection">
+    <h2>Deep Rhythm</h2>
+    <div>
+      <label for="deep_nValue">Steps (n):</label>
+      <input type="number" id="deep_nValue" value="16">
+      <br>
+      <label for="deep_kValue">Eventi (k):</label>
+      <input type="number" id="deep_kValue" value="5">
+      <br>
+      <label for="deep_mValue">Molteplicità (m):</label>
+      <input type="number" id="deep_mValue" value="3">
+      <br>
+      <label for="deepMode">Modo:</label>
+      <input type="number" id="deepMode" value="0">
+      <br>
+      <label for="deepRotation">Rotazione:</label>
+      <input type="number" id="deepRotation" value="0">
+      <br>
+      <label for="deepComplement">Complemento:</label>
+      <input type="checkbox" id="deepComplement">
+      <br>
+      <label for="deepReverse">Inversione:</label>
+      <input type="checkbox" id="deepReverse">
+    </div>
+    <button id="deepPlayButton">Play</button>
+    <button id="deepStopButton">Stop</button>
+    <div id="deepStatus" class="output"></div>
+    <div id="deepResult" class="output"></div>
+    <div id="deepVisualizer" class="visualizer"></div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- JavaScript Section -->
+  <!-- ================================================== -->
+  <script>
+    // -------------------- Global Initialization --------------------
+    let audioCtx = null;
+    let midiAccess = null;
+    let midiOutput = null;
+    
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+    
+    function initMIDI() {
+      if (navigator.requestMIDIAccess) {
+        navigator.requestMIDIAccess().then(
+          (access) => {
+            midiAccess = access;
+            const outputs = Array.from(midiAccess.outputs.values());
+            if (outputs.length > 0) {
+              midiOutput = outputs[0];
+            }
+          },
+          (err) => { console.error("MIDI access failed", err); }
+        );
+      }
+    }
+    
+    function sendMIDINote(note, velocity, duration) {
+      if (midiOutput) {
+        midiOutput.send([0x90, note, velocity]);
+        setTimeout(() => {
+          midiOutput.send([0x80, note, 0]);
+        }, duration);
+      }
+    }
+    
+    // -------------------- Utility Functions --------------------
+    function cumulativeSum(arr) {
+      let result = [];
+      let sum = 0;
+      for (let i = 0; i < arr.length; i++) {
+        result.push(sum);
+        sum += arr[i];
+      }
+      return result;
+    }
+    
+    // Euclidean division (used by Clough–Douthett)
+    function euclideanDivision(a, b) {
+      const absB = Math.abs(b);
+      let r = a % absB;
+      if (r < 0) { r += absB; }
+      let q = (a - r) / b;
+      return { q: q, r: r };
+    }
+    
+    // -------------------- Transformation Helper Functions --------------------
+    // For binary patterns (arrays of 0's and 1's)
+    function rotateBinaryPattern(pattern, rotationSteps) {
+      const n = pattern.length;
+      let rotated = new Array(n);
+      for (let i = 0; i < n; i++) {
+        rotated[(i + rotationSteps + n) % n] = pattern[i];
+      }
+      return rotated;
+    }
+    
+    // Complement: active (1) becomes inactive (0) and vice versa.
+    function invertBinaryPattern(pattern) {
+      return pattern.map(val => val === 1 ? 0 : 1);
+    }
+    
+    // Reverse the order of a binary pattern.
+    function reverseBinaryPattern(pattern) {
+      return pattern.slice().reverse();
+    }
+    
+    // For position arrays (onset positions)
+    function rotatePositions(positions, rotationSteps, n) {
+      return positions.map(pos => (pos + rotationSteps + n) % n).sort((a, b) => a - b);
+    }
+
+
+// tildeP: converts a vector of positions into a modified value used for interval computation
+function tildeP(j, P, m) {
+  const L = P.length;
+  const div = euclideanDivision(j, L);
+  let q_j = div.q;
+  let r_j = div.r;
+  const g = (Math.max(...P) - P[0]);
+  const divG = euclideanDivision(g, m);
+  const c = m * (divG.q + 1);
+  return P[r_j] + c * q_j;
+}
+
+// tildeI: for a given interval vector I, returns the element corresponding to the rotated index
+function tildeI(j, I) {
+  const n = I.length;
+  const div = euclideanDivision(j, n);
+  return I[div.r];
+}
+
+// Conversion: From intervals to positions.
+// p0 = s, and p[k+1] = p[k] + I[k]
+function intervalsToPositions(I, s) {
+  let P = [];
+  P[0] = s;
+  for (let k = 0; k < I.length - 1; k++) {
+    P[k + 1] = P[k] + I[k];
+  }
+  return P;
+}
+
+// Conversion: From positions to intervals.
+// I[k] = tildeP(k+1, P, m) - tildeP(k, P, m)
+function positionsToIntervals(P, m) {
+  let I = [];
+  const n = P.length;
+  for (let k = 0; k < n; k++) {
+    I[k] = tildeP(k + 1, P, m) - tildeP(k, P, m);
+  }
+  return I;
+}
+
+// binaryToPositions: converts a binary vector to a positions vector.
+// Each index i is included in the positions vector if binary[i] === 1.
+function binaryToPositions(binary) {
+  let P = [];
+  for (let i = 0; i < binary.length; i++) {
+    if (binary[i] === 1) {
+      P.push(i);
+    }
+  }
+  return P;
+}
+
+// positionsToBinary: converts a positions vector to a binary vector of length m.
+// For each position, its modulo m value is set to 1.
+function positionsToBinary(P, m) {
+  let binary = new Array(m).fill(0);
+  for (let i = 0; i < P.length; i++) {
+    // Normalize the pitch to the range [0, m-1]
+    let pitch = ((P[i] % m) + m) % m;
+    binary[pitch] = 1;
+  }
+  return binary;
+}
+
+
+
+// The mode function: converts positions to intervals, rotates the intervals by parameter k,
+// and converts back to positions (with the starting shift s set to 0)
+function modePos(P, k, m) {
+  // Step 1: Convert positions to intervals.
+  const I = positionsToIntervals(P, m);
+
+  // Step 2: Rotate the interval vector by parameter k.
+  const n = I.length;
+  let rotatedIntervals = [];
+  for (let j = 0; j < n; j++) {
+    rotatedIntervals.push(tildeI(k + j, I));
+  }
+
+  // Step 3: Convert the rotated intervals back to positions with s = 0.
+  const rotatedPositions = intervalsToPositions(rotatedIntervals, 0);
+  return rotatedPositions;
+}
+
+// modeFromIntervals: takes an interval vector I and rotates it by parameter k,
+// then converts the rotated intervals into a positions vector with starting shift s = 0.
+function modeInt(I, k) {
+  const n = I.length;
+  let rotatedIntervals = [];
+  for (let j = 0; j < n; j++) {
+    rotatedIntervals.push(tildeI(k + j, I));
+  }
+  const rotatedPositions = intervalsToPositions(rotatedIntervals, 0);
+  return rotatedPositions;
+}
+// modeFromBinaryToBinary: takes a binary vector, converts it to positions, then to intervals,
+// rotates the intervals by parameter k, converts back to positions, and finally back to a binary vector.
+function modeBin(binary, k, m) {
+  // Convert binary vector to positions.
+  const positions = binaryToPositions(binary);
+  // Convert positions to intervals.
+  const intervals = positionsToIntervals(positions, m);
+  // Rotate the interval vector and convert back to positions.
+  const rotatedPositions = modeFromIntervals(intervals, k);
+  // Convert the rotated positions back to a binary vector.
+  const newBinary = positionsToBinary(rotatedPositions, m);
+  return newBinary;
+}
+    
+    // Complement (as originally implemented): returns the set of steps (0 to n–1) that are not active.
+    function invertPositions(positions, n) {
+      let inverted = [];
+      for (let i = 0; i < n; i++) {
+        if (!positions.includes(i)) {
+          inverted.push(i);
+        }
+      }
+      return inverted;
+    }
+    
+    // Reverse positions: for each active step, compute n-1 - step and sort.
+    function reversePositions(positions, n) {
+      return positions.map(pos => n - 1 - pos).sort((a, b) => a - b);
+    }
+    
+    // -------------------- Audio Click Function --------------------
+    function playPercussionClick(scheduledTime, frequency = 700) {
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.frequency.setValueAtTime(frequency, scheduledTime);
+      gainNode.gain.setValueAtTime(1, scheduledTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, scheduledTime + 0.1);
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      osc.start(scheduledTime);
+      osc.stop(scheduledTime + 0.12);
+    }
+    
+    // -------------------- Unified Visualization Update --------------------
+    // Each cell always shows its index number.
+    function updateVisualizer(cellPrefix, step, n) {
+      for (let i = 0; i < n; i++) {
+        let cell = document.getElementById(cellPrefix + i);
+        if(cell) { cell.classList.remove('current'); }
+      }
+      let currentCell = document.getElementById(cellPrefix + step);
+      if(currentCell) { currentCell.classList.add('current'); }
+    }
+    
+    // -------------------- Euclidean Rhythm --------------------
+    let euclidPlaying = false;
+    let euclidTimeouts = [];
+    let euclidVisualizerInterval = null;
+    let euclidCurrentStep = 0;
+    
+    function updateEuclidPreview() {
+      const n = parseInt(document.getElementById('euclid_nValue').value, 10) || 1;
+      const k = parseInt(document.getElementById('euclid_kValue').value, 10) || 1;
+      let intervals;
+      try {
+        intervals = getEuclidIntervals(n, k);
+      } catch(e) {
+        document.getElementById('euclidStatus').innerText = e.message;
+        return;
+      }
+      let beatSteps = intervalsToPositions(intervals, 0);
+      const modeOffset = parseInt(document.getElementById('euclidMode').value, 10) || 0;
+      if (modeOffset !== 0) {
+        beatSteps = modePos(beatSteps, modeOffset, n);
+      }
+      const rotationOffset = parseInt(document.getElementById('euclidRotation').value, 10) || 0;
+      if (rotationOffset !== 0) {
+        beatSteps = rotatePositions(beatSteps, rotationOffset, n);
+      }
+      if (document.getElementById('euclidComplement').checked) {
+        beatSteps = invertPositions(beatSteps, n);
+      }
+      if (document.getElementById('euclidReverse').checked) {
+        beatSteps = reversePositions(beatSteps, n);
+      }
+      buildEuclidVisualizer(n, beatSteps);
+    }
+    
+    function getEuclidIntervals(n, k) {
+      if (k > n) { throw new Error("k deve essere minore o uguale a n."); }
+      let q = Math.floor(n / k);
+      let r = n % k;
+      if (r === 0) { return Array(k).fill(q); }
+      else {
+        let subIntervals = getEuclidIntervals(k, r);
+        let intervals = [];
+        for (let i = 0; i < subIntervals.length; i++) {
+          for (let j = 0; j < subIntervals[i] - 1; j++) { intervals.push(q); }
+          intervals.push(q + 1);
+        }
+        return intervals;
+      }
+    }
+    
+    function buildEuclidVisualizer(n, beatSteps) {
+      const container = document.getElementById('euclidVisualizer');
+      container.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.id = 'euclid-cell-' + i;
+        if (beatSteps.includes(i)) { cell.classList.add('onset'); }
+        else { cell.classList.add('rest'); }
+        cell.innerText = i;
+        container.appendChild(cell);
+      }
+    }
+    
+    function playEuclidPattern() {
+      euclidPlaying = true;
+      // Clear previous timeouts and interval if any
+      euclidTimeouts.forEach(id => clearTimeout(id));
+      euclidTimeouts = [];
+      if (euclidVisualizerInterval) {
+        clearInterval(euclidVisualizerInterval);
+        euclidVisualizerInterval = null;
+      }
+      
+      const n = parseInt(document.getElementById('euclid_nValue').value, 10) || 1;
+      const k = parseInt(document.getElementById('euclid_kValue').value, 10) || 1;
+      let intervals;
+      try {
+        intervals = getEuclidIntervals(n, k);
+      } catch(e) {
+        document.getElementById('euclidStatus').innerText = e.message;
+        return;
+      }
+      let beatSteps = intervalsToPositions(intervals, 0);
+      const modeOffset = parseInt(document.getElementById('euclidMode').value, 10) || 0;
+      if (modeOffset !== 0) {
+        beatSteps = modePos(beatSteps, modeOffset, n);
+      }
+      const rotationOffset = parseInt(document.getElementById('euclidRotation').value, 10) || 0;
+      if (rotationOffset !== 0) {
+        beatSteps = rotatePositions(beatSteps, rotationOffset, n);
+      }
+      if (document.getElementById('euclidComplement').checked) {
+        beatSteps = invertPositions(beatSteps, n);
+      }
+      if (document.getElementById('euclidReverse').checked) {
+        beatSteps = reversePositions(beatSteps, n);
+      }
+      buildEuclidVisualizer(n, beatSteps);
+      euclidCurrentStep = 0;
+      const bpm = parseFloat(document.getElementById('bpmInput').value) || 120;
+      const stepDuration = 60 / (4 * bpm);
+      const patternDurationMs = n * stepDuration * 1000;
+      audioCtx.resume();
+      const startTime = audioCtx.currentTime + 0.1;
+      beatSteps.forEach(offset => {
+        let delayMs = offset * stepDuration * 1000;
+        let id = setTimeout(() => {
+          playPercussionClick(startTime + offset * stepDuration);
+          sendMIDINote(60, 127, 100);
+        }, delayMs);
+        euclidTimeouts.push(id);
+      });
+      // Loop the pattern continuously
+      let loopId = setTimeout(() => { if(euclidPlaying) playEuclidPattern(); }, patternDurationMs);
+      euclidTimeouts.push(loopId);
+      euclidVisualizerInterval = setInterval(() => {
+        updateVisualizer('euclid-cell-', euclidCurrentStep, n);
+        euclidCurrentStep = (euclidCurrentStep + 1) % n;
+      }, stepDuration * 1000);
+    }
+    
+    function stopEuclidPattern() {
+      euclidPlaying = false;
+      euclidTimeouts.forEach(id => clearTimeout(id));
+      euclidTimeouts = [];
+      if (euclidVisualizerInterval) {
+        clearInterval(euclidVisualizerInterval);
+        euclidVisualizerInterval = null;
+      }
+      const n = parseInt(document.getElementById('euclid_nValue').value, 10) || 1;
+      for (let i = 0; i < n; i++) {
+        let cell = document.getElementById('euclid-cell-' + i);
+        if(cell) { cell.classList.remove('current'); }
+      }
+    }
+    
+    // -------------------- Tihai Rhythm --------------------
+    let tihaiPlaying = false;
+    let tihaiTimeouts = [];
+    let tihaiVisualizerInterval = null;
+    let tihaiCurrentStep = 0;
+    
+    function updateTihaiPreview() {
+      const n = parseInt(document.getElementById('tihai_nValue').value, 10) || 1;
+      const m = parseInt(document.getElementById('tihai_mValue').value, 10) || 1;
+      const pseudo = document.getElementById('tihai_pseudoToggle').checked;
+      let pattern = tihai(n, m, pseudo);
+      if (!pattern) {
+        return;
+      }
+      const tihaiRotation = parseInt(document.getElementById('tihaiRotation').value, 10) || 0;
+      if (tihaiRotation !== 0) {
+        pattern = rotateBinaryPattern(pattern, tihaiRotation);
+      }
+      if (document.getElementById('tihaiComplement').checked) {
+        pattern = invertBinaryPattern(pattern);
+      }
+      if (document.getElementById('tihaiReverse').checked) {
+        pattern = reverseBinaryPattern(pattern);
+      }
+      buildTihaiVisualizer(pattern);
+    }
+    
+    function buildTihaiVisualizer(pattern) {
+      const container = document.getElementById('tihaiVisualizer');
+      container.innerHTML = '';
+      pattern.forEach((value, index) => {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.id = 'tihai-cell-' + index;
+        cell.classList.add(value === 1 ? 'onset' : 'rest');
+        cell.innerText = index;
+        container.appendChild(cell);
+      });
+    }
+    
+    function playTihaiPattern() {
+      tihaiPlaying = true;
+      tihaiTimeouts.forEach(id => clearTimeout(id));
+      tihaiTimeouts = [];
+      if (tihaiVisualizerInterval) {
+        clearInterval(tihaiVisualizerInterval);
+        tihaiVisualizerInterval = null;
+      }
+      
+      const n = parseInt(document.getElementById('tihai_nValue').value, 10) || 1;
+      const m = parseInt(document.getElementById('tihai_mValue').value, 10) || 1;
+      const pseudo = document.getElementById('tihai_pseudoToggle').checked;
+      let pattern = tihai(n, m, pseudo);
+      if (!pattern) {
+        return;
+      }
+      const tihaiRotation = parseInt(document.getElementById('tihaiRotation').value, 10) || 0;
+      if (tihaiRotation !== 0) {
+        pattern = rotateBinaryPattern(pattern, tihaiRotation);
+      }
+      if (document.getElementById('tihaiComplement').checked) {
+        pattern = invertBinaryPattern(pattern);
+      }
+      if (document.getElementById('tihaiReverse').checked) {
+        pattern = reverseBinaryPattern(pattern);
+      }
+      buildTihaiVisualizer(pattern);
+      tihaiCurrentStep = 0;
+      const bpm = parseFloat(document.getElementById('bpmInput').value) || 120;
+      const stepDuration = 60 / (4 * bpm);
+      const patternDurationMs = pattern.length * stepDuration * 1000;
+      audioCtx.resume();
+      const startTime = audioCtx.currentTime + 0.1;
+      pattern.forEach((value, index) => {
+        let delayMs = index * stepDuration * 1000;
+        if (value === 1) {
+          let id = setTimeout(() => {
+            playPercussionClick(startTime + index * stepDuration);
+            sendMIDINote(60, 127, 100);
+          }, delayMs);
+          tihaiTimeouts.push(id);
+        }
+      });
+      let loopId = setTimeout(() => { if(tihaiPlaying) playTihaiPattern(); }, patternDurationMs);
+      tihaiTimeouts.push(loopId);
+      tihaiVisualizerInterval = setInterval(() => {
+        updateVisualizer('tihai-cell-', tihaiCurrentStep, pattern.length);
+        tihaiCurrentStep = (tihaiCurrentStep + 1) % pattern.length;
+      }, stepDuration * 1000);
+    }
+    
+    function stopTihaiPattern() {
+      tihaiPlaying = false;
+      tihaiTimeouts.forEach(id => clearTimeout(id));
+      tihaiTimeouts = [];
+      if (tihaiVisualizerInterval) {
+        clearInterval(tihaiVisualizerInterval);
+        tihaiVisualizerInterval = null;
+      }
+      const len = document.getElementById('tihaiVisualizer').childElementCount;
+      for (let i = 0; i < len; i++) {
+        let cell = document.getElementById('tihai-cell-' + i);
+        if(cell) { cell.classList.remove('current'); }
+      }
+    }
+    
+    // -------------------- Clough–Douthett Rhythm --------------------
+    let cdPlaying = false;
+    let cdTimeouts = [];
+    let cdVisualizerInterval = null;
+    let cdCurrentStep = 0;
+    
+    function updateCdPreview() {
+      const n = parseInt(document.getElementById('cd_nValue').value, 10) || 1;
+      const k = parseInt(document.getElementById('cd_kValue').value, 10) || 1;
+      if (k > n) {
+        document.getElementById('cdResult').innerText = "k deve essere minore o uguale a n.";
+        return;
+      } else {
+        document.getElementById('cdResult').innerText = "";
+      }
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let div = euclideanDivision(i * n, k);
+        pattern.push(div.q);
+      }
+      const modeOffset = parseInt(document.getElementById('cdMode').value, 10) || 0;
+      if (modeOffset !== 0) {
+        pattern = modePos(pattern, modeOffset, n);
+      }
+      const cdRotation = parseInt(document.getElementById('cdRotation').value, 10) || 0;
+      if (cdRotation !== 0) {
+        pattern = rotatePositions(pattern, cdRotation, n);
+      }
+      if (document.getElementById('cdComplement').checked) {
+        pattern = invertPositions(pattern, n);
+      }
+      if (document.getElementById('cdReverse').checked) {
+        pattern = reversePositions(pattern, n);
+      }
+      buildCdVisualizer(n, pattern);
+    }
+    
+    function buildCdVisualizer(n, positions) {
+      const container = document.getElementById('cdVisualizer');
+      container.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.id = 'cd-cell-' + i;
+        if (positions.includes(i)) { cell.classList.add('onset'); }
+        else { cell.classList.add('rest'); }
+        cell.innerText = i;
+        container.appendChild(cell);
+      }
+    }
+    
+    function playCdPattern() {
+      cdPlaying = true;
+      cdTimeouts.forEach(id => clearTimeout(id));
+      cdTimeouts = [];
+      if (cdVisualizerInterval) {
+        clearInterval(cdVisualizerInterval);
+        cdVisualizerInterval = null;
+      }
+      
+      const n = parseInt(document.getElementById('cd_nValue').value, 10) || 1;
+      const k = parseInt(document.getElementById('cd_kValue').value, 10) || 1;
+      if (k > n) {
+        document.getElementById('cdResult').innerText = "k deve essere minore o uguale a n.";
+        return;
+      }
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let div = euclideanDivision(i * n, k);
+        pattern.push(div.q);
+      }
+      const modeOffset = parseInt(document.getElementById('cdMode').value, 10) || 0;
+      if (modeOffset !== 0) {
+        pattern = modePos(pattern, modeOffset, n);
+      }
+      const cdRotation = parseInt(document.getElementById('cdRotation').value, 10) || 0;
+      if (cdRotation !== 0) {
+        pattern = rotatePositions(pattern, cdRotation, n);
+      }
+      if (document.getElementById('cdComplement').checked) {
+        pattern = invertPositions(pattern, n);
+      }
+      if (document.getElementById('cdReverse').checked) {
+        pattern = reversePositions(pattern, n);
+      }
+      buildCdVisualizer(n, pattern);
+      cdCurrentStep = 0;
+      const bpm = parseFloat(document.getElementById('bpmInput').value) || 120;
+      const stepDuration = 60 / (4 * bpm);
+      const patternDurationMs = n * stepDuration * 1000;
+      audioCtx.resume();
+      const startTime = audioCtx.currentTime + 0.1;
+      pattern.forEach(pos => {
+        let delayMs = pos * stepDuration * 1000;
+        let id = setTimeout(() => {
+          playPercussionClick(startTime + pos * stepDuration);
+          sendMIDINote(60, 127, 100);
+        }, delayMs);
+        cdTimeouts.push(id);
+      });
+      let loopId = setTimeout(() => { if(cdPlaying) playCdPattern(); }, patternDurationMs);
+      cdTimeouts.push(loopId);
+      cdVisualizerInterval = setInterval(() => {
+        updateVisualizer('cd-cell-', cdCurrentStep, n);
+        cdCurrentStep = (cdCurrentStep + 1) % n;
+      }, stepDuration * 1000);
+    }
+    
+    function stopCdPattern() {
+      cdPlaying = false;
+      cdTimeouts.forEach(id => clearTimeout(id));
+      cdTimeouts = [];
+      if (cdVisualizerInterval) {
+        clearInterval(cdVisualizerInterval);
+        cdVisualizerInterval = null;
+      }
+      const n = parseInt(document.getElementById('cd_nValue').value, 10) || 1;
+      for (let i = 0; i < n; i++) {
+        let cell = document.getElementById('cd-cell-' + i);
+        if(cell) { cell.classList.remove('current'); }
+      }
+    }
+    
+    // -------------------- Deep Rhythm --------------------
+    let deepPlaying = false;
+    let deepTimeouts = [];
+    let deepVisualizerInterval = null;
+    let deepCurrentStep = 0;
+    
+    function updateDeepPreview() {
+      const n = parseInt(document.getElementById('deep_nValue').value, 10) || 1;
+      const k = parseInt(document.getElementById('deep_kValue').value, 10) || 1;
+      const mInput = parseInt(document.getElementById('deep_mValue').value, 10) || 1;
+      if (k > n) {
+        document.getElementById('deepResult').innerText = "k deve essere minore o uguale a n.";
+        return;
+      } else {
+        document.getElementById('deepResult').innerText = "";
+      }
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let r = (i * mInput) % n;
+        pattern.push(r);
+      }
+      pattern.sort((a, b) => a - b);
+      const modeOffset = parseInt(document.getElementById('deepMode').value, 10) || 0;
+      if (modeOffset !== 0) {
+        pattern = modePos(pattern, modeOffset, n);
+      }
+      const deepRotation = parseInt(document.getElementById('deepRotation').value, 10) || 0;
+      if (deepRotation !== 0) {
+        pattern = rotatePositions(pattern, deepRotation, n);
+      }
+      if (document.getElementById('deepComplement').checked) {
+        pattern = invertPositions(pattern, n);
+      }
+      if (document.getElementById('deepReverse').checked) {
+        pattern = reversePositions(pattern, n);
+      }
+      buildDeepVisualizer(n, pattern);
+    }
+    
+    function buildDeepVisualizer(n, positions) {
+      const container = document.getElementById('deepVisualizer');
+      container.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.id = 'deep-cell-' + i;
+        if (positions.includes(i)) { cell.classList.add('onset'); }
+        else { cell.classList.add('rest'); }
+        cell.innerText = i;
+        container.appendChild(cell);
+      }
+    }
+    
+    function playDeepPattern() {
+      deepPlaying = true;
+      deepTimeouts.forEach(id => clearTimeout(id));
+      deepTimeouts = [];
+      if (deepVisualizerInterval) {
+        clearInterval(deepVisualizerInterval);
+        deepVisualizerInterval = null;
+      }
+      
+      const n = parseInt(document.getElementById('deep_nValue').value, 10) || 1;
+      const k = parseInt(document.getElementById('deep_kValue').value, 10) || 1;
+      const mInput = parseInt(document.getElementById('deep_mValue').value, 10) || 1;
+      if (k > n) {
+        document.getElementById('deepResult').innerText = "k deve essere minore o uguale a n.";
+        return;
+      }
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let r = (i * mInput) % n;
+        pattern.push(r);
+      }
+      pattern.sort((a, b) => a - b);
+      const modeOffset = parseInt(document.getElementById('deepMode').value, 10) || 0;
+      if (modeOffset !== 0) {
+        pattern = modePos(pattern, modeOffset, n);
+      }
+      const deepRotation = parseInt(document.getElementById('deepRotation').value, 10) || 0;
+      if (deepRotation !== 0) {
+        pattern = rotatePositions(pattern, deepRotation, n);
+      }
+      if (document.getElementById('deepComplement').checked) {
+        pattern = invertPositions(pattern, n);
+      }
+      if (document.getElementById('deepReverse').checked) {
+        pattern = reversePositions(pattern, n);
+      }
+      buildDeepVisualizer(n, pattern);
+      deepCurrentStep = 0;
+      const bpm = parseFloat(document.getElementById('bpmInput').value) || 120;
+      const stepDuration = 60 / (4 * bpm);
+      const patternDurationMs = n * stepDuration * 1000;
+      audioCtx.resume();
+      const startTime = audioCtx.currentTime + 0.1;
+      pattern.forEach(pos => {
+        let delayMs = pos * stepDuration * 1000;
+        let id = setTimeout(() => {
+          playPercussionClick(startTime + pos * stepDuration);
+          sendMIDINote(60, 127, 100);
+        }, delayMs);
+        deepTimeouts.push(id);
+      });
+      let loopId = setTimeout(() => { if(deepPlaying) playDeepPattern(); }, patternDurationMs);
+      deepTimeouts.push(loopId);
+      deepVisualizerInterval = setInterval(() => {
+        updateVisualizer('deep-cell-', deepCurrentStep, n);
+        deepCurrentStep = (deepCurrentStep + 1) % n;
+      }, stepDuration * 1000);
+    }
+    
+    function stopDeepPattern() {
+      deepPlaying = false;
+      deepTimeouts.forEach(id => clearTimeout(id));
+      deepTimeouts = [];
+      if (deepVisualizerInterval) {
+        clearInterval(deepVisualizerInterval);
+        deepVisualizerInterval = null;
+      }
+      const n = parseInt(document.getElementById('deep_nValue').value, 10) || 1;
+      for (let i = 0; i < n; i++) {
+        let cell = document.getElementById('deep-cell-' + i);
+        if(cell) { cell.classList.remove('current'); }
+      }
+    }
+    
+    // -------------------- Tihai Pattern Generation Functions --------------------
+    function isAllZeros(pattern) { return pattern.every(x => x === 0); }
+    function isAllOnes(pattern) { return pattern.every(x => x === 1); }
+    function appendOnes(pattern, targetLength) {
+      while (pattern.length < targetLength) { pattern.push(1); }
+      return pattern;
+    }
+    function cut(pattern, targetLength) { return pattern.slice(0, targetLength); }
+    
+    function tihaiGenerator(n, m) {
+      let l = n;
+      while (l % m !== 0) { l++; }
+      const d = l - n;
+      const b = Math.floor(l / m) - d;
+      return [b, d];
+    }
+    
+    function tihaiReader(b, d, m) {
+      const out = [];
+      for (let i = 0; i < b; i++) out.push(1);
+      for (let i = 0; i < d; i++) out.push(0);
+      for (let i = 0; i < m - 2; i++) {
+        for (let j = 0; j < b; j++) out.push(1);
+        for (let j = 0; j < d; j++) out.push(0);
+      }
+      for (let i = 0; i < b; i++) out.push(1);
+      return out;
+    }
+    
+    function tihai(n, m, pseudo) {
+      if (n <= 2) { return new Array(n).fill(1); }
+      if (m === 1) { return new Array(n).fill(1); }
+      else if (m <= 0) { return null; }
+      const [b, d] = tihaiGenerator(n, m);
+      if (b <= 0) {
+        if (pseudo) {
+          const shorterPattern = tihai(n - 1, m, pseudo);
+          return (shorterPattern === null) ? null : (appendOnes(shorterPattern, n), shorterPattern);
+        } else { return null; }
+      }
+      let pattern = tihaiReader(b, d, m);
+      if (isAllZeros(pattern)) {
+        if (pseudo) {
+          const shorterPattern = tihai(n - 1, m, pseudo);
+          return (shorterPattern === null) ? null : (appendOnes(shorterPattern, n), shorterPattern);
+        } else { return null; }
+      }
+      if (isAllOnes(pattern)) {
+        if (!pseudo) {
+          if (n % m === 0) { return cut(pattern, n); }
+          else { return null; }
+        } else {
+          const shorterPattern = tihai(n - 1, m, pseudo);
+          return (shorterPattern === null) ? null : (appendOnes(shorterPattern, n), shorterPattern);
+        }
+      }
+      return cut(pattern, n);
+    }
+    
+    // -------------------- Event Listeners --------------------
+    window.addEventListener('load', () => {
+      initAudio();
+      initMIDI();
+      updateEuclidPreview();
+      updateTihaiPreview();
+      updateCdPreview();
+      updateDeepPreview();
+    });
+    
+    // Live update listeners for each section
+    document.querySelectorAll('#euclidSection input').forEach(el => {
+      el.addEventListener('input', updateEuclidPreview);
+    });
+    document.querySelectorAll('#tihaiSection input').forEach(el => {
+      el.addEventListener('input', updateTihaiPreview);
+    });
+    document.querySelectorAll('#cdSection input').forEach(el => {
+      el.addEventListener('input', updateCdPreview);
+    });
+    document.querySelectorAll('#deepSection input').forEach(el => {
+      el.addEventListener('input', updateDeepPreview);
+    });
+    
+    // Play/Stop button listeners
+    document.getElementById('euclidPlayButton').addEventListener('click', playEuclidPattern);
+    document.getElementById('euclidStopButton').addEventListener('click', stopEuclidPattern);
+    
+    document.getElementById('tihaiPlayButton').addEventListener('click', playTihaiPattern);
+    document.getElementById('tihaiStopButton').addEventListener('click', stopTihaiPattern);
+    
+    document.getElementById('cdPlayButton').addEventListener('click', playCdPattern);
+    document.getElementById('cdStopButton').addEventListener('click', stopCdPattern);
+    
+    document.getElementById('deepPlayButton').addEventListener('click', playDeepPattern);
+    document.getElementById('deepStopButton').addEventListener('click', stopDeepPattern);
+    
+  </script>
+</body>
+</html>

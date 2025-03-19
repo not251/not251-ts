@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: white;
+      font-family: 'Arial', sans-serif;
+    }
+    .wheel {
+      position: relative;
+      width: 1200px;
+      height: 1200px;
+      margin: 50px auto;
+      background-color: #1a1a1a;
+      border-radius: 50%;
+      border: 2px transparent;
+      overflow: hidden;
+    }
+
+    .number {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border-radius: 50%;
+      background-color: #2b2b2b;
+      border: 0.5px solid white;
+      color: transparent !important;
+      z-index: 10;
+      transition: all 0.5s ease-in-out;
+    }
+
+    .circle {
+      position: absolute;
+      border: 1px solid white;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .highlight-scale {
+      background-color: #78d5eb !important;
+      width: 25px !important;
+      height: 25px !important;
+      z-index: 5;
+      color: transparent !important;
+      transition: all 0.5s ease-in-out;
+    }
+
+    .highlight-vector {
+      background-color: #fcbc2f !important;
+      color: transparent !important;
+    }
+
+    .highlight-degree {
+      background-color: red !important;
+      transform: scale(1.618) !important;
+    }
+
+    .controls {
+      text-align: center;
+      margin: 20px;
+      color: white;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 14px;
+      margin: 5px;
+      width: 600px;
+      background-color: #2b2b2b;
+      color: white;
+      border: 1px solid white;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #2b2b2b;
+      color: white;
+      border: 1px solid white;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div id="wheel" class="wheel"></div>
+  <div class="controls">
+    <label for="scaleInput">Scales (semicolon-separated, each scale comma-separated):</label>
+    <input type="text" id="scaleInput" placeholder="e.g., 0,2,4,5,7,9,11; 0,2,3,5,7,8,11">
+    <label for="vectorsInput">Chords (semicolon-separated groups):</label>
+    <input type="text" id="vectorsInput" placeholder="e.g., 60,64,67; 59,62,67">
+    <label for="degreeInput">Degrees (semicolon-separated):</label>
+    <input type="text" id="degreeInput" placeholder="e.g., 1; 4; 0">
+    <button id="applyBtn">View</button>
+  </div>
+
+  <script>
+    let transitionInterval;
+
+    function generateWheel(containerId, modulo = 12, maxNumber = 127, baseRadius = 100, layerSpacing = 40) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = ''; 
+      const centerX = container.offsetWidth / 2;
+      const centerY = container.offsetHeight / 2;
+
+      const maxLayer = Math.ceil(maxNumber / modulo);
+      for (let layer = 0; layer < maxLayer; layer++) {
+        const radius = baseRadius + layer * layerSpacing;
+        const circle = document.createElement('div');
+        circle.className = 'circle';
+        circle.style.width = `${2 * radius}px`;
+        circle.style.height = `${2 * radius}px`;
+        circle.style.left = `${centerX - radius}px`;
+        circle.style.top = `${centerY - radius}px`;
+        container.appendChild(circle);
+      }
+
+      for (let n = 0; n <= maxNumber; n++) {
+        const layer = Math.floor(n / modulo);
+        const positionInLayer = n % modulo;
+        const radius = baseRadius + layer * layerSpacing;
+        const angle = ((positionInLayer / modulo) * Math.PI * 2) - Math.PI / 2;
+
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+
+        const numberDiv = document.createElement('div');
+        numberDiv.className = 'number';
+        numberDiv.style.left = `${x - 12.5}px`;
+        numberDiv.style.top = `${y - 12.5}px`;
+        numberDiv.textContent = n;
+
+        container.appendChild(numberDiv);
+      }
+    }
+
+    function view(scales, vectors, degrees, modulo = 12) {
+      const numberDivs = document.querySelectorAll('.number');
+      const transitionDuration = 1500;
+      let scaleIndex = 0;
+
+      function highlight() {
+        numberDivs.forEach(div => {
+          div.classList.remove('highlight-scale', 'highlight-vector', 'highlight-degree');
+          div.style.backgroundColor = '#2b2b2b'; 
+          div.style.transform = ''; 
+        });
+
+        const currentScaleNotes = new Set(scales[scaleIndex].map(note => note % modulo));
+        const degreeIndex = (degrees[scaleIndex] + scales[scaleIndex].length) % scales[scaleIndex].length;
+        const degreeNote = scales[scaleIndex][degreeIndex];
+        const currentVectorNotes = new Set(vectors[scaleIndex]);
+
+        numberDivs.forEach(div => {
+          const number = parseInt(div.textContent, 10);
+
+          if (number === scales[scaleIndex][0]) {
+            div.style.backgroundColor = '#C76E00'; 
+            div.style.transform = 'scale(1.618)';
+          } else if (currentScaleNotes.has(number % modulo)) {
+            div.classList.add('highlight-scale');
+          }
+
+          if (currentVectorNotes.has(number)) {
+            div.classList.add('highlight-vector');
+            div.style.transform = 'scale(1.618)';
+          }
+
+          if (number === degreeNote) {
+            div.classList.add('highlight-degree');
+          }
+        });
+
+        scaleIndex = (scaleIndex + 1) % scales.length;
+      }
+
+      clearInterval(transitionInterval);
+      transitionInterval = setInterval(highlight, transitionDuration);
+      highlight();
+    }
+
+    generateWheel('wheel', 12, 127, 100, 40);
+
+    document.getElementById('applyBtn').addEventListener('click', () => {
+      const scaleInput = document.getElementById('scaleInput').value;
+      const vectorsInput = document.getElementById('vectorsInput').value;
+      const degreeInput = document.getElementById('degreeInput').value;
+
+      const scales = scaleInput.split(';').map(scale => scale.split(',').map(num => parseInt(num.trim(), 10)));
+      const vectors = vectorsInput.split(';').map(group => group.split(',').map(num => parseInt(num.trim(), 10)));
+      const degrees = degreeInput.split(';').map(num => parseInt(num.trim(), 10));
+
+      view(scales, vectors, degrees);
+    });
+
+    const initialScales = [[0, 2, 4, 5, 7, 9, 11], [0, 2, 4, 5, 7, 9, 11], [0, 2, 4, 5, 7, 9, 11],[]];
+    const initialVectors = [[62, 65, 69, 72], [62, 65, 67, 71], [60, 64, 67, 71]];
+    const initialDegrees = [1, 4, 0];
+    view(initialScales, initialVectors, initialDegrees);
+  </script>
+</body>
+</html>

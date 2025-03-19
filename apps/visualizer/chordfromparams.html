@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chord Visualizer – Expanded Presets</title>
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      font-family: Arial, sans-serif;
+      color: #333;
+    }
+    header {
+      background: #444;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    section {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 5px;
+    }
+    h2 {
+      margin-top: 0;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    /* Chord Controls Layout */
+    .control-section {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      background: #fafafa;
+    }
+    .control-section h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 16px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    .control-group {
+      margin-bottom: 10px;
+    }
+    label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    select,
+    input[type="number"] {
+      margin-right: 20px;
+      padding: 5px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #444;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #666;
+    }
+    /* Keyboard Visualizer */
+    #keyboard {
+      position: relative;
+      width: 840px; /* 3 octaves x 7 white keys x 40px each */
+      height: 200px;
+      margin: 20px auto;
+      user-select: none;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background: #eee;
+    }
+    .key.white {
+      width: 40px;
+      height: 200px;
+      border: 1px solid #999;
+      background: #fff;
+      position: absolute;
+      box-sizing: border-box;
+      text-align: center;
+      line-height: 200px;
+      font-size: 12px;
+      z-index: 1;
+    }
+    .key.black {
+      width: 30px;
+      height: 120px;
+      background: #333;
+      position: absolute;
+      top: 0;
+      z-index: 2;
+      border: 1px solid #222;
+      box-sizing: border-box;
+      color: #fff;
+      text-align: center;
+      line-height: 120px;
+      font-size: 12px;
+      border-radius: 3px;
+    }
+    .key.highlight.white {
+      background: #ffa500;
+    }
+    .key.highlight.black {
+      background: #ff8c00;
+    }
+    /* Chord Display */
+    #chordDisplay {
+      margin-top: 10px;
+      font-size: 14px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Chord Visualizer – Expanded Presets</h1>
+  </header>
+
+  <!-- Chord Controls Section -->
+  <section id="controlsSection">
+    <h2>Chord Controls</h2>
+    <!-- Root Section -->
+    <div class="control-section" id="rootSection">
+      <h3>Root</h3>
+      <div class="control-group">
+        <label for="rootNote">Root Note:</label>
+        <select id="rootNote">
+          <option value="0">C</option>
+          <option value="1">C#</option>
+          <option value="2">D</option>
+          <option value="3">D#</option>
+          <option value="4">E</option>
+          <option value="5">F</option>
+          <option value="6">F#</option>
+          <option value="7">G</option>
+          <option value="8">G#</option>
+          <option value="9">A</option>
+          <option value="10">A#</option>
+          <option value="11">B</option>
+        </select>
+        <label for="octave">Octave:</label>
+        <input type="number" id="octave" value="5" min="0" max="8">
+      </div>
+      <div class="control-group">
+        <label>
+          <input type="checkbox" id="includeRoot" checked>
+          Include Root
+        </label>
+      </div>
+    </div>
+
+    <!-- Third & Suspensions Section -->
+    <div class="control-section" id="thirdSection">
+      <h3>Third & Suspensions</h3>
+      <div class="control-group">
+        <label for="third">Third:</label>
+        <select id="third">
+          <option value="">None</option>
+          <option value="major">Major</option>
+          <option value="minor">Minor</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="sus2">Suspended 2:</label>
+        <select id="sus2">
+          <option value="">None</option>
+          <option value="sus 2">Sus 2</option>
+          <option value="sus b2">Sus b2</option>
+        </select>
+        <label for="sus4">Suspended 4:</label>
+        <select id="sus4">
+          <option value="">None</option>
+          <option value="sus 4">Sus 4</option>
+          <option value="sus #4">Sus #4</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Fifth Section -->
+    <div class="control-section" id="fifthSection">
+      <h3>Fifth</h3>
+      <div class="control-group">
+        <label for="fifth">Fifth:</label>
+        <select id="fifth">
+          <option value="">None</option>
+          <option value="perfect">Perfect</option>
+          <option value="augmented">Augmented</option>
+          <option value="diminished">Diminished</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Seventh Section -->
+    <div class="control-section" id="seventhSection">
+      <h3>Seventh</h3>
+      <div class="control-group">
+        <label for="seventh">Seventh:</label>
+        <select id="seventh">
+          <option value="">None</option>
+          <option value="major">Major</option>
+          <option value="minor">Minor</option>
+          <option value="diminished">Diminished</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Extensions Section -->
+    <div class="control-section" id="extensionsSection">
+      <h3>Extensions</h3>
+      <div class="control-group">
+        <label for="ninth">Ninth:</label>
+        <select id="ninth">
+          <option value="">None</option>
+          <option value="major">Major</option>
+          <option value="minor">Minor</option>
+        </select>
+        <label for="eleventh">Eleventh:</label>
+        <select id="eleventh">
+          <option value="">None</option>
+          <option value="natural">Natural</option>
+          <option value="sharp">Sharp</option>
+        </select>
+        <label for="thirteenth">Thirteenth:</label>
+        <select id="thirteenth">
+          <option value="">None</option>
+          <option value="natural">Natural</option>
+          <option value="flat">Flat</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Added Notes Section -->
+    <div class="control-section" id="addedSection">
+      <h3>Added Notes</h3>
+      <div class="control-group">
+        <label for="second">Second:</label>
+        <select id="second">
+          <option value="">None</option>
+          <option value="major">Major</option>
+          <option value="minor">Minor</option>
+        </select>
+        <label for="fourth">Fourth:</label>
+        <select id="fourth">
+          <option value="">None</option>
+          <option value="perfect">Perfect</option>
+          <option value="sharp">Sharp</option>
+        </select>
+                <label for="sixth">Sixth:</label>
+        <select id="sixth">
+          <option value="">None</option>
+          <option value="minor">Minor</option>
+          <option value="major">Major</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Presets & Randomizer Section -->
+    <div class="control-section" id="presetSection">
+      <h3>Presets & Randomizer</h3>
+      <div class="control-group">
+        <label for="presetSelect">Preset:</label>
+        <select id="presetSelect">
+          <option value="">-- None --</option>
+          <option value="major">Major</option>
+          <option value="minor">Minor</option>
+          <option value="diminished">Diminished</option>
+          <option value="augmented">Augmented</option>
+          <option value="dominant7">Dominant 7</option>
+          <option value="major7">Major 7</option>
+          <option value="minor7">Minor 7</option>
+          <option value="half-diminished">Half-Diminished 7</option>
+          <option value="diminished7">Diminished 7</option>
+          <option value="min/maj7">Min/Maj 7</option>
+          <option value="aug/maj7">Aug/Maj 7</option>
+          <option value="maj6">Major 6</option>
+          <option value="min6">Minor 6</option>
+        </select>
+        <button id="randomize">Randomize Parameters</button>
+      </div>
+    </div>
+
+    <!-- Chord Display & Play Button -->
+    <div id="chordDisplay">
+      Current Chord: <span id="chordNotes">None</span>
+    </div>
+    <button id="playChord">Play Chord</button>
+  </section>
+
+  <!-- Keyboard Visualizer Section -->
+  <section id="keyboardSection">
+    <h2>Keyboard Visualizer</h2>
+    <div id="keyboard"></div>
+  </section>
+
+  <script>
+    // --- Global Audio Context ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // --- Chord Generation Function ---
+    /**
+     * Returns a sorted array of unique MIDI note numbers representing a chord based on parameters.
+     * @param {number} root - The root note (0 = C, etc.).
+     * @param {number} octave - Octave multiplier (each octave adds 12).
+     * @param {object} voicing - Object with chord parameters.
+     * @returns {number[]} Sorted MIDI note numbers.
+     */
+    function chordFromParams(root, octave, voicing) {
+      const chord = new Set();
+
+      // Root
+      if (voicing.root) chord.add(root);
+
+     
+     
+     // Third & Suspensions
+     if (voicing.sus2 || voicing.sus4) {
+     
+     if (voicing.sus2) {
+        if (voicing.sus2 === "sus 2") chord.add(root + 2);
+        else if (voicing.sus2 === "sus b2") chord.add(root + 1);
+      }
+      if (voicing.sus4) {
+        if (voicing.sus4 === "sus 4") chord.add(root + 5);
+        else if (voicing.sus4 === "sus #4") chord.add(root + 6);
+      } 
+      }
+      else if (voicing.third) {
+        if (voicing.third === "major") chord.add(root + 4);
+        else if (voicing.third === "minor") chord.add(root + 3);
+      }
+
+      // Fifth
+      if (voicing.fifth) {
+        if (voicing.fifth === "perfect") chord.add(root + 7);
+        else if (voicing.fifth === "augmented") chord.add(root + 8);
+        else if (voicing.fifth === "diminished") chord.add(root + 6);
+      }
+
+      // Seventh
+      if (voicing.seventh) {
+        if (voicing.seventh === "major") chord.add(root + 11);
+        else if (voicing.seventh === "minor") chord.add(root + 10);
+        else if (voicing.seventh === "diminished") chord.add(root + 9);
+        
+      }
+
+      // Extensions
+      if (voicing.ninth) {
+        if (voicing.ninth === "major") chord.add(root + 14);
+        else if (voicing.ninth === "minor") chord.add(root + 13);
+      }
+      if (voicing.eleventh) {
+        if (voicing.eleventh === "natural") chord.add(root + 17);
+        else if (voicing.eleventh === "sharp") chord.add(root + 18);
+      }
+      if (voicing.thirteenth) {
+        if (voicing.thirteenth === "natural") chord.add(root + 21);
+        else if (voicing.thirteenth === "flat") chord.add(root + 20);
+      }
+
+      // Added Notes
+      if (voicing.second) {
+        if (voicing.second === "major") chord.add(root + 2);
+        else if (voicing.second === "minor") chord.add(root + 1);
+      }
+      if (voicing.fourth) {
+        if (voicing.fourth === "perfect") chord.add(root + 5);
+        else if (voicing.fourth === "sharp") chord.add(root + 6);
+      }
+      if (voicing.sixth) {
+        if (voicing.sixth === "minor") chord.add(root + 8);
+        else if (voicing.sixth === "major") chord.add(root + 9);
+      }
+      return Array.from(chord, note => note + octave * 12).sort((a, b) => a - b);
+    }
+
+    // --- Create a Three-Octave Keyboard Visualizer ---
+    function createKeyboard() {
+      const keyboard = document.getElementById("keyboard");
+      keyboard.innerHTML = "";
+      const whiteKeys = [
+        { name: "C", semitone: 0, offset: 0 },
+        { name: "D", semitone: 2, offset: 40 },
+        { name: "E", semitone: 4, offset: 80 },
+        { name: "F", semitone: 5, offset: 120 },
+        { name: "G", semitone: 7, offset: 160 },
+        { name: "A", semitone: 9, offset: 200 },
+        { name: "B", semitone: 11, offset: 240 }
+      ];
+      const blackKeys = [
+        { name: "C#", semitone: 1, offset: 28 },
+        { name: "D#", semitone: 3, offset: 68 },
+        { name: "F#", semitone: 6, offset: 148 },
+        { name: "G#", semitone: 8, offset: 188 },
+        { name: "A#", semitone: 10, offset: 228 }
+      ];
+
+      for (let octave = 3; octave <= 5; octave++) {
+        const octaveIndex = octave - 3;
+        const baseLeft = octaveIndex * 280;
+        whiteKeys.forEach(key => {
+          const keyDiv = document.createElement("div");
+          keyDiv.classList.add("key", "white");
+          keyDiv.style.left = (baseLeft + key.offset) + "px";
+          const midiNote = (octave + 1) * 12 + key.semitone;
+          keyDiv.dataset.note = midiNote;
+          //keyDiv.textContent = key.name + octave;
+          keyboard.appendChild(keyDiv);
+        });
+        blackKeys.forEach(key => {
+          const keyDiv = document.createElement("div");
+          keyDiv.classList.add("key", "black");
+          keyDiv.style.left = (baseLeft + key.offset) + "px";
+          const midiNote = (octave + 1) * 12 + key.semitone;
+          keyDiv.dataset.note = midiNote;
+          //keyDiv.textContent = key.name + octave;
+          keyboard.appendChild(keyDiv);
+        });
+      }
+    }
+
+    // --- Highlight the Keys for the Current Chord ---
+    function highlightChord(chord) {
+      document.querySelectorAll(".key").forEach(key => key.classList.remove("highlight"));
+      chord.forEach(note => {
+        const key = document.querySelector(`.key[data-note='${note}']`);
+        if (key) key.classList.add("highlight");
+      });
+    }
+
+    // --- Update the Visualized Chord ---
+    function updateChordVisualization() {
+      const { rootNote, octave, voicing } = getChordParameters();
+      const chord = chordFromParams(rootNote, octave, voicing);
+      highlightChord(chord);
+      document.getElementById("chordNotes").textContent = chord.join(", ");
+    }
+
+    // --- Read Form Values for Chord Parameters ---
+    function getChordParameters() {
+      const rootNote = parseInt(document.getElementById("rootNote").value, 10);
+      const octave = parseInt(document.getElementById("octave").value, 10);
+      const voicing = {
+        root: document.getElementById("includeRoot").checked ? "yes" : undefined,
+        third: document.getElementById("third").value || undefined,
+        sus2: document.getElementById("sus2").value || undefined,
+        sus4: document.getElementById("sus4").value || undefined,
+        fifth: document.getElementById("fifth").value || undefined,
+        seventh: document.getElementById("seventh").value || undefined,
+        ninth: document.getElementById("ninth").value || undefined,
+        eleventh: document.getElementById("eleventh").value || undefined,
+        thirteenth: document.getElementById("thirteenth").value || undefined,
+        second: document.getElementById("second").value || undefined,
+        fourth: document.getElementById("fourth").value || undefined,
+        sixth: document.getElementById("sixth").value || undefined,
+      };
+      return { rootNote, octave, voicing };
+    }
+
+    // --- Preset Application ---
+    function applyPreset(preset) {
+      // Reset all parameters (except root and octave)
+      document.getElementById("includeRoot").checked = true;
+      document.getElementById("third").value = "";
+      document.getElementById("sus2").value = "";
+      document.getElementById("sus4").value = "";
+      document.getElementById("fifth").value = "";
+      document.getElementById("seventh").value = "";
+      document.getElementById("ninth").value = "";
+      document.getElementById("eleventh").value = "";
+      document.getElementById("thirteenth").value = "";
+      document.getElementById("second").value = "";
+      document.getElementById("fourth").value = "";
+      document.getElementById("sixth").value = "";
+
+      switch (preset) {
+        case "major":
+          document.getElementById("third").value = "major";
+          document.getElementById("fifth").value = "perfect";
+          break;
+        case "minor":
+          document.getElementById("third").value = "minor";
+          document.getElementById("fifth").value = "perfect";
+          break;
+        case "dominant7":
+          document.getElementById("third").value = "major";
+          document.getElementById("fifth").value = "perfect";
+          document.getElementById("seventh").value = "minor";
+          break;
+        case "major7":
+          document.getElementById("third").value = "major";
+          document.getElementById("fifth").value = "perfect";
+          document.getElementById("seventh").value = "major";
+          break;
+        case "minor7":
+          document.getElementById("third").value = "minor";
+          document.getElementById("fifth").value = "perfect";
+          document.getElementById("seventh").value = "minor";
+          break;
+        case "diminished":
+          // Diminished triad: root, minor third, diminished fifth
+          document.getElementById("third").value = "minor";
+          document.getElementById("fifth").value = "diminished";
+          break;
+        case "augmented":
+          // Augmented triad: root, major third, augmented fifth
+          document.getElementById("third").value = "major";
+          document.getElementById("fifth").value = "augmented";
+          break;
+        case "half-diminished":
+          // Half-diminished 7: root, minor third, diminished fifth, minor seventh
+          document.getElementById("third").value = "minor";
+          document.getElementById("fifth").value = "diminished";
+          document.getElementById("seventh").value = "minor";
+          break;
+                  case "diminished7":
+          // Diminished 7: root, minor third, diminished fifth, minor seventh
+          document.getElementById("third").value = "minor";
+          document.getElementById("fifth").value = "diminished";
+          document.getElementById("seventh").value = "diminished";
+          break;
+        case "min/maj7":
+          // Min/Maj 7: root, minor third, perfect fifth, major seventh
+          document.getElementById("third").value = "minor";
+          document.getElementById("fifth").value = "perfect";
+          document.getElementById("seventh").value = "major";
+          break;
+         case "aug/maj7":
+          // Min/Maj 7: root, minor third, perfect fifth, major seventh
+          document.getElementById("third").value = "major";
+          document.getElementById("fifth").value = "augmented";
+          document.getElementById("seventh").value = "major";
+          break;
+          case "maj6":
+          // Min/Maj 7: root, minor third, perfect fifth, major seventh
+          document.getElementById("third").value = "major";
+          document.getElementById("fifth").value = "perfect";
+          document.getElementById("sixth").value = "major";
+                    break;
+                    case "min6":
+          // Min/Maj 7: root, minor third, perfect fifth, major seventh
+          document.getElementById("third").value = "minor";
+          document.getElementById("fifth").value = "perfect";
+          document.getElementById("sixth").value = "major";
+          break;
+        default:
+          break;
+      }
+      updateChordVisualization();
+    }
+
+    // --- Randomize Parameters (except Root & Octave) ---
+    function randomizeParameters() {
+      const options = {
+        third: ["", "major", "minor"],
+        sus2: ["", "sus 2", "sus b2"],
+        sus4: ["", "sus 4", "sus #4"],
+        fifth: ["", "perfect", "augmented", "diminished"],
+        seventh: ["", "major", "minor", "diminished"],
+        ninth: ["", "major", "minor"],
+        eleventh: ["", "natural", "sharp"],
+        thirteenth: ["", "natural", "flat"],
+        second: ["", "major", "minor"],
+        fourth: ["", "perfect", "sharp"],
+        sixth: ["", "major", "minor"],
+      };
+
+      Object.keys(options).forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+          const vals = options[id];
+          const randomIndex = Math.floor(Math.random() * vals.length);
+          select.value = vals[randomIndex];
+        }
+      });
+      updateChordVisualization();
+    }
+
+    // --- Audio Playback with Master Gain Node ---
+    function playChordAudio(chord, duration = 2) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.5;
+      masterGain.connect(audioCtx.destination);
+
+      chord.forEach(note => {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = "sine";
+        const frequency = 440 * Math.pow(2, (note - 69) / 12);
+        oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(masterGain);
+
+        const now = audioCtx.currentTime;
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
+        gainNode.gain.setValueAtTime(0.2, now + duration - 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, now + duration);
+
+        oscillator.start(now);
+        oscillator.stop(now + duration);
+      });
+    }
+
+    // --- Set up Event Listeners ---
+    function setupListeners() {
+      document.querySelectorAll("#controlsSection select, #controlsSection input").forEach(el => {
+        el.addEventListener("change", updateChordVisualization);
+        el.addEventListener("input", updateChordVisualization);
+      });
+      // When a preset is selected, apply it immediately.
+      document.getElementById("presetSelect").addEventListener("change", (e) => {
+        const preset = e.target.value;
+        if (preset) {
+          applyPreset(preset);
+        }
+      });
+      document.getElementById("randomize").addEventListener("click", randomizeParameters);
+      document.getElementById("playChord").addEventListener("click", () => {
+        const { rootNote, octave, voicing } = getChordParameters();
+        const chord = chordFromParams(rootNote, octave, voicing);
+        playChordAudio(chord);
+      });
+    }
+
+    // --- Initialization ---
+    createKeyboard();
+    setupListeners();
+    updateChordVisualization();
+  </script>
+</body>
+</html>
