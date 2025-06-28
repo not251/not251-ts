@@ -223,7 +223,7 @@ let g = 4;  // lunghezza dei gruppi
 let p = n;  // posizione degli eventuali gruppi di resto
 
 updateLength({ value: n }, k);
-
+/*
 console.log("\neuclidean:");
 let euclid = euclidean(n, k);
 console.log(euclid.join(' '));
@@ -248,3 +248,4 @@ updateLength({ value: n }, g);
 console.log("subdivision of n by g, irregularity at position p:");
 const subdivided = subdiv(n, g, p);
 console.log(subdivided.join(' '));
+*/

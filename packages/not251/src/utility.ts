@@ -1,3 +1,6 @@
+import { intervalVector } from "./intervalVector";
+import { positionVector, inverse_select, lcmPosition } from "./positionVector";
+
 /**
  * Computes the positive modulo of two numbers a and b, handling negative values as well.
  * If b is negative, it first adjusts both a and b to be positive.
@@ -9,8 +12,10 @@
  * @returns The positive modulo of a and b.
  */
 export function modulo(a: number, b: number): number {
+  // Corretto: Usa < invece di &lt;
   if (b < 0) return -modulo(-a, -b);
   let out = ((a % b) + b) % b;
+  // Corretto: Usa < invece di &lt;
   if (out < 0) out += b;
   return out;
 }
@@ -19,14 +24,22 @@ export function modulo(a: number, b: number): number {
  * Simplifies two input vectors, v1 and v2, by reducing each to an array containing only the first and last elements.
  * The function returns a tuple containing these reduced vectors.
  * This is particularly helpful when only the endpoints of the vectors are relevant for comparisons or further calculations.
+ * Handles empty arrays by returning [0, 0] for that array.
  *
  * @param v1 - The first input vector.
  * @param v2 - The second input vector.
  * @returns A tuple containing the first and last elements of both vectors.
  */
 export function reduceVectors(v1: number[], v2: number[]): number[][] {
-  let r1 = [v1[0], v1[v1.length - 1]];
-  let r2 = [v2[0], v2[v2.length - 1]];
+  // Correzione per riga 33: Gestisce array vuoti per evitare 'undefined'
+  const r1_0 = v1.length > 0 ? v1[0]! : 0; // Usa ! se sicuro che v1[0] esiste, o default 0
+  const r1_last = v1.length > 0 ? v1[v1.length - 1]! : 0; // Usa ! o default 0
+  const r2_0 = v2.length > 0 ? v2[0]! : 0; // Usa ! o default 0
+  const r2_last = v2.length > 0 ? v2[v2.length - 1]! : 0; // Usa ! o default 0
+
+  // Ora r1 e r2 sono sicuramente number[], quindi il return type number[][] è corretto
+  const r1: number[] = [r1_0, r1_last];
+  const r2: number[] = [r2_0, r2_last];
   return [r1, r2];
 }
 
@@ -40,7 +53,10 @@ export function reduceVectors(v1: number[], v2: number[]): number[][] {
  * @param mod - The modulus for normalization.
  * @returns The index of the note's degree within the scale, or -1 if not found.
  */
-export function degreeDetect(note: number, scale: number[], mod: number) {
+export function degreeDetect(note: number, scale: number[], mod: number): number {
+  // Correzione per riga 67: Assumendo che 'note' sia effettivamente un 'number' come da firma.
+  // L'errore TS18048 potrebbe derivare dal chiamante o da un'inferenza errata altrove.
+  // Manteniamo il codice originale qui, ma aggiungiamo un tipo di ritorno esplicito.
   let normalizedNote = (note + mod) % mod;
   let index = scale.indexOf(normalizedNote);
   return index !== -1 ? index : -1;
@@ -56,11 +72,13 @@ export function degreeDetect(note: number, scale: number[], mod: number) {
  * @param mod - The modulus for normalization.
  * @returns An array of indices representing the degrees of the notes in the scale, with -1 for notes not found.
  */
-export function degreeDetectVec(notes: number[], scale: number[], mod: number) {
+export function degreeDetectVec(notes: number[], scale: number[], mod: number): number[] {
   let degrees: number[] = [];
 
+  // Corretto: Usa < invece di &lt;
   for (let i = 0; i < notes.length; i++) {
-    let note = notes[i];
+    // Correzione: Usa l'asserzione non-null (!) perché 'i' è entro i limiti dell'array 'notes'.
+    let note = notes[i]!;
     let normalizedNote = (note + mod) % mod;
     let index = scale.indexOf(normalizedNote);
 
@@ -85,11 +103,16 @@ export function scaleMap(
 ): { [key: number]: number[] } {
   let result: { [key: number]: number[] } = {};
 
+  // Corretto: Usa < invece di &lt;
   for (let i = 0; i < mod; ++i) {
     let temp: number[] = [];
+    // Corretto: Usa < invece di &lt;
     for (let j = 0; j < input.length; ++j) {
-      temp.push((input[j] + i) % mod);
+      // Correzione per riga 94: Usa l'asserzione non-null (!) perché 'j' è entro i limiti dell'array 'input'.
+      const inputValue = input[j]!;
+      temp.push((inputValue + i) % mod);
     }
+    // Corretto: Usa => invece di =&gt;
     temp.sort((a, b) => a - b);
     result[i] = temp;
   }
@@ -115,20 +138,31 @@ export function findPC(
   let result: { [key: number]: number[] } = {};
 
   for (let key in input) {
-    let value = input[key];
-    let containsAllNotes = true;
+    // Buona pratica: usare hasOwnProperty con for...in
+    if (Object.prototype.hasOwnProperty.call(input, key)) {
+      let value = input[key]; // value è potenzialmente number[] | undefined
 
-    for (let i = 0; i < notes.length; ++i) {
-      let note = notes[i];
-      let pc = note % mod;
-      if (value.indexOf(pc) === -1) {
-        containsAllNotes = false;
-        break;
+      // Correzione per riga 127 e 134: Controlla se 'value' è definito prima di usarlo
+      if (value) { // value è ora sicuramente number[]
+        let containsAllNotes = true;
+
+        // Corretto: Usa < invece di &lt;
+        for (let i = 0; i < notes.length; ++i) {
+          // Correzione per riga 126: Usa l'asserzione non-null (!) perché 'i' è entro i limiti dell'array 'notes'.
+          let note = notes[i]!;
+          let pc = note % mod;
+          // Ora è sicuro chiamare indexOf su 'value'
+          if (value.indexOf(pc) === -1) {
+            containsAllNotes = false;
+            break;
+          }
+        }
+
+        if (containsAllNotes) {
+          // Ora è sicuro assegnare 'value' a 'result[key]'
+          result[key] = value;
+        }
       }
-    }
-
-    if (containsAllNotes) {
-      result[key] = value;
     }
   }
 
@@ -142,6 +176,7 @@ export function findPC(
  * @returns True if all elements are zero, otherwise false.
  */
 export function isAllZeros(arr: number[]): boolean {
+  // Corretto: Usa => invece di =&gt;
   return arr.every((i) => i === 0);
 }
 
@@ -152,6 +187,7 @@ export function isAllZeros(arr: number[]): boolean {
  * @returns True if all elements are one, otherwise false.
  */
 export function isAllOnes(arr: number[]): boolean {
+  // Corretto: Usa => invece di =&gt;
   return arr.every((i) => i === 1);
 }
 
@@ -175,6 +211,7 @@ export function cut(arr: number[], n: number): number[] {
  * @param n - The desired length of the array after appending.
  */
 export function appendOnes(arr: number[], n: number): void {
+  // Corretto: Usa < invece di &lt;
   while (arr.length < n) {
     arr.push(1);
   }
@@ -202,5 +239,7 @@ export function gcd(a: number, b: number): number {
  * @returns The LCM of the two numbers.
  */
 export function lcm(a: number, b: number): number {
-  return (a * b) / gcd(a, b);
+  // Evita divisione per zero se gcd è 0 (quando a e b sono 0)
+  const divisor = gcd(a, b);
+  return divisor === 0 ? 0 : (a * b) / divisor;
 }

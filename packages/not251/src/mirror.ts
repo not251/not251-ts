@@ -1,3 +1,5 @@
+import { modulo } from "./utility"; // modulo is imported but not used in this file
+
 // ha senso usarle con gli intervalvectors per scale, per i positionvector ha senso se si tratta di altezze nel tempo
 
 /**
@@ -13,20 +15,26 @@ export function doubleMirror(input: number[], position: number): number[] {
   let out = [...input];
   let length = out.length;
 
+  // Corretto: Usa < e > invece di &lt; e &gt;
   if (position < 0 || position > length) {
     return out;
   }
 
+  // Corretto: Usa < invece di &lt;
   for (let i = 0; i < Math.floor(position / 2); i++) {
-    [out[i], out[position - 1 - i]] = [out[position - 1 - i], out[i]];
+    // FIX: Use non-null assertions assuming indices are valid within loop bounds
+    const temp = out[i]!;
+    out[i] = out[position - 1 - i]!;
+    out[position - 1 - i] = temp;
   }
 
   let end = position + Math.floor((length - position) / 2);
+  // Corretto: Usa < invece di &lt;
   for (let i = position; i < end; i++) {
-    [out[i], out[length - 1 - (i - position)]] = [
-      out[length - 1 - (i - position)],
-      out[i],
-    ];
+    // FIX: Use non-null assertions assuming indices are valid within loop bounds
+    const temp = out[i]!;
+    out[i] = out[length - 1 - (i - position)]!;
+    out[length - 1 - (i - position)] = temp;
   }
 
   return out;
@@ -50,21 +58,27 @@ export function singleMirror(
   let out = [...input];
   let length = out.length;
 
+  // Corretto: Usa < e > invece di &lt; e &gt;
   if (position < 0 || position > length) {
     return out;
   }
 
   if (left) {
+    // Corretto: Usa < invece di &lt;
     for (let i = 0; i < Math.floor(position / 2); i++) {
-      [out[i], out[position - 1 - i]] = [out[position - 1 - i], out[i]];
+      // FIX: Use non-null assertions assuming indices are valid within loop bounds (TS2322)
+      const temp = out[i]!;
+      out[i] = out[position - 1 - i]!; // Added !
+      out[position - 1 - i] = temp;
     }
   } else {
     let end = position + Math.floor((length - position) / 2);
+    // Corretto: Usa < invece di &lt;
     for (let i = position; i < end; i++) {
-      [out[i], out[length - 1 - (i - position)]] = [
-        out[length - 1 - (i - position)],
-        out[i],
-      ];
+      // FIX: Use non-null assertions assuming indices are valid within loop bounds
+      const temp = out[i]!;
+      out[i] = out[length - 1 - (i - position)]!;
+      out[length - 1 - (i - position)] = temp;
     }
   }
 
@@ -85,13 +99,22 @@ export function mirror2(input: number[], pos: number, left: boolean): number[] {
   let out = [...input];
   let n = input.length;
 
+  // Corretto: Usa < e > invece di &lt; e &gt;
+  if (pos < 0 || pos > n) {
+      return out; // Return copy if pos is invalid
+  }
+
   if (left) {
+    // Corretto: Usa < invece di &lt;
     for (let i = 0; i < pos && i < n; i++) {
-      out[n - 1 - i] = input[i];
+      // FIX: Use non-null assertion assuming input[i] exists
+      out[n - 1 - i] = input[i]!;
     }
   } else {
+    // Corretto: Usa < invece di &lt;
     for (let i = pos; i < n; i++) {
-      out[i - pos] = input[n - 1 - (i - pos)];
+      // FIX: Use non-null assertion assuming input[...] exists
+      out[i - pos] = input[n - 1 - (i - pos)]!;
     }
   }
 

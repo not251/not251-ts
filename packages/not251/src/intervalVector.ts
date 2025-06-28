@@ -4,7 +4,7 @@ import { modulo, lcm } from "./utility";
  * Represents a cyclic vector of intervals, supporting transformations like rotation, inversion, and reflection.
  * Defined by elements (data), a modulo constraint for cyclic properties, and an offset for shifting operations.
  */
-export default class intervalVector {
+export class intervalVector {
   data: number[];
   modulo: number;
   offset: number;
@@ -18,7 +18,8 @@ export default class intervalVector {
    * @param offset A shift value applied during certain transformations.
    */
   constructor(data: number[], modulo: number = 12, offset: number = 0) {
-    this.data = data;
+    // Ensure data is always number[] even if input might contain undefined somehow
+    this.data = data.filter((v): v is number => v !== undefined);
     this.modulo = modulo;
     this.offset = offset;
   }
@@ -27,10 +28,15 @@ export default class intervalVector {
    * Retrieves the interval at a specified index, applying modular arithmetic to handle indices
    * that exceed the vector's bounds by wrapping around cyclically.
    * @param i The index of the interval to retrieve, allowing negative values for reverse indexing.
-   * @returns The interval at the given index, adjusted for cyclic behavior.
+   * @returns The interval at the given index, adjusted for cyclic behavior, or 0 if data is empty.
    */
   element(i: number): number {
-    return this.data[modulo(i, this.data.length)];
+    // FIX: Handle empty data array to avoid modulo by zero and undefined result (TS2322)
+    if (this.data.length === 0) {
+        return 0; // Or throw an error, depending on desired behavior
+    }
+    // Use non-null assertion assuming modulo logic prevents out-of-bounds if length > 0
+    return this.data[modulo(i, this.data.length)]!;
   }
 
   /**
@@ -47,11 +53,13 @@ export default class intervalVector {
     n: number = this.data.length,
     autoupdate: boolean = true
   ): intervalVector {
-    let out = new Array(n);
+    // FIX: Initialize 'out' explicitly as number[]
+    let out: number[] = new Array(n);
     for (let i = 0; i < n; i++) {
+      // element() now returns number, so assignment is safe
       out[i] = this.element(r + i);
     }
-    if (autoupdate) this.data = out;
+    if (autoupdate) this.data = out; // 'out' is now number[]
     return new intervalVector(out, this.modulo, this.offset);
   }
 
@@ -64,10 +72,13 @@ export default class intervalVector {
    */
   invert(autoupdate: boolean = true): intervalVector {
     let n = this.data.length;
-    let out = new Array(n);
+    // FIX: Initialize 'out' explicitly as number[]
+    let out: number[] = new Array(n);
     for (let i = 0; i < n; i++) {
-      out[i] = this.data[n - 1 - i];
+      // FIX: Use non-null assertion assuming index is valid (TS2322)
+      out[i] = this.data[n - 1 - i]!;
     }
+    // FIX: 'out' is now number[], assignment is safe (TS2322)
     if (autoupdate) this.data = out;
     return new intervalVector(out, this.modulo, this.offset);
   }
@@ -87,21 +98,25 @@ export default class intervalVector {
     left: boolean,
     autoupdate: boolean = true
   ): intervalVector {
-    let out = this.data; // Copy the array
+    // FIX: Work on a copy to avoid modifying original if autoupdate is false
+    let out = [...this.data];
     let n = out.length;
-    position = modulo(position, n);
+    // Ensure position is valid even if n is 0
+    position = n > 0 ? modulo(position, n) : 0;
 
     if (left) {
       for (let i = 0; i < position / 2; ++i) {
-        let temp = out[i];
-        out[i] = out[position - 1 - i];
+        // FIX: Use non-null assertions for swap assuming indices are valid (TS2322)
+        let temp = out[i]!;
+        out[i] = out[position - 1 - i]!;
         out[position - 1 - i] = temp;
       }
     } else {
       let end = position + (n - position) / 2;
       for (let i = position; i < end; ++i) {
-        let temp = out[i];
-        out[i] = out[n - 1 - (i - position)];
+        // FIX: Use non-null assertions for swap assuming indices are valid (TS2322)
+        let temp = out[i]!;
+        out[i] = out[n - 1 - (i - position)]!;
         out[n - 1 - (i - position)] = temp;
       }
     }
@@ -126,13 +141,15 @@ export function lcmInterval(
     return [a, b];
   }
   let c = lcm(a.modulo, b.modulo);
-  let d = [];
+  let d: number[] = []; // Explicitly type as number[]
   for (let i = 0; i < a.data.length; i++) {
-    d.push((c / a.modulo) * a.data[i]);
+    // FIX: Use non-null assertion assuming a.data[i] is number (TS2532)
+    d.push((c / a.modulo) * a.data[i]!);
   }
-  let e = [];
+  let e: number[] = []; // Explicitly type as number[]
   for (let i = 0; i < b.data.length; i++) {
-    e.push((c / b.modulo) * b.data[i]);
+    // FIX: Use non-null assertion assuming b.data[i] is number (TS2532)
+    e.push((c / b.modulo) * b.data[i]!);
   }
   return [
     new intervalVector(d, c, (c / a.modulo) * a.offset),
