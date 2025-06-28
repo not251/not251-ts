@@ -39,9 +39,12 @@
   "license": "MIT",
   "devDependencies": {
     "rimraf": "^5.0.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.3"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "esbuild": "^0.25.2"
   }
 }
