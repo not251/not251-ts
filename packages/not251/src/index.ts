@@ -34,7 +34,7 @@ import { binaryVector } from "./binaryVector"; // <-- ASSICURATI CHE binaryVecto
 
 // Import types
 import type { ScaleParams as ScaleParamsType } from "./scale"; // Alias per il tipo
-import type { ChordParams as ChordParamsType, VoiceRange as VoiceRangeType } from "./chord"; // Alias per i tipi
+import type { ChordParams as ChordParamsType, VoiceRange as VoiceRangeType, SpreadResult } from "./chord"; // Alias per i tipi
 import type { Language as LanguageType, NoteNames as NoteNamesType, AlteredNoteName, Note } from "./constants"; // Alias e altri tipi
 import type { distanceMapElement, distanceMap, optionMatrixElement, optionMatrix } from "./distances"; // Tipi da distances
 import type { autoGradoMapElement, autoGradoMap } from "./auto"; // Tipi da auto (se usati)
@@ -97,6 +97,7 @@ export {
   distances,
   utility,
   mirror,
+  SpreadResult
 };
 
 // Export types using 'export type'

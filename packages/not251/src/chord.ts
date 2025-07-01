@@ -509,284 +509,136 @@ function degreeAreasMap(
 export function blockChord(
   scale: positionVector,
   degree: number,
-  chord: positionVector,
+  chordDegreesValues: positionVector,
   lastChord: positionVector,
   cluster: boolean = false
 ): positionVector {
-
-  // Assicurati che scale e lastChord non siano vuoti
-  if (scale.data.length === 0 ) {
-      //console.warn("blockChord: Scale or lastChord is empty.");
-      // Restituisci un valore di default o lancia un errore
-      return new positionVector([], scale.modulo, scale.span);
-  }
-
   let voicing = new positionVector([degree], scale.data.length, scale.data.length);
-
-  const chordNorm = chord.normalizeToModulo();
-  const rotScale = scale; // Semplificato, assumendo che la rotazione non sia necessaria qui
-  let degreeAreas : [number[], number[], number[], number[]] = degreeAreasMap(rotScale, chordNorm);
-  const octave = Math.trunc(degree / scale.data.length);
-  const degreeMod = modulo(degree, scale.data.length);
+  const chordDegrees = chordDegreesValues.normalizeToModulo();
+  const reference = lastChord.data;
   let index = -1;
-  // Corretto: Usa < invece di &lt;
-  for (let i = 0; i < 4; i++) {
-    // Correzione: Usa l'asserzione non-null (!) perché 'i' è entro i limiti di degreeAreas
-    if (degreeAreas[i]!.indexOf(degreeMod) !== -1) {
-      index = i;
-      break;
+  let degFunc = scale.getDegrees()[modulo(degree, scale.data.length)];
+  if (degFunc == 0 || (degFunc == 1 && chordDegrees.data[1] != 1)) {
+    index = 0;
+  } else if (
+    (degFunc == 1 && chordDegrees.data[1] == 1) ||
+    degFunc == 2 ||
+    degFunc == 3
+  ) {
+    index = 1;
+  } else if (degFunc == 4 || (degFunc == 5 && chordDegrees.data[3] != 5)) {
+    index = 2;
+  } else {
+    index = 3;
+  }
+  let octave = Math.floor(degree / voicing.modulo) * voicing.modulo;
+  for (let i = 1; i < 4; i++) {
+    let actualDegree = chordDegrees.element(index - i) + octave;
+    let scaleDegreeFunction = scale.getDegrees();
+    let zeroDegree = scaleDegreeFunction[modulo(actualDegree, scale.data.length)];
+    let chord = scale.selectFromPosition(chordDegrees);
+    switch (zeroDegree) {
+      case 0:
+        if (
+          scaleDegreeFunction[modulo(actualDegree + 1, scale.data.length)] != 2 && // If the next degree is not a third
+          chordDegrees.data[1] != 1 && // If the chord is not sus2
+          reference[reference.length - i - 1] != scale.element(actualDegree + 1) && // If the note is not repeated
+          !chord.isAvoid(scale.element(1)) // If the next note is not an avoid note
+        ) {
+          voicing.data.unshift(actualDegree + 1); // Increase the degree
+        } else {
+          voicing.data.unshift(actualDegree); // Otherwise, add the fundamental
+        }
+        break;
+      case 1:
+        voicing.data.unshift(actualDegree); // Add the second
+        break;
+      case 2:
+        voicing.data.unshift(actualDegree); // Add the third
+        break;
+      case 3:
+        voicing.data.unshift(actualDegree); // Add the fourth
+        break;
+      case 4:
+        if (
+          scaleDegreeFunction[modulo(actualDegree + 1, scale.data.length)] != 6 && // If the next degree is not a seventh
+          chordDegrees.data[3] != 5 && // If the base chord is not a sixth
+          reference[reference.length - i - 1] == scale.element(actualDegree) && // If the note is repeated
+          !chord.isAvoid(scale.element(actualDegree + 1)) && // If the next degree is not an avoid note
+          voicing.data[1] != (actualDegree + 1) // If the next degree is not the same as the previous one
+        ) {
+          voicing.data.unshift(actualDegree + 1);  // Add the next degree
+        } else {
+          voicing.data.unshift(actualDegree);  // Add the current degree
+        }
+        break;
+      case 5:
+        voicing.data.unshift(actualDegree);  // Add the current degree
+        break;
+      case 6:
+        if (
+          i == 1 &&
+          scale.element(voicing.data[0]!) - scale.element(actualDegree) == 1 // If the actual degree is at half step from the lead note
+        ) {
+          voicing.data.unshift(actualDegree - 1);
+        } else {
+          voicing.data.unshift(actualDegree);
+        }
+        break;
     }
   }
-
-  // Se index non viene trovato (improbabile ma possibile se degreeMod non è in nessuna area)
-  if (index === -1) {
-      //console.warn(`blockChord: degreeMod ${degreeMod} not found in any degree area.`);
-      // Gestisci l'errore, magari assegnando un'area di default o restituendo un errore
-      index = 0; // Fallback a area 0
-  }
-
-  const degreeModValue = scale.element(degree); // Usa 'degree' originale per ottenere il valore corretto con ottava
-
-  // Corretto: Usa < invece di &lt;
-  for (let i = 1; i < 4; i++){
-    const j = modulo(index - i , 4);
-    let voice: number | undefined = undefined; // Inizializza a undefined
-    let foundVoice = false;
-
-    // Correzione: Assicurati che degreeAreas[j] esista
-    const currentArea = degreeAreas[j];
-    if (!currentArea) continue; // Salta se l'area non esiste
-
-    // Corretto: Usa < invece di &lt;
-    for (let k = 0; k < currentArea.length; k++){
-      // Correzione: Usa l'asserzione non-null (!) perché 'k' è entro i limiti
-      let candidateDegree = currentArea[k]!;
-      let candidate = candidateDegree; // Grado relativo all'ottava 0
-
-      // Aggiusta l'ottava del candidato per essere sotto degreeMod
-      // Corretto: Usa < invece di &lt;
-      if (index - i < 0){
-        candidate -= scale.data.length; // Sposta all'ottava inferiore se necessario
-      }
-
-      const candidateValue = scale.element(candidate + scale.data.length * octave); // Calcola il valore assoluto del candidato nell'ottava corretta
-
-      // Correzione: Usa l'asserzione non-null (!) per lastChord.data
-      const lastChordNote = lastChord.data[4 - i];
-
-      // Correzione: Usa < invece di &lt;
-      if (( i === 1 && degreeModValue - candidateValue < 2) || // Evita intervalli troppo piccoli con la melodia
-          (lastChordNote !== undefined && candidateValue === lastChordNote) || // Evita ripetizioni con l'accordo precedente
-          scale.isAvoid(candidateValue)) { // Controlla se è una avoid note
-        // //console.warn(`Skipping candidate ${candidateValue}: Condition met.`, ( i === 1 && degreeModValue - candidateValue < 2), (lastChordNote !== undefined && candidateValue === lastChordNote), scale.isAvoid(candidateValue));
-        continue;
-      }
-
-      voice = candidate + scale.data.length * octave; // Assegna il grado assoluto corretto
-      foundVoice = true;
-      break;
-    }
-
-    if (!foundVoice) {
-      // Inizio logica di Fallback
-      if (i === 1) { // Logica speciale di fallback aggiuntiva SOLO per la seconda voce (i=1)
-          // Tentativo di trovare una voce nell'area precedente a 'j'
-          const previousAreaOriginalIndex = index - (i + 1); // Indice "virtuale" dell'area precedente rispetto all'area della melodia
-          const previousAreaMappedIndex = modulo(previousAreaOriginalIndex, 4);
-          const previousArea = degreeAreas[previousAreaMappedIndex];
-
-          if (previousArea && previousArea.length > 0) {
-              // Cerca dall'ultima nota della previousArea (più bassa)
-              for (let k_prev = previousArea.length - 1; k_prev >= 0; k_prev--) {
-                  // Correzione: Usa l'asserzione non-null (!) perché 'k_prev' è entro i limiti
-                  let candidateDegree = previousArea[k_prev]!;
-                  let candidate = candidateDegree;
-
-                  // Aggiustamento ottava per il candidato dall'area precedente
-                  if (previousAreaOriginalIndex < 0) {
-                      candidate -= scale.data.length;
-                  }
-                  const candidateValue = scale.element(candidate + scale.data.length * octave);
-                  const lastChordNote = lastChord.data[4 - i]; // Per i=1, è lastChord.data[3]
-
-                  // Controlli per il candidato dall'area precedente
-                  if (degreeModValue - candidateValue >= 2 && // DEVE rispettare la distanza
-                      (lastChordNote === undefined || candidateValue !== lastChordNote) &&
-                      !scale.isAvoid(candidateValue)) {
-                      voice = candidate + scale.data.length * octave;
-                      foundVoice = true;
-                      ////console.warn(`Voice ${i} found in previousArea ${previousAreaMappedIndex}: ${voice}`);
-                      break; // Trovata voce valida nell'area precedente
-                  }
-              }
-          }
-      }
-
-      // Se ancora !foundVoice (o se i !== 1, o se i === 1 ma ricerca in area precedente fallita),
-      // si procede al fallback standard sull'area corrente 'j'.
-      if (!foundVoice) {
-          ////console.warn(`Fallback on currentArea ${j} for voice ${i}`);
-          const currentAreaForFallback = degreeAreas[j]; // j è già calcolato come modulo(index - i, 4)
-          const firstDegreeInArea = currentAreaForFallback ? currentAreaForFallback[0] : undefined;
-
-          if (firstDegreeInArea !== undefined) {
-              let firstCandidate = firstDegreeInArea;
-              if (index - i < 0) { // Aggiustamento ottava per l'area corrente j
-                  firstCandidate -= scale.data.length;
-              }
-              const firstValue = scale.element(firstCandidate + scale.data.length * octave);
-              const lastChordNote = lastChord.data[4 - i];
-
-              let firstCandidateIsGood = false;
-              if (i === 1) { // Per i=1, il fallback DEVE rispettare la distanza
-                  if (degreeModValue - firstValue >= 2 &&
-                      (lastChordNote === undefined || firstValue !== lastChordNote) &&
-                      !scale.isAvoid(firstValue)) {
-                      firstCandidateIsGood = true;
-                  }
-              } else { // Per i = 2, 3 (distanza dalla melodia non è un vincolo diretto qui)
-                   if ((lastChordNote === undefined || firstValue !== lastChordNote) &&
-                       !scale.isAvoid(firstValue)) {
-                       firstCandidateIsGood = true;
-                   }
-              }
-
-              if (firstCandidateIsGood) {
-                  voice = firstCandidate + scale.data.length * octave;
-                  foundVoice = true;
-              } else {
-                  // Primo candidato non valido (o troppo vicino per i=1). Prova il secondo.
-                  const secondDegreeInArea = currentAreaForFallback ? currentAreaForFallback[1] : undefined;
-                  if (secondDegreeInArea !== undefined) {
-                      let secondCandidate = secondDegreeInArea;
-                      if (index - i < 0) { // Aggiustamento ottava
-                          secondCandidate -= scale.data.length;
-                      }
-                      const secondValue = scale.element(secondCandidate + scale.data.length * octave);
-
-                      let secondCandidateIsGood = false;
-                      if (i === 1) { // Per i=1, il fallback DEVE rispettare la distanza
-                          if (degreeModValue - secondValue >= 2 &&
-                              (lastChordNote === undefined || secondValue !== lastChordNote) &&
-                              !scale.isAvoid(secondValue)) {
-                              secondCandidateIsGood = true;
-                          }
-                      } else { // Per i = 2, 3
-                           if ((lastChordNote === undefined || secondValue !== lastChordNote) && // Errore nel JS originale: lastValue -> lastChordNote
-                               !scale.isAvoid(secondValue)) {
-                               secondCandidateIsGood = true;
-                           }
-                      }
-
-                      if (secondCandidateIsGood) {
-                          voice = secondCandidate + scale.data.length * octave;
-                          foundVoice = true;
-                      }
-                  }
-              }
-          }
-          // Se dopo tutti i fallback (inclusa area precedente per i=1, e primo/secondo dell'area corrente),
-          // foundVoice è ancora false, allora 'voice' rimarrà undefined.
-      }
-    }
-
-    // Correzione: Assicurati che 'voice' sia un numero prima di fare unshift
-    if (voice !== undefined) {
-        voicing.data.unshift(voice);
-    } else {
-        //console.error(`Error: Could not determine voice for i=${i}, j=${j}`);
-        // Gestisci l'errore, magari aggiungendo un placeholder o lanciando un'eccezione
-        // Se i === 1 e voice è undefined, significa che NESSUNA nota valida (che rispetti la distanza) è stata trovata.
-        // In questo caso, si usa il placeholder grezzo, come ultima risorsa,
-        // piuttosto che inserire una nota che viola il vincolo di distanza.
-        voicing.data.unshift(degree + i); // Valore di fallback molto grezzo
-    }
-  }
-
-  // Assicurati che voicing.data contenga solo numeri prima di procedere
-  voicing.data = voicing.data.filter((v): v is number => typeof v === 'number');
-  voicing.data.sort((a, b) => a - b); // Ordina dopo aver aggiunto tutte le voci
 
   let blockchord = scale.selectFromPosition(voicing);
 
-  if (cluster === true) {
+  if (cluster == true) {
+    let j = 0;
     let clusterV: positionVector[] = [];
 
-    // Corretto: Usa < invece di &lt;
     for (let i = degree - scale.data.length + 1; i < degree; i++) {
-      const elementI = scale.element(i);
-      const elementDegree = scale.element(degree);
-      // Correzione: Assicurati che chordNorm esista prima di chiamare selectFromPosition
-      const chordNormSelection = chordNorm ? scale.selectFromPosition(chordNorm) : new positionVector([]);
-
       if (
-        elementDegree - elementI !== 1 &&
-        !voicing.isNote(i) && // Controlla il grado 'i', non il valore elementI
-        !chordNormSelection.isAvoid(elementI)
+        scale.element(degree) - scale.element(i) != 1 &&
+        !voicing.isNote(i) &&
+        !scale.selectFromPosition(chordDegrees).isAvoid(scale.element(i))
       ) {
-        // Crea una nuova istanza copiando i dati
-        let candidateData = [...voicing.data];
-        // Correzione: Assicurati che 'i' sia un numero prima di pushare
-        if (typeof i === 'number') {
-            candidateData.push(i);
-        }
-        // Corretto: Usa => invece di =&gt;
-        candidateData.sort((a, b) => a - b);
-        // Filtra undefined prima di creare il positionVector
-        const filteredData = candidateData.filter((v): v is number => v !== undefined);
-        clusterV.push(new positionVector(filteredData, voicing.modulo, voicing.span));
+        // Create a new instance of positionVector by copying the data from 'voicing'
+        let candidate = new positionVector([...voicing.data], voicing.modulo, voicing.span);
+        candidate.data.push(i);
+        candidate.data.sort((a, b) => a - b);
+        clusterV.push(candidate);
+      } else {
+        j++;
       }
     }
 
-    // Se non ci sono candidati per il cluster, restituisci il blockchord normale
-    if (clusterV.length === 0) {
-        return blockchord;
-    }
-
-    // Assegna un punteggio
-    // Corretto: Usa => invece di =&gt;
+    // Assign a score to each candidate
     let scoredCandidates = clusterV.map((candidate) => {
       let score = 0;
       let minLength = Math.min(candidate.data.length, lastChord.data.length);
-      // Corretto: Usa < invece di &lt;
       for (let i = 0; i < minLength; i++) {
-        // Correzione: Usa l'asserzione non-null (!) perché 'i' è entro i limiti
-        const candidateNote = candidate.data[i]!;
-        const lastChordNote = lastChord.data[i]!;
-        if (candidateNote === lastChordNote) {
-          score -= 1;
+        if (candidate.data[i] == lastChord.data[i]) {
+          score -= 1; // Penalize voices that repeat at the same position
         }
       }
       return { candidate, score };
     });
 
-    // Trova il punteggio massimo
-    // Corretto: Usa => invece di =&gt;
+    // Find the maximum score
     let maxScore = Math.max(...scoredCandidates.map((c) => c.score));
 
-    // Seleziona i migliori candidati
-    // Corretto: Usa => invece di =&gt;
+    // Select all candidates with the maximum score
     let bestCandidates = scoredCandidates
-      .filter((c) => c.score === maxScore)
+      .filter((c) => c.score == maxScore)
       .map((c) => c.candidate);
 
-    // Scegli un candidato
-    let selectedCandidate: positionVector;
-    // Corretto: Usa === invece di ==
-    if (bestCandidates.length === 1) {
-      // Correzione: Usa l'asserzione non-null (!) perché abbiamo controllato la lunghezza
-      selectedCandidate = bestCandidates[0]!;
+    // If there are multiple candidates with the same score, choose one randomly
+    let selectedCandidate;
+    if (bestCandidates.length == 1) {
+      selectedCandidate = bestCandidates[0];
     } else {
-      // Correzione: Usa l'asserzione non-null (!) perché bestCandidates non è vuoto qui
-      selectedCandidate = bestCandidates[Math.floor(Math.random() * bestCandidates.length)]!;
+      selectedCandidate = bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
     }
-    // Assicurati che selectedCandidate sia definito prima di chiamare selectFromPosition
-    if (!selectedCandidate) {
-        //console.warn("blockChord (cluster): No selected candidate found.");
-        return blockchord; // Fallback al blockchord normale
-    }
-    return scale.selectFromPosition(selectedCandidate);
-  } else {
+    return scale.selectFromPosition(selectedCandidate!);
+  } else { 
     return blockchord;
   }
 }
@@ -851,7 +703,7 @@ export function spread(
   topDegree?: number,
   bassDegree?: number,
   lastChord?: positionVector
-): positionVector {
+): SpreadResult {
   // Sort instruments according to the lowest note they can play
   instruments.sort((a, b) => a.range[0] - b.range[0]);
   const chordDegreesSet = new Set(chordDegrees.data);
@@ -863,23 +715,24 @@ export function spread(
   // Determine the top note
   let topNote: number;
   const highestInstrument = instruments[voices - 1];
-  let highestCandidateInf: number = Math.trunc(highestInstrument!.range[0] / chordDegrees.modulo);
   let higherReference: number;
 
-  if (topDegree === undefined) {
+  if (topDegree === undefined || topDegree === null) {
     // If topDegree is undefined, assign the highest note of the spread within the correct range
-    if (lastChord === undefined) {
+    if (lastChord === undefined || lastChord.data.length === 0 || lastChord === null) {
       // The reference is in the middle register of the instrument
       higherReference = (highestInstrument!.range[1] + highestInstrument!.range[0]) / 2;
     } else {
       // The reference is the previous note
-      higherReference = inverse_select(lastChord, scale).data[lastChord.data.length - 1]!;
+      higherReference = lastChord.data[lastChord.data.length - 1]!;
     }
-
+    let highestCandidateInf = 0;
+    let degreeHigh = 0;
     while (scale.element(highestCandidateInf) <= higherReference) {
-      highestCandidateInf++;
+      degreeHigh++;
+      highestCandidateInf = chordDegrees.element(degreeHigh);
     }
-    let highestCandidateSup = highestCandidateInf;
+    let highestCandidateSup = chordDegrees.element(degreeHigh + 1);
 
     // Center the lower candidate on a chord degree
     while (!chordDegreesSet.has(modulo(highestCandidateInf, chordDegrees.modulo)) || scale.element(highestCandidateInf) > highestInstrument!.range[1]) {
@@ -902,30 +755,38 @@ export function spread(
 
     topNote = topNoteCandidate;
   } else {
-    // Otherwise, set topNote to be exactly equal to topDegree
-    topNote = scale.element(topDegree);
-  }
+      let topNoteCandidate = scale.element(topDegree);
+      // while (highestInstrument!.inRange(topNoteCandidate)) {
+      //     if (topNoteCandidate < highestInstrument!.range[0]) {
+      //         topNoteCandidate += scale.modulo;
+      //     } else if (topNoteCandidate > highestInstrument!.range[1]) {
+      //         topNoteCandidate -= scale.modulo;
+      //     }
+      // }
+      topNote = topNoteCandidate;
+    } 
+    //  post(topNote, "Top note selected: " + topNote);
 
   // Determine the bass note
   let bassNote = scale.element(0);
   const lowestInstrument = instruments[0];
 
-  if (bassDegree === undefined) {
+  if (bassDegree === undefined || bassDegree === null) {
     // If the bass is undefined, assign the bass of the spread to the fundamental adjusted into the correct range
     let fundamentalNote = scale.element(0);
 
     // Start from a comfortable note, one octave below the center of the range
     let bassReference = lastChord === undefined
-      ? (highestInstrument!.range[0] + highestInstrument!.range[1]) / 2
+      ? (lowestInstrument!.range[0] + lowestInstrument!.range[1]) / 2
       : lastChord.data[0];
 
-    while (fundamentalNote >= highestInstrument!.range[0]) {
+    while (fundamentalNote >= lowestInstrument!.range[0]) {
       fundamentalNote -= scale.modulo;
     }
     let possibleBasses = [];
 
-    while (fundamentalNote <= highestInstrument!.range[1]) {
-      if (highestInstrument!.inRange(fundamentalNote)) {
+    while (fundamentalNote <= lowestInstrument!.range[1]) {
+      if (lowestInstrument!.inRange(fundamentalNote)) {
         possibleBasses.push(fundamentalNote);
       }
       fundamentalNote += scale.modulo;
@@ -933,17 +794,14 @@ export function spread(
     let distance = Infinity;
     // Adjust fundamentalNote into the instrument's range
     bassNote = possibleBasses[0]!;
-    for (let i = 0; i < possibleBasses.length; i++) {
-      if (Math.abs(scale.element(possibleBasses[i]!) - bassReference!) <= distance &&
-        !((Math.abs(scale.element(possibleBasses[i]!)) - topNote) >= (scale.modulo * 1.5))) {
-        distance = Math.abs(scale.element(possibleBasses[i]!) - bassReference!);
-        bassNote = possibleBasses[i]!;
-      } else {
-        if (chordDegreesSet.has(5) && ((Math.abs(scale.element(possibleBasses[0]!)) - topNote) < (scale.modulo * 1.5))) {
-          chordDegreesSet.delete(5);
+        for (let i = 0; i < possibleBasses.length; i++) {
+             let currentDistance = Math.abs(scale.element(possibleBasses[i]!) - bassReference!);
+             let isTooFarFromTop = (Math.abs(scale.element(possibleBasses[i]!)) - topNote) >= (scale.modulo * 1.5);
+             if (currentDistance <= distance && !isTooFarFromTop) {
+                 distance = currentDistance;
+                 bassNote = possibleBasses[i]!;
+             }
         }
-      }
-    }
   } else {
     // If the bass is present, assign the bass of the spread in the correct range not lower than bassDegree
     let bassNoteCandidate = scale.element(bassDegree);
@@ -1006,12 +864,12 @@ export function spread(
   }
 
   let innerVoicesTar: number[] = [];
-  if (lastChord == undefined) {
+    if (lastChord == undefined || lastChord == null || lastChord.data.length < voices - 1){
     for (let i = 0; i < voices - 2; i++) {
       innerVoicesTar[i] = Math.round((topNote - bassNote) / (voices - 1)) * (i + 1) + bassNote;
     }
   } else {
-    for (let i = 0; i < voices - 2; i++) {
+    for (let i = 1; i < voices - 1; i++) {
       innerVoicesTar[i] = lastChord.data[i + 1]!;
     }
   }
@@ -1075,7 +933,23 @@ export function spread(
   result.push(topNote);
 
   // Return the assigned notes as a positionVector
-  return new positionVector(result, scale.modulo, scale.modulo);
+  // return new positionVector(result, scale.modulo, scale.modulo);
+  const instrumentNotes: { [instrumentName: string]: number } = {};
+  for (let i = 0; i < voices; i++) {
+    instrumentNotes[`${instruments[i]!.name}_${i}`] = result[i]!;
+  }
+
+  return {
+    data: instrumentNotes,
+    modulo: scale.modulo,
+    span: scale.modulo,
+  } as SpreadResult; // Utilizzo di 'any' per evitare errori di tipo, ma idealmente definirei un'interfaccia per questo tipo di ritorno
+}
+
+export interface SpreadResult {
+  data: { [instrumentName: string]: number };
+  modulo: number;
+  span: number;
 }
 
 /**
