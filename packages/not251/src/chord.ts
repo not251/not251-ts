@@ -532,11 +532,11 @@ export function blockChord(
     index = 3;
   }
   let octave = Math.floor(degree / voicing.modulo) * voicing.modulo;
+  const chord = scale.selectFromPosition(chordDegrees);
+  const scaleDegreeFunction = scale.getDegrees();
   for (let i = 1; i < 4; i++) {
     let actualDegree = chordDegrees.element(index - i) + octave;
-    let scaleDegreeFunction = scale.getDegrees();
     let zeroDegree = scaleDegreeFunction[modulo(actualDegree, scale.data.length)];
-    let chord = scale.selectFromPosition(chordDegrees);
     switch (zeroDegree) {
       case 0:
         if (
@@ -551,8 +551,12 @@ export function blockChord(
         }
         break;
       case 1:
-        voicing.data.unshift(actualDegree); // Add the second
-        break;
+        if(i == 1 && scale.element(voicing.data[0]!) - scale.element(actualDegree) == 1){ // If the actual degree is at half step from the lead note
+            voicing.data.unshift(actualDegree - 1);
+        }
+        else {
+            voicing.data.unshift(actualDegree);
+        }        break;
       case 2:
         voicing.data.unshift(actualDegree); // Add the third
         break;
@@ -565,7 +569,9 @@ export function blockChord(
           chordDegrees.data[3] != 5 && // If the base chord is not a sixth
           reference[reference.length - i - 1] == scale.element(actualDegree) && // If the note is repeated
           !chord.isAvoid(scale.element(actualDegree + 1)) && // If the next degree is not an avoid note
-          voicing.data[1] != (actualDegree + 1) // If the next degree is not the same as the previous one
+          voicing.data[1] != (actualDegree + 1) &&           // If the next degree is not the same as the previous one
+          (i == 1 && scale.element(voicing.data[0]!) - scale.element(actualDegree + 1) != 1) // If the actual degree is at half step from the lead note
+
         ) {
           voicing.data.unshift(actualDegree + 1);  // Add the next degree
         } else {
@@ -573,7 +579,13 @@ export function blockChord(
         }
         break;
       case 5:
-        voicing.data.unshift(actualDegree);  // Add the current degree
+        if (i == 1 &&
+            scale.element(voicing.data[0]!) - scale.element(actualDegree) == 1 // If the actual degree is at half step from the lead note
+        ) {
+            voicing.data.unshift(actualDegree - 1);
+        } else {
+            voicing.data.unshift(actualDegree);
+        }
         break;
       case 6:
         if (
