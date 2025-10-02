@@ -14,7 +14,7 @@ import {
   scaleNames as scaleNames, // Rinominato per evitare conflitto con quello da crossOperation
   VoiceRange as VoiceRangeValue // 'VoiceRange' è la classe
 } from "./chord";
-// import { autoGrado, autoRoot } from "./auto"; // Mantenuto commentato
+import { autoGrado, autoRoot } from "./auto"; // Mantenuto commentato
 import { transpose, quantize } from "./quantize"; // Aggiunto quantize se necessario
 import {
   selectFromInterval,
@@ -22,7 +22,7 @@ import {
   toPositions,
   //names as crossOperationNames, // Rinominato per evitare conflitto
 } from "./crossOperation";
-import { grid, subdiv, recursiveInsert, insertAtMidpoint } from "./grid"; // Aggiunte funzioni da grid se necessario
+import { grid, subdiv, recursiveInsert, insertAtMidpoint, hierarchicalGrid } from "./grid"; // Aggiunte funzioni da grid se necessario
 //import { generateCounterpoint, invertMelody, analyzeMelody, reconstructNotes, durationScaler, rhythmScaler } from "./counterpoint"; // Aggiunte funzioni da counterpoint
 import { phraseLength, tihai, tihaiGenerator, tihaiReader } from "./indian"; // Aggiunte funzioni da indian
 import * as distances from "./distances"; // Exporting the whole module
@@ -63,6 +63,7 @@ export {
   autovoicingP2P,
   blockChord,
   spread,
+  autoGrado,
   VoiceRanges, // constant array
   VoiceRangeValue, // class
   getChordName,
@@ -81,6 +82,7 @@ export {
   subdiv,
   recursiveInsert,
   insertAtMidpoint,
+  hierarchicalGrid,
   // Counterpoint
   //generateCounterpoint,
   //invertMelody,
