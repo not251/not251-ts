@@ -1,0 +1,683 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ornaments</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 1rem;
+      background: #eef2f3;
+      color: #333;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .group {
+      padding: 0.5rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .group label {
+      margin-right: 0.5rem;
+      font-weight: bold;
+    }
+    .group input,
+    .group select {
+      padding: 0.3rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+    }
+    .group button {
+      padding: 0.3rem 0.6rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #0077cc;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .group button:hover {
+      background-color: #005fa3;
+    }
+    #output {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      margin: 0 auto 1rem auto;
+      max-width: 800px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 4px;
+    }
+    /* Piano Keyboard Styles */
+    #keyboard {
+      position: relative;
+      /* width will be set dynamically based on the number of white keys */
+      height: 220px;
+      margin: 1rem auto;
+      user-select: none;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      background: linear-gradient(to bottom, #fefefe, #e6e6e6);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .white-key {
+      position: absolute;
+      width: 40px;
+      height: 220px;
+      background: white;
+      border: 1px solid #bbb;
+      border-radius: 0 0 4px 4px;
+      box-sizing: border-box;
+      cursor: pointer;
+      z-index: 1;
+      transition: background 0.1s ease;
+    }
+    .white-key:hover {
+      background: #f0f8ff;
+    }
+    .black-key {
+      position: absolute;
+      width: 26px;
+      height: 140px;
+      background: #333;
+      border: 1px solid #222;
+      border-radius: 4px;
+      box-sizing: border-box;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.1s ease;
+    }
+    .black-key:hover {
+      background: #555;
+    }
+    .active {
+      background: orange !important;
+    }
+    /* Ornament parameter containers */
+    .ornament-params {
+      display: none;
+      margin-top: 0.5rem;
+    }
+    /* Explanations Section */
+    #explanations {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+    #explanations h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ornaments</h1>
+  <div class="control-panel">
+    <!-- Root Note, BPM, and Chord/Scale Inputs -->
+    <div class="group">
+      <label for="rootNote">Root Note:</label>
+      <select id="rootNote"></select>
+    </div>
+    <div class="group">
+      <label for="bpmInput">BPM:</label>
+      <input type="number" id="bpmInput" value="120" min="30" max="300" />
+    </div>
+    <div class="group">
+      <label for="chordInput">Chord (e.g., 0,4,7):</label>
+      <input type="text" id="chordInput" value="0,4,7" />
+    </div>
+    <div class="group">
+      <label for="scaleInput">Scale (e.g., 0,2,4,5,7,9,11):</label>
+      <input type="text" id="scaleInput" value="0,2,4,5,7,9,11" />
+    </div>
+    <!-- Ornament Function Selection -->
+    <div class="group">
+      <label for="ornamentFunc">Ornament Function:</label>
+      <select id="ornamentFunc">
+        <option value="custom">Custom (Manual mods)</option>
+        <option value="run">Run</option>
+        <option value="run2">Run2</option>
+        <option value="diminution">Diminution</option>
+      </select>
+    </div>
+    <!-- Custom modifications input -->
+    <div class="group ornament-params" id="customParams">
+      <label for="modTypes">Mod Types (e.g., scale,chord):</label>
+      <input type="text" id="modTypes" value="scale,chord" />
+      <label for="modDeltas">Mod Deltas (e.g., 1,-1):</label>
+      <input type="text" id="modDeltas" value="1,-1" />
+    </div>
+    <!-- Run parameters -->
+    <div class="group ornament-params" id="runParams">
+      <label for="runDegree">Degree:</label>
+      <input type="number" id="runDegree" value="4" />
+      <label for="runLength">Length:</label>
+      <input type="number" id="runLength" value="6" />
+      <label>Direction:</label>
+      <select id="runDirection">
+        <option value="true">Ascending</option>
+        <option value="false">Descending</option>
+      </select>
+      <label for="runContext">Context:</label>
+      <input type="text" id="runContext" value="scale" />
+    </div>
+    <!-- Run2 parameters -->
+    <div class="group ornament-params" id="run2Params">
+      <label for="run2Start">Start:</label>
+      <input type="number" id="run2Start" value="-2" />
+      <label for="run2End">End:</label>
+      <input type="number" id="run2End" value="2" />
+      <label for="run2Context">Context:</label>
+      <input type="text" id="run2Context" value="scale" />
+    </div>
+    <!-- Diminution parameters -->
+    <div class="group ornament-params" id="diminutionParams">
+      <label for="dimDegree">Degree:</label>
+      <input type="number" id="dimDegree" value="0" />
+      <label for="dimLength">Length:</label>
+      <input type="number" id="dimLength" value="4" />
+      <label for="dimUp">Up:</label>
+      <select id="dimUp">
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
+      <label for="dimLeft">Left:</label>
+      <select id="dimLeft">
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
+      <label for="dimContext">Context:</label>
+      <input type="text" id="dimContext" value="scale" />
+    </div>
+    <!-- Play / Stop Buttons -->
+    <div class="group">
+      <button id="playBtn">Play</button>
+      <button id="stopBtn">Stop</button>
+    </div>
+  </div>
+  <div id="output"></div>
+  <h2 style="text-align: center;">Piano Keyboard</h2>
+  <div id="keyboard"></div>
+
+  <!-- Explanations Section -->
+  <div id="explanations">
+    <h3>Info</h3>
+
+    <p>
+      This code analyzes a MIDI note’s placement in chord, scale, and chromatic contexts using a modulo value (typically 12) and applies a set of modifications, paired with their context, generating a melody.
+The modifications can be custom or can follow one of these ornament generation algorithms:
+    </p>
+    <p>
+      <strong>Run:</strong> Computes a melodic run by calculating a starting value so that, when stepped (by ±1) for the given length,
+      the final value reaches the specified <em>degree</em>. Use ascending (true) or descending (false) to set the run’s direction.
+    </p>
+    <p>
+      <strong>Run2:</strong> Produces a simple sequence from the provided <em>start</em> value to the <em>end</em> value (inclusive).
+      The sequence is ascending if <em>start</em> is less than <em>end</em>, and descending otherwise.
+    </p>
+    <p>
+      <strong>Diminution:</strong> Generates a sequence where the first and last elements equal the given <em>degree</em>.
+      The intermediate values form a melodic line that increases or decreases (as specified by <em>up</em>), and the <em>left</em> flag controls its sorting order.
+    </p>
+  </div>
+
+  <script>
+    /***********************
+     * Provided Functions
+     ***********************/
+    function diminution(degree, length, up, left) {
+      if (length <= 0) return [];
+      if (length === 1) return [degree];
+      var result = new Array(length);
+      result[0] = degree;
+      result[length - 1] = degree;
+      var distance = length - 2;
+      var firstNum = up ? degree - distance : degree + distance;
+      var middleValues = [];
+      for (var i = 1; i < length - 1; i++) {
+        if (up) {
+          middleValues.push(firstNum + (i - 1));
+        } else {
+          middleValues.push(firstNum - (i - 1));
+        }
+      }
+      if (left) {
+        middleValues.sort(function(a, b){ return a - b; });
+      } else {
+        middleValues.sort(function(a, b){ return b - a; });
+      }
+      for (var i = 0; i < middleValues.length; i++) {
+        result[i + 1] = middleValues[i];
+      }
+      return result;
+    }
+    function run(degree, length, direction) {
+      var step = direction ? 1 : -1;
+      var start = direction ? degree - (length - 1) : degree + (length - 1);
+      return Array.from({ length: length }, function(_, i) { return start + i * step; });
+    }
+    function run2(start, end) {
+      var result = [];
+      if (start < end) {
+        for (var i = start; i <= end; i++) {
+          result.push(i);
+        }
+      } else {
+        for (var i = start; i >= end; i--) {
+          result.push(i);
+        }
+      }
+      return result;
+    }
+    function normalizeNotes(notes, mod) {
+      return notes.map(function(note) {
+        var normalized = note % mod;
+        return normalized < 0 ? normalized + mod : normalized;
+      });
+    }
+    function hierarchy(note, chord, scale, chromatic, mod) {
+      var normalizedChord = normalizeNotes(chord, mod);
+      var info = function(inputNote, vector, mod) {
+        var normalizedNote = inputNote % mod;
+        var baseOctave = Math.floor(inputNote / mod);
+        var degree = -1;
+        for (var i = 0; i < vector.length; i++) {
+          if (vector[i] % mod === normalizedNote) {
+            degree = i;
+            break;
+          }
+        }
+        if (degree === -1) {
+          return { position: -666, degree: -666, octave: -666, noteValue: -666 };
+        }
+        var octaveAdjustment = Math.floor(vector[degree] / mod);
+        var position = (baseOctave + octaveAdjustment) * vector.length + degree;
+        return { position: position, degree: degree, octave: baseOctave + octaveAdjustment, noteValue: inputNote };
+      };
+      return {
+        chord: info(note, normalizedChord, mod),
+        scale: info(note, scale, mod),
+        chromatic: info(note, chromatic, mod)
+      };
+    }
+    function tripleSelect(analysis, modifications, chord, scale, chromatic, mod) {
+      var getNoteFromPosition = function(position, vector, mod) {
+        var vectorLength = vector.length;
+        var octave = Math.floor(position / vectorLength);
+        var degree = position % vectorLength;
+        return vector[degree] + octave * mod;
+      };
+      var results = [];
+      var isOut = [];
+      modifications.forEach(function(modification) {
+        var basePosition, vector;
+        switch (modification.type) {
+          case 'chord':
+            basePosition = analysis.chord.position;
+            vector = chord;
+            break;
+          case 'scale':
+            basePosition = analysis.scale.position;
+            vector = scale;
+            break;
+          case 'chromatic':
+            basePosition = analysis.chromatic.position;
+            vector = chromatic;
+            break;
+          default:
+            throw new Error('Invalid modification type');
+        }
+        if (basePosition === -666) {
+          results.push(NaN);
+          isOut.push(true);
+          return;
+        }
+        var targetPosition = basePosition + modification.delta;
+        var resultNote = getNoteFromPosition(targetPosition, vector, mod);
+        results.push(resultNote);
+        isOut.push(false);
+      });
+      return { results: results, isOut: isOut };
+    }
+    function formatModification(modification, isOut) {
+      if (isOut) {
+        return "Note not found in " + modification.type;
+      }
+      if (modification.delta === 0) {
+        return "Root note of the " + modification.type;
+      }
+      var direction = modification.delta > 0 ? "up" : "down";
+      var amount = Math.abs(modification.delta);
+      return "Moved " + direction + " " + amount + " position" + (amount !== 1 ? "s" : "") + " from the root in the " + modification.type + " context";
+    }
+    function parseModifications(deltas, types) {
+      if (types.length === 1) {
+        types = Array(deltas.length).fill(types[0]);
+      }
+      if (deltas.length !== types.length) {
+        throw new Error('Deltas and types must have the same length.');
+      }
+      return deltas.map(function(delta, index) {
+        return { type: types[index].trim(), delta: Number(delta) };
+      });
+    }
+    function ornamentTypesLoop(types, length) {
+      if (length <= 0) return [];
+      var result = [];
+      var n = types.length;
+      while (result.length < length) {
+        for (var i = n - 1; i >= 0 && result.length < length; i--) {
+          result.unshift(types[i]);
+        }
+      }
+      return result.slice(result.length - length);
+    }
+    // applyTripleSelect uses the (root) test note and returns output text and generated pitches.
+    function applyTripleSelect(notes, chord, scale, chromatic, mod, modDeltas, modTypes) {
+      var expandedTypes = ornamentTypesLoop(modTypes, modDeltas.length);
+      var modifications = parseModifications(modDeltas, expandedTypes);
+      var analysisResults = notes.map(function(note) {
+        return hierarchy(note, chord, scale, chromatic, mod);
+      });
+      var output = "";
+      var resultPitches = [];
+      notes.forEach(function(note, index) {
+        output += "\nMIDI note " + note + ":\n";
+        var triple = tripleSelect(analysisResults[index], modifications, chord, scale, chromatic, mod);
+        output += "Selected notes: [" + triple.results.join(", ") + "]\n";
+        modifications.forEach(function(mod, modIndex) {
+          output += formatModification(mod, triple.isOut[modIndex]) + "\n";
+        });
+        resultPitches = triple.results;
+      });
+      return { text: output, pitches: resultPitches };
+    }
+    
+    /***********************
+     * Demo Setup Variables
+     ***********************/
+    var mod = 12; // modulo constant
+    var chromatic = [0,1,2,3,4,5,6,7,8,9,10,11]; // fixed chromatic array
+    var testNotes = [60]; // default; updated based on root note input
+    
+    /***********************
+     * Audio Setup (Web Audio API)
+     ***********************/
+    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var activeOscillators = [];
+    var playbackTimeouts = [];
+    function playNote(midiNote, duration) {
+      var oscillator = audioCtx.createOscillator();
+      var gainNode = audioCtx.createGain();
+      var frequency = 440 * Math.pow(2, (midiNote - 69) / 12);
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
+      gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + duration + 0.05);
+      activeOscillators.push(oscillator);
+    }
+    function playSequence(pitches) {
+      var bpm = Number(document.getElementById("bpmInput").value);
+      // Calculate beat duration in ms (60,000 ms per minute)
+      var beatDuration = 60000 / bpm;
+      // Use the beat duration as delay between note onsets;
+      // you might adjust the note duration as a fraction of the beat.
+      var noteDuration = beatDuration * 0.8 / 1000; // in seconds
+      var delay = 0;
+      pitches.forEach(function(midiNote) {
+        var timeoutId = setTimeout(function() {
+          playNote(midiNote, noteDuration);
+          highlightKey(midiNote);
+        }, delay);
+        playbackTimeouts.push(timeoutId);
+        delay += beatDuration;
+      });
+    }
+    function stopPlayback() {
+      playbackTimeouts.forEach(function(id) { clearTimeout(id); });
+      playbackTimeouts = [];
+      activeOscillators.forEach(function(osc) { osc.stop(); });
+      activeOscillators = [];
+    }
+    
+    /***********************
+     * Keyboard Visualizer Setup
+     ***********************/
+    // Set keyboard range to three octaves: from MIDI 48 (C3) to MIDI 84 (C6)
+    var keyboardMin = 48, keyboardMax = 84;
+    var keyboard = document.getElementById("keyboard");
+    var keys = [];
+    var whiteKeyMidi = [];
+    for (var midi = keyboardMin; midi <= keyboardMax; midi++) {
+      var noteName = getNoteName(midi);
+      if (!noteName.includes('#')) {
+        whiteKeyMidi.push(midi);
+      }
+    }
+    function renderKeyboard() {
+      keyboard.innerHTML = "";
+      keys = [];
+      // Dynamically set keyboard width based on number of white keys
+      keyboard.style.width = (whiteKeyMidi.length * 40) + "px";
+      whiteKeyMidi.forEach(function(midi, index) {
+        var key = document.createElement("div");
+        key.classList.add("white-key");
+        key.style.left = (index * 40) + "px";
+        key.dataset.midi = midi;
+        key.addEventListener("click", function() {
+          playNote(Number(this.dataset.midi), 0.5);
+          flashKey(this);
+        });
+        keyboard.appendChild(key);
+        keys.push(key);
+      });
+      // Render black keys within the keyboard range
+      for (var midi = keyboardMin; midi <= keyboardMax; midi++) {
+        var noteName = getNoteName(midi);
+        if (noteName.includes('#')) {
+          var pos = getKeyPosition(midi);
+          var key = document.createElement("div");
+          key.classList.add("black-key");
+          key.style.left = pos + "px";
+          key.dataset.midi = midi;
+          key.addEventListener("click", function() {
+            playNote(Number(this.dataset.midi), 0.5);
+            flashKey(this);
+          });
+          keyboard.appendChild(key);
+          keys.push(key);
+        }
+      }
+    }
+    function getNoteName(midi) {
+      var notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      return notes[midi % 12] + Math.floor(midi / 12);
+    }
+    function getKeyPosition(midi) {
+      // Find the nearest white key before the black key
+      var base = midi - 1;
+      var index = whiteKeyMidi.indexOf(base);
+      if (index === -1) { index = 0; }
+      return (index * 40) + 28;
+    }
+    function flashKey(keyEl) {
+      keyEl.classList.add("active");
+      setTimeout(function() { keyEl.classList.remove("active"); }, 300);
+    }
+    function highlightKey(midi) {
+      keys.forEach(function(keyEl) {
+        if (Number(keyEl.dataset.midi) === midi) {
+          flashKey(keyEl);
+        }
+      });
+    }
+    
+    /***********************
+     * Root Note Dropdown Setup
+     ***********************/
+    var rootNoteSelect = document.getElementById("rootNote");
+    function populateRootNoteSelect() {
+      for (var midi = keyboardMin; midi <= keyboardMax; midi++) {
+        // Only include white keys in the dropdown for clarity
+        if (!getNoteName(midi).includes('#')) {
+          var option = document.createElement("option");
+          option.value = midi;
+          option.textContent = getNoteName(midi) + " (MIDI " + midi + ")";
+          rootNoteSelect.appendChild(option);
+        }
+      }
+      // Default to Middle C (MIDI 60) if in range
+      rootNoteSelect.value = "60";
+    }
+    
+    /***********************
+     * Ornament Function Selection UI
+     ***********************/
+    var ornamentFuncSelect = document.getElementById("ornamentFunc");
+    var customParams = document.getElementById("customParams");
+    var runParams = document.getElementById("runParams");
+    var run2Params = document.getElementById("run2Params");
+    var diminutionParams = document.getElementById("diminutionParams");
+    
+    function updateOrnamentUI() {
+      var val = ornamentFuncSelect.value;
+      customParams.style.display = (val === "custom") ? "block" : "none";
+      runParams.style.display = (val === "run") ? "block" : "none";
+      run2Params.style.display = (val === "run2") ? "block" : "none";
+      diminutionParams.style.display = (val === "diminution") ? "block" : "none";
+      updateAnalysis();
+    }
+    ornamentFuncSelect.addEventListener("change", updateOrnamentUI);
+    
+    /***********************
+     * Get Ornament Modifications
+     ***********************/
+    function getOrnamentModifications() {
+      var funcType = ornamentFuncSelect.value;
+      var modDeltas = [];
+      var modTypes = [];
+      if (funcType === "custom") {
+        var typesInput = document.getElementById("modTypes").value;
+        var deltasInput = document.getElementById("modDeltas").value;
+        if (!typesInput || !deltasInput) return { modDeltas: [], modTypes: [] };
+        modTypes = typesInput.split(",").map(function(t) { return t.trim(); });
+        modDeltas = deltasInput.split(",").map(function(d) { return d.trim(); });
+      } else if (funcType === "run") {
+        var degree = Number(document.getElementById("runDegree").value);
+        var length = Number(document.getElementById("runLength").value);
+        var direction = document.getElementById("runDirection").value === "true";
+        modDeltas = run(degree, length, direction);
+        var ctx = document.getElementById("runContext").value || "scale";
+        modTypes = Array(modDeltas.length).fill(ctx);
+      } else if (funcType === "run2") {
+        var start = Number(document.getElementById("run2Start").value);
+        var end = Number(document.getElementById("run2End").value);
+        modDeltas = run2(start, end);
+        var ctx = document.getElementById("run2Context").value || "scale";
+        modTypes = Array(modDeltas.length).fill(ctx);
+      } else if (funcType === "diminution") {
+        var degree = Number(document.getElementById("dimDegree").value);
+        var length = Number(document.getElementById("dimLength").value);
+        var up = document.getElementById("dimUp").value === "true";
+        var left = document.getElementById("dimLeft").value === "true";
+        modDeltas = diminution(degree, length, up, left);
+        var ctx = document.getElementById("dimContext").value || "scale";
+        modTypes = Array(modDeltas.length).fill(ctx);
+      }
+      return { modDeltas: modDeltas, modTypes: modTypes };
+    }
+    
+    /***********************
+     * Update Analysis (without key highlighting)
+     ***********************/
+    function updateAnalysis() {
+      var chordInput = document.getElementById("chordInput").value;
+      var scaleInput = document.getElementById("scaleInput").value;
+      var chordArr = chordInput ? chordInput.split(",").map(Number) : [0,4,7];
+      var scaleArr = scaleInput ? scaleInput.split(",").map(Number) : [0,2,4,5,7,9,11];
+      var root = Number(rootNoteSelect.value);
+      testNotes = [root];
+      var mods = getOrnamentModifications();
+      if (!mods.modDeltas.length || !mods.modTypes.length || mods.modDeltas[0] === "") {
+        document.getElementById("output").textContent = "Enter ornament parameters...";
+        return;
+      }
+      try {
+        var result = applyTripleSelect(testNotes, chordArr, scaleArr, chromatic, mod, mods.modDeltas, mods.modTypes);
+        document.getElementById("output").textContent = result.text;
+      } catch (e) {
+        document.getElementById("output").textContent = "Error: " + e.message;
+      }
+    }
+    
+    /***********************
+     * Event Listeners & Auto-update
+     ***********************/
+    document.getElementById("chordInput").addEventListener("input", updateAnalysis);
+    document.getElementById("scaleInput").addEventListener("input", updateAnalysis);
+    document.getElementById("modTypes").addEventListener("input", updateAnalysis);
+    document.getElementById("modDeltas").addEventListener("input", updateAnalysis);
+    document.getElementById("runDegree").addEventListener("input", updateAnalysis);
+    document.getElementById("runLength").addEventListener("input", updateAnalysis);
+    document.getElementById("runDirection").addEventListener("change", updateAnalysis);
+    document.getElementById("runContext").addEventListener("input", updateAnalysis);
+    document.getElementById("run2Start").addEventListener("input", updateAnalysis);
+    document.getElementById("run2End").addEventListener("input", updateAnalysis);
+    document.getElementById("run2Context").addEventListener("input", updateAnalysis);
+    document.getElementById("dimDegree").addEventListener("input", updateAnalysis);
+    document.getElementById("dimLength").addEventListener("input", updateAnalysis);
+    document.getElementById("dimUp").addEventListener("change", updateAnalysis);
+    document.getElementById("dimLeft").addEventListener("change", updateAnalysis);
+    document.getElementById("dimContext").addEventListener("input", updateAnalysis);
+    rootNoteSelect.addEventListener("change", updateAnalysis);
+    
+    // Play and Stop buttons
+    document.getElementById("playBtn").addEventListener("click", function() {
+      var mods = getOrnamentModifications();
+      var chordInput = document.getElementById("chordInput").value;
+      var scaleInput = document.getElementById("scaleInput").value;
+      var chordArr = chordInput ? chordInput.split(",").map(Number) : [0,4,7];
+      var scaleArr = scaleInput ? scaleInput.split(",").map(Number) : [0,2,4,5,7,9,11];
+      var root = Number(rootNoteSelect.value);
+      testNotes = [root];
+      try {
+        var result = applyTripleSelect(testNotes, chordArr, scaleArr, chromatic, mod, mods.modDeltas, mods.modTypes);
+        playSequence(result.pitches);
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    });
+    document.getElementById("stopBtn").addEventListener("click", stopPlayback);
+    
+    /***********************
+     * Initialization
+     ***********************/
+    populateRootNoteSelect();
+    renderKeyboard();
+    updateOrnamentUI(); // sets proper ornament UI and calls updateAnalysis()
+  </script>
+</body>
+</html>

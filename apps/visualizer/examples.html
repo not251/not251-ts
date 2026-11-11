@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    h1, h2, h3 {
+      color: #333;
+    }
+    section {
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    nav ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    nav li {
+      display: inline-block;
+      margin-right: 15px;
+    }
+    .example {
+      background: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ddd;
+      margin-top: 10px;
+    }
+    input, button {
+      padding: 5px;
+      margin: 5px 0;
+    }
+    .result {
+      background: #eef;
+      padding: 10px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+    .global-settings {
+      background: #def;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #89a;
+    }
+  .radio-group {
+    margin: 10px 0;
+    padding: 5px;
+    background: #f5f5f5;
+    border-radius: 4px;
+  }
+  .radio-group label {
+    margin-right: 10px;
+  }
+  .radio-group input[type="radio"] {
+    margin-right: 5px;
+  }
+  </style>
+</head>
+
+<body>
+  <h1>Demo</h1>
+  <div class="global-settings">
+    <h3>Modulo</h3>
+    <label for="globalMod">Modulo (m): </label>
+    <input type="number" id="globalMod" value="12">
+  </div>
+  
+  <nav>
+    <ul>
+      <li><a href="#euclidean-division">Divisione Euclidea</a></li>
+      <li><a href="#definitions">Definizioni</a></li>
+      <li><a href="#conv-int-pos">Posizioni ↔ Intervalli</a></li>
+      <li><a href="#rot-pos">Rotazioni</a></li>
+      <li><a href="#sel-pos">Selezioni</a></li>
+      <li><a href="#distances">Distanze</a></li>
+		<li><a href="#pattern-generation">Generazione di pattern</a></li>
+		<li><a href="#voice-leading">Voice Leading</a></li>
+      <li><a href="#modal-interchange">Interscambio modale / Modulazione</a></li>
+    </ul>
+  </nav>
+
+  <!-- Section: Euclidean Division -->
+  <section id="euclidean-division">
+    <h2>Divisione Euclidea</h2>
+    <p>Inserisci i valori di a e b (con b ≠ 0):</p>
+    <div class="example">
+      <label for="aValue">a: </label>
+      <input type="number" id="aValue" value="17">
+      <label for="bValue">b: </label>
+      <input type="number" id="bValue" value="5">
+      <button onclick="computeEuclideanDivision()">Calcola</button>
+      <div id="euclideanResult" class="result"></div>
+    </div>
+  </section>
+
+  <!-- Section: Definitions (Cycle computation) -->
+  <section id="definitions">
+    <h2>Definizioni</h2>
+    <h3>Calcolo del ciclo c di un vettore delle posizioni</h3>
+    <p>Inserisci il vettore delle posizioni P (valori separati da virgola).</p>
+    <div class="example">
+      <label for="vectorP">P: </label>
+      <input type="text" id="vectorP" value="0, 4, 7, 11, 14">
+      <button onclick="computeCycle()">Calcola</button>
+      <div id="cycleResult" class="result"></div>
+    </div>
+
+  <!-- Section: Extended Vector of Positions -->
+
+    <h3>Vettore esteso delle posizioni</h3>
+    <p>Inserisci il vettore delle posizioni P e un indice j per calcolare l'elemento p̃(j) := p(r(j,n)) + c · q(j, n).
+</p>
+    <div class="example">
+      <label for="vectorP2">P: </label>
+      <input type="text" id="vectorP2" value="0, 4, 7">
+      <label for="indexJ">j: </label>
+      <input type="number" id="indexJ" value="5">
+      <button onclick="computeExtendedPosition()">Calcola</button>
+      <div id="extendedPosResult" class="result"></div>
+    </div>
+
+  <!-- Section: Extended Vector of Intervals -->
+    <h3>Vettore esteso degli intervalli</h3>
+    <p>Inserisci il vettore degli intervalli I (valori separati da virgola) e un indice j per calcolare l'elemento ĩ(j):= i(r(j,n))</p>
+    <div class="example">
+      <label for="vectorI">I: </label>
+      <input type="text" id="vectorI" value="3, 3, 2">
+      <label for="indexJ2">j: </label>
+      <input type="number" id="indexJ2" value="-1">
+      <button onclick="computeExtendedInterval()">Calcola</button>
+      <div id="extendedIntResult" class="result"></div>
+    </div>
+
+    </section>
+  <!-- Sezione: Conversione da Intervalli a Posizioni -->
+  <section id="conv-int-pos">
+    <h2>Conversioni</h2>
+    <h3>Da Intervalli a Posizioni</h3>
+
+    <div class="example">
+      <label for="vectorI2">I (separati da virgola): </label>
+      <input type="text" id="vectorI2" value="2, 2, 1, 2, 2, 2, 1">
+      <label for="shiftValue">Shift s: </label>
+      <input type="number" id="shiftValue" value="0">
+      <button onclick="demoIntervalsToPositions()">Calcola</button>
+      <div id="intToPosResult" class="result"></div>
+    </div>
+
+  
+  <!-- Sezione: Conversione da Posizioni a Intervalli -->
+
+    <h3>Da Posizioni a Intervalli</h3>
+
+    <div class="example">
+      <label for="vectorP3">P (separati da virgola): </label>
+      <input type="text" id="vectorP3" value="0, 2, 4, 5, 7, 9, 11">
+      <button onclick="demoPositionsToIntervals()">Calcola</button>
+      <div id="posToIntResult" class="result"></div>
+    </div>
+  </section>
+  
+  <!-- Sezione: Rotazione semplice delle posizioni: rot(P) -->
+  <section id="rot-pos">
+    <h2>Rotazioni</h2>
+    <h3>Rotazione Semplice delle Posizioni</h3>
+
+    <div class="example">
+      <label for="vectorP4">P (separati da virgola): </label>
+      <input type="text" id="vectorP4" value="0, 4, 7, 11">
+      <label for="rotationK">Parametro di rotazione: </label>
+      <input type="number" id="rotationK" value="1">
+      <button onclick="rotatePositions()">Calcola</button>
+      <div id="rotationResult" class="result"></div>
+    </div>
+
+  <!-- Sezione: Rototraslazione delle posizioni: rot*(P) -->
+
+    <h3>Rototraslazione delle Posizioni</h3>
+
+    <div class="example">
+      <label for="vectorPStar">P (separati da virgola): </label>
+      <input type="text" id="vectorPStar" value="0, 4, 7, 11">
+      <label for="rotationKStar">Parametro di rotazione: </label>
+      <input type="number" id="rotationKStar" value="-1">
+      <button onclick="rotateTransposedPositions()">Calcola</button>
+      <div id="rotStarResult" class="result"></div>
+    </div>
+
+  
+  <!-- Sezione: Rotazione degli intervalli: rot(I) -->
+
+    <h3>Rotazione degli Intervalli</h3>
+
+    <div class="example">
+      <label for="vectorIrot">I (separati da virgola): </label>
+      <input type="text" id="vectorIrot" value="2, 2, 1, 2, 2, 2, 1">
+      <label for="rotationKInt">Parametro di rotazione: </label>
+      <input type="number" id="rotationKInt" value="1">
+      <button onclick="rotateIntervals()">Calcola</button>
+      <div id="rotationIntResult" class="result"></div>
+    </div>
+  </section>
+
+  <!-- Sezione: Operazioni di Selezione -->
+<section id="sel-pos">
+    <h2>Selezione</h2>
+    <!-- Selezione usando criterio vettore delle posizioni -->
+    <h3>Selezione (criterio: vettore delle posizioni)</h3>
+    <div class="example">
+      <label for="vectorA_sel">A (separati da virgola): </label>
+      <input type="text" id="vectorA_sel" value="0, 2, 4, 5, 7, 9, 11">
+      <label for="vectorP_sel">P (selezione, separati da virgola): </label>
+      <input type="text" id="vectorP_sel" value="0, 2, 4">
+      <br>
+      <div class="radio-group">
+        <label>Tipo di A:</label>
+        <input type="radio" id="atype_sel_pos" name="atype_sel" value="pos" checked>
+        <label for="atype_sel_pos">Posizioni</label>
+        <input type="radio" id="atype_sel_int" name="atype_sel" value="int">
+        <label for="atype_sel_int">Intervalli</label>
+      </div>
+      <!-- Nuovi parametri per la rototraslazione -->
+      <label for="rotationA_sel">Rotazione di A: </label>
+      <input type="number" id="rotationA_sel" value="0">
+      <br>
+      <label for="rotationP_sel">Rototraslazione del criterio P: </label>
+      <input type="number" id="rotationP_sel" value="0">
+      <br>
+      <button onclick="demoSelectFromA_usingP()">Seleziona</button>
+      <div id="selPosResult" class="result"></div>
+    </div>
+
+    <!-- Selezione usando criterio vettore degli intervalli -->
+    <h3>Selezione (criterio: vettore degli intervalli)</h3>
+    <div class="example">
+      <label for="vectorA_sel2">A (separati da virgola): </label>
+      <input type="text" id="vectorA_sel2" value="0, 2, 4, 5, 7, 9, 11">
+      <label for="vectorI_sel">I (separati da virgola): </label>
+      <input type="text" id="vectorI_sel" value="2, 2, 2">
+      <br>
+      <label for="selShift">Shift s: </label>
+      <input type="number" id="selShift" value="0">
+      <br>
+      <div class="radio-group">
+        <label>Tipo di A:</label>
+        <input type="radio" id="atype_sel2_pos" name="atype_sel2" value="pos" checked>
+        <label for="atype_sel2_pos">Posizioni</label>
+        <input type="radio" id="atype_sel2_int" name="atype_sel2" value="int">
+        <label for="atype_sel2_int">Intervalli</label>
+      </div>
+      <!-- Nuovi parametri per la rototraslazione -->
+      <label for="rotationA_sel2">Rotazione di A: </label>
+      <input type="number" id="rotationA_sel2" value="0">
+      <br>
+      <label for="rotationI_sel">Rotazione del criterio I: </label>
+      <input type="number" id="rotationI_sel" value="0">
+      <br>
+      <button onclick="demoSelectFromA_usingI()">Seleziona</button>
+      <div id="selIntResult" class="result"></div>
+    </div>
+
+  <!-- Section: Distances -->
+  <section id="distances">
+    <h2>Distanze</h2>
+    <h3>Distanza Euclidea</h3>
+    <p>Inserisci due vettori della stessa lunghezza (valori separati da virgola):</p>
+    <div class="example">
+      <label for="vectorA">A: </label>
+      <input type="text" id="vectorA" value="0, 4, 7">
+      <label for="vectorB">B: </label>
+      <input type="text" id="vectorB" value="7, 11, 14">
+      <button onclick="computeEuclideanDistance()">Calcola</button>
+      <div id="euclideanDistResult" class="result"></div>
+    </div>
+    <h3>Distanza di Levenshtein (Edit Distance)</h3>
+    <p>Inserisci due stringhe della stessa lunghezza (o vettori di simboli, separati da virgola):</p>
+    <div class="example">
+      <label for="stringA">A: </label>
+      <input type="text" id="stringA" value="0, 2, 4, 5, 7, 9, 11">
+      <label for="stringB">B: </label>
+      <input type="text" id="stringB" value="1, 2, 4, 6, 7, 9, 11">
+      <button onclick="computeLevenshtein()">Calcola</button>
+      <div id="levenshteinResult" class="result"></div>
+    </div>
+  </section>
+
+  <!-- Section: Pattern Generation -->
+  <section id="pattern-generation">
+    <h2>Generazione di pattern ritmici</h2>
+    <h3>Algoritmo di Euclide</h3>
+    <p>Inserisci n (numero totale di passi) e k (numero di eventi):</p>
+    <div class="example">
+      <label for="nValue">n: </label>
+      <input type="number" id="nValue" value="12">
+      <label for="kValue">k: </label>
+      <input type="number" id="kValue" value="7">
+      <button onclick="generateEuclideanIntervalsUIByEuclid()">Genera</button>
+      <div id="euclideanPatternResult" class="result"></div>
+    </div>
+    <h3>Algoritmo di Clough–Douthett</h3>
+    <p>Inserisci n e k:</p>
+    <div class="example">
+      <label for="nValueCD">n: </label>
+      <input type="number" id="nValueCD" value="12">
+      <label for="kValueCD">k: </label>
+      <input type="number" id="kValueCD" value="7">
+      <button onclick="generateCloughDouthett()">Genera</button>
+      <div id="cloughDouthettResult" class="result"></div>
+    </div>
+    <h3>Deep Rhythm</h3>
+    <p>Inserisci n, k e m:</p>
+    <div class="example">
+      <label for="nValueDeep">n: </label>
+      <input type="number" id="nValueDeep" value="12">
+      <label for="kValueDeep">k: </label>
+      <input type="number" id="kValueDeep" value="7">
+      <label for="mValueDeep">m: </label>
+      <input type="number" id="mValueDeep" value="7">
+      <button onclick="generateDeepRhythm()">Genera</button>
+      <div id="deepRhythmResult" class="result"></div>
+    </div>
+  <h3>Tihai</h3>
+  <p>
+    Inserisci n (numero di passi) e m (modularità) per generare un Tihai.<br>
+    Seleziona “Pseudo-Tihai” per forzare la generazione ricorsiva.
+  </p>
+  <div class="example">
+    <label for="nValueTihai">n: </label>
+    <input type="number" id="nValueTihai" value="16">
+    <label for="mValueTihai">m: </label>
+    <input type="number" id="mValueTihai" value="3">
+    <label for="pseudoToggle">Pseudo-Tihai: </label>
+    <input type="checkbox" id="pseudoToggle">
+    <br>
+    <button onclick="computeTihai()">Calcola</button>
+    <div id="tihaiResult" class="result"></div>
+  </div>
+  </section>
+
+  <!-- Section: Voice Leading -->
+  <section id="voice-leading">
+    <h2>Algoritmi per l'automazione del Voice Leading</h2>
+    <h3>Voice Leading Point-to-Point</h3>
+    <p>Inserisci due vettori delle posizioni (V1 e V2) (numeri interi separati da virgola). </p>
+    <div class="example">
+      <label for="vectorV1">V1: </label>
+      <input type="text" id="vectorV1" value="60, 64, 67">
+      <label for="vectorV2">V2: </label>
+      <input type="text" id="vectorV2" value="65, 69, 72">
+      <button onclick="voiceLeadingPointToPoint()">Calcola</button>
+      <div id="voiceLeadingResult" class="result"></div>
+    </div>
+    <h3>Voice Leading Euclideo</h3>
+    <p>Inserisci i vettori V1 e V2 (numeri interi separati da virgola). </p>
+    <div class="example">
+      <label for="vectorV1E">V1: </label>
+      <input type="text" id="vectorV1E" value="60, 64, 67">
+      <label for="vectorV2E">V2: </label>
+      <input type="text" id="vectorV2E" value="67, 71, 74">
+      <button onclick="voiceLeadingEuclidean()">Calcola</button>
+      <div id="voiceLeadingEuclideanResult" class="result"></div>
+    </div>
+  </section>
+
+  <!-- Section: Modal Interchange and Modulation -->
+  <section id="modal-interchange">
+    <h2>Interscambio Modale e Modulazione</h2>
+    <h3>Interscambio Modale</h3>
+    <p>
+      Inserisci una scala S come vettore degli intervalli (separati da virgola), 
+      lo shift desiderato e le note in ingresso (numeri interi).<br>
+    </p>
+    <div class="example">
+      <label for="scaleS">Scala S (intervalli): </label>
+      <input type="text" id="scaleS" value="2, 2, 1, 2, 2, 2, 1">
+      <label for="modalShift">Shift: </label>
+      <input type="number" id="modalShift" value="0">
+      <label for="notesInput">Note in ingresso: </label>
+      <input type="text" id="notesInput" value="61">
+      <button onclick="modalInterchange()">Calcola</button>
+      <div id="modalInterchangeResult" class="result"></div>
+    </div>
+    <h3>Modulazione</h3>
+    <p>Inserisci una scala S (vettore di posizioni) e le note in ingresso.</p>
+    <div class="example">
+      <label for="scaleS2">Scala S (posizioni): </label>
+      <input type="text" id="scaleS2" value="0, 2, 4, 5, 7, 9, 11">
+      <label for="notesInput2">Note in ingresso: </label>
+      <input type="text" id="notesInput2" value="61, 68">
+      <button onclick="modulation()">Calcola</button>
+      <div id="modulationResult" class="result"></div>
+    </div>
+  </section>
+
+  <script>
+    // Utility: parse comma‐separated string into number array
+    function parseNumberArray(str) {
+      return str.split(',')
+                .map(s => parseFloat(s.trim()))
+                .filter(s => !isNaN(s));
+    }
+
+    function mod(n, m) {
+      return ((n % m) + m) % m;
+    }
+    // ---------------------------
+    // Global: Euclidean Division
+    // ---------------------------
+    function euclideanDivision(a, b) {
+      const absB = Math.abs(b);
+      let r = a % absB;
+      if (r < 0) { r += absB; }
+      let q = (a - r) / b;
+      return { q: q, r: r };
+    }
+
+    function computeEuclideanDivision() {
+      const a = parseInt(document.getElementById('aValue').value);
+      const b = parseInt(document.getElementById('bValue').value);
+      if (b === 0) {
+        document.getElementById('euclideanResult').innerText = "b deve essere diverso da 0.";
+        return;
+      }
+      const result = euclideanDivision(a, b);
+      document.getElementById('euclideanResult').innerText =
+        `q = ${result.q}, r = ${result.r}`;
+    }
+
+    // ---------------------------
+    // Cycle computation: c(P, m) = m * (q(g, m) + 1)
+    // ---------------------------
+    function computeCycle() {
+      const P = parseNumberArray(document.getElementById('vectorP').value);
+      const m = parseInt(document.getElementById('globalMod').value);
+      if (P.length === 0) {
+        document.getElementById('cycleResult').innerText = "Inserire un vettore P valido.";
+        return;
+      }
+      const g = (Math.max(...P) - P[0]);
+      const division = euclideanDivision(g, m);
+      const c = m * (division.q + 1);
+      document.getElementById('cycleResult').innerText =
+        `g = ${g}, q(g, m) = ${division.q}, c(P, m) = ${c}`;
+    }
+    // --- Funzioni Tilde ---
+    // tildeP: per un vettore P (di posizioni)
+    function tildeP(j, P, m) {
+      const L = P.length;
+      const div = euclideanDivision(j, L);
+      let q_j = div.q;
+      let r_j = div.r;
+      const g = (Math.max(...P) - P[0]);
+      const divG = euclideanDivision(g, m);
+      const c = m * (divG.q + 1);
+      return P[r_j] + c * q_j;
+    }
+    // tildeI: per un vettore I (di intervalli)
+    function tildeI(j, I) {
+      const n = I.length;
+      const div = euclideanDivision(j, n);
+      return I[div.r];
+    }
+    
+    // --- Conversioni ---
+    // Da intervalli a posizioni: 
+    // p0 = s, p[k+1] = p[k] + I[k]
+    function intervalsToPositions(I, s) {
+      let P = [];
+      P[0] = s;
+      for (let k = 0; k < I.length - 1; k++) {
+        P[k+1] = P[k] + I[k];
+      }
+      return P;
+    }
+    // Da posizioni a intervalli: 
+    // I[k] = tildeP(k+1, P, m) - P[k] (per P con n+1 elementi)
+    function positionsToIntervals(P, m) {
+      let I = [];
+      const n = P.length;
+      for (let k = 0; k < n; k++) {
+        I[k] = tildeP(k+1, P, m) - tildeP(k, P, m);
+      }
+      return I;
+    }
+    
+
+    // ---------------------------
+    // Extended Vector of Positions: p̃(j) = p[r(j,n)] + c * q(j,n)
+    // ---------------------------
+    function computeExtendedPosition() {
+      const P = parseNumberArray(document.getElementById('vectorP2').value);
+      const j = parseInt(document.getElementById('indexJ').value);
+      const m = parseInt(document.getElementById('globalMod').value);
+      if (P.length === 0) {
+        document.getElementById('extendedPosResult').innerText = "Inserire un vettore P valido.";
+        return;
+      }
+      const n = P.length;
+      const g = (Math.max(...P) - P[0]);
+      const division = euclideanDivision(g, m);
+      const c = m * (division.q + 1);
+      let q_j = Math.floor(j / n);
+      let r_j = j % n;
+      if (r_j < 0) { r_j += n; q_j = Math.floor((j - r_j) / n); }
+      const extPos = P[r_j] + c * q_j;
+      document.getElementById('extendedPosResult').innerText =
+        `Per j = ${j}: r = ${r_j}, q = ${q_j}, p̃(j) = ${extPos}`;
+    }
+
+    // ---------------------------
+    // Extended Vector of Intervals: ĩ(j) = i[r(j, n)]
+    // ---------------------------
+    function computeExtendedInterval() {
+      const I = parseNumberArray(document.getElementById('vectorI').value);
+      const j = parseInt(document.getElementById('indexJ2').value);
+      if (I.length === 0) {
+        document.getElementById('extendedIntResult').innerText = "Inserire un vettore I valido.";
+        return;
+      }
+      const n = I.length;
+	const division = euclideanDivision(j, n);
+      let r_j = j % n;
+      if (r_j < 0) { r_j += n; }
+      document.getElementById('extendedIntResult').innerText =
+        `Per j = ${j}: r = ${r_j}, ĩ(j) = ${I[r_j]}`;
+    }
+    function demoIntervalsToPositions() {
+      const I = parseNumberArray(document.getElementById('vectorI2').value);
+      const s = parseInt(document.getElementById('shiftValue').value);
+      const P = intervalsToPositions(I, s);
+      document.getElementById('intToPosResult').innerText =
+        `Da I = [${I.join(', ')}] con shift s = ${s} otteniamo P = [${P.join(', ')}]`;
+    }
+    function demoPositionsToIntervals() {
+      const P = parseNumberArray(document.getElementById('vectorP3').value);
+      const m = parseInt(document.getElementById('globalMod').value);
+      const I = positionsToIntervals(P, m);
+      document.getElementById('posToIntResult').innerText =
+        `Da P = [${P.join(', ')}] otteniamo I = [${I.join(', ')}] con s = ${P[0]}`;
+    }
+    
+      // --- Rotazioni ---
+    function rotatePositions() {
+      const P = parseNumberArray(document.getElementById('vectorP4').value);
+      const k = parseInt(document.getElementById('rotationK').value);
+      if (P.length === 0) {
+        document.getElementById('rotationResult').innerText = "Inserire un vettore P valido.";
+        return;
+      }
+      const L = P.length;
+      let rotated = [];
+      for (let i = 0; i < L; i++) {
+        rotated.push(P[mod(i + k, L)]);
+      }
+      document.getElementById('rotationResult').innerText =
+        `Vettore ruotato: [${rotated.join(', ')}]`;
+    }
+    function rotateTransposedPositions() {
+      const P = parseNumberArray(document.getElementById('vectorPStar').value);
+      const k = parseInt(document.getElementById('rotationKStar').value);
+      const m = parseInt(document.getElementById('globalMod').value);
+      if (P.length === 0) {
+        document.getElementById('rotStarResult').innerText = "Inserire un vettore P valido.";
+        return;
+      }
+      const L = P.length;
+      let result = [];
+      for (let i = 0; i < L; i++) {
+        result.push(tildeP(k + i, P, m));
+      }
+      document.getElementById('rotStarResult').innerText =
+        `Vettore ruotato e traslato: [${result.join(', ')}]`;
+    }
+    function rotateIntervals() {
+      const I = parseNumberArray(document.getElementById('vectorIrot').value);
+      const k = parseInt(document.getElementById('rotationKInt').value);
+      if (I.length === 0) {
+        document.getElementById('rotationIntResult').innerText = "Inserire un vettore I valido.";
+        return;
+      }
+      const n = I.length;
+      let rotated = [];
+      for (let j = 0; j < n; j++) {
+        rotated.push(tildeI(k + j, I));
+      }
+      document.getElementById('rotationIntResult').innerText =
+        `Vettore ruotato: [${rotated.join(', ')}]`;
+    }
+    
+    // --- Operazioni di Selezione ---
+    // Funzione extendedA: a seconda che A sia di posizioni o di intervalli
+    function extendedA(x, A, m, type) {
+      if (type === "pos") {
+        return tildeP(x, A, m);
+      } else if (type === "int") {
+        return tildeI(x, A);
+      } else {
+        // Default: assume posizioni
+        return tildeP(x, A, m);
+      }
+    }
+    
+     // Selezione usando criterio vettore delle posizioni
+    function demoSelectFromA_usingP() {
+      let A = parseNumberArray(document.getElementById('vectorA_sel').value);
+      let P = parseNumberArray(document.getElementById('vectorP_sel').value);
+      let m = parseInt(document.getElementById('globalMod').value);
+      let type = document.querySelector('input[name="atype_sel"]:checked').value;
+      let rotA = parseInt(document.getElementById('rotationA_sel').value);
+      let rotP = parseInt(document.getElementById('rotationP_sel').value);
+      
+      if (A.length === 0 || P.length === 0) {
+        document.getElementById('selPosResult').innerText = "Inserire vettori validi.";
+        return;
+      }
+      
+      // Applica la rototraslazione/rotazione a A in base al tipo
+      let rotatedA = [];
+      if (type === "pos") {
+        for (let i = 0; i < A.length; i++) {
+          rotatedA.push(tildeP(rotA + i, A, m));
+        }
+      } else if (type === "int") {
+        for (let i = 0; i < A.length; i++) {
+          rotatedA.push(tildeI(rotA + i, A));
+        }
+      }
+      
+      // Applica la rototraslazione al vettore criterio P
+      let rotatedP = [];
+      for (let i = 0; i < P.length; i++) {
+        rotatedP.push(tildeP(rotP + i, P, A.length));
+      }
+      
+      // Esegui la selezione: per ogni elemento di rotatedP, usa extendedA
+      let result = [];
+      for (let i = 0; i < rotatedP.length; i++) {
+        result.push( extendedA(rotatedP[i], rotatedA, m, type) );
+      }
+      
+      document.getElementById('selPosResult').innerText =
+        `Selezione: [${result.join(', ')}]`;
+    }
+    
+    // Selezione usando criterio vettore degli intervalli
+    function demoSelectFromA_usingI() {
+      let A = parseNumberArray(document.getElementById('vectorA_sel2').value);
+      let I = parseNumberArray(document.getElementById('vectorI_sel').value);
+      let s = parseInt(document.getElementById('selShift').value);
+      let m = parseInt(document.getElementById('globalMod').value);
+      let type = document.querySelector('input[name="atype_sel2"]:checked').value;
+      let rotA = parseInt(document.getElementById('rotationA_sel2').value);
+      let rotI = parseInt(document.getElementById('rotationI_sel').value);
+      
+      if (A.length === 0 || I.length === 0) {
+        document.getElementById('selIntResult').innerText = "Inserire vettori validi.";
+        return;
+      }
+      
+      // Applica la rototraslazione/rotazione a A
+      let rotatedA = [];
+      if (type === "pos") {
+        for (let i = 0; i < A.length; i++) {
+          rotatedA.push(tildeP(rotA + i, A, m));
+        }
+      } else if (type === "int") {
+        for (let i = 0; i < A.length; i++) {
+          rotatedA.push(tildeI(rotA + i, A));
+        }
+      }
+      
+      // Applica la rotazione al vettore criterio I
+      let rotatedI = [];
+      for (let j = 0; j < I.length; j++) {
+        rotatedI.push(tildeI(rotI + j, I));
+      }
+      
+      // Esegui la selezione con shift s e cumulando gli intervalli
+      let result = [];
+      result[0] = tildeP(s, rotatedA, m);
+      let cum = 0;
+      for (let k = 1; k < rotatedI.length; k++) {
+        cum += rotatedI[k - 1];
+        result[k] = extendedA(cum + s, rotatedA, m, type);
+      }
+      document.getElementById('selIntResult').innerText =
+        `Selezione: [${result.join(', ')}]`;
+    }
+    // ---------------------------
+    // Euclidean Distance between two vectors
+    // ---------------------------
+    function computeEuclideanDistance() {
+      const A = parseNumberArray(document.getElementById('vectorA').value);
+      const B = parseNumberArray(document.getElementById('vectorB').value);
+      if (A.length !== B.length) {
+        document.getElementById('euclideanDistResult').innerText = "I vettori devono avere la stessa lunghezza.";
+        return;
+      }
+      let sum = 0;
+      for (let i = 0; i < A.length; i++) {
+        sum += Math.pow(B[i] - A[i], 2);
+      }
+      const dist = Math.sqrt(sum);
+      document.getElementById('euclideanDistResult').innerText =
+        `Distanza: ${dist.toFixed(3)}`;
+    }
+
+    // ---------------------------
+    // Levenshtein (Edit) Distance
+    // ---------------------------
+    function levenshtein(a, b) {
+      const m = a.length;
+      const n = b.length;
+      let dp = [];
+      for (let i = 0; i <= m; i++) { dp[i] = [i]; }
+      for (let j = 0; j <= n; j++) { dp[0][j] = j; }
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          if (a[i - 1] === b[j - 1]) {
+            dp[i][j] = dp[i - 1][j - 1];
+          } else {
+            dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+          }
+        }
+      }
+      return dp[m][n];
+    }
+
+    function computeLevenshtein() {
+      const A = document.getElementById('stringA').value.split(',').map(s => s.trim());
+      const B = document.getElementById('stringB').value.split(',').map(s => s.trim());
+      const dist = levenshtein(A, B);
+      document.getElementById('levenshteinResult').innerText =
+        `Distanza: ${dist}`;
+    }
+
+    /**
+     * Calcola ricorsivamente il vettore degli intervalli E(n,k) secondo l'algoritmo di Euclide.
+     * @param {number} n - Il totale (ad esempio il numero di passi nel giro ritmico).
+     * @param {number} k - Il numero di eventi (accents).
+     * @returns {number[]} - L'array degli intervalli che sommano a n e di lunghezza k.
+     */
+    function euclidIntervals(n, k) {
+      if (k > n) {
+        throw new Error("Il valore di k deve essere minore o uguale a n.");
+      }
+      let q = Math.floor(n / k);
+      let r = n % k;
+      if (r === 0) {
+        // Caso base: k divide n
+        return Array(k).fill(q);
+      } else {
+        // Caso ricorsivo: calcola E(k, r)
+        let subIntervals = euclidIntervals(k, r);
+        let intervals = [];
+        // Per ogni x_i in E(k, r), aggiungi (x_i - 1) volte q e poi un q+1
+        for (let i = 0; i < subIntervals.length; i++) {
+          for (let j = 0; j < subIntervals[i] - 1; j++) {
+            intervals.push(q);
+          }
+          intervals.push(q + 1);
+        }
+        return intervals;
+      }
+    }
+
+    /**
+     * Funzione UI per generare e visualizzare il vettore degli intervalli usando l'algoritmo di Euclide.
+     */
+    function generateEuclideanIntervalsUIByEuclid() {
+      const n = parseInt(document.getElementById('nValue').value, 10);
+      const k = parseInt(document.getElementById('kValue').value, 10);
+      try {
+        const intervals = euclidIntervals(n, k);
+        document.getElementById('euclideanPatternResult').innerText =
+          `Intervalli: [${intervals.join(', ')}]`;
+      } catch (e) {
+        document.getElementById('euclideanPatternResult').innerText = e.message;
+      }
+    }
+
+    // ---------------------------
+    // Clough-Douthett Pattern Generation
+    // ---------------------------
+    function generateCloughDouthett() {
+      let n = parseInt(document.getElementById('nValueCD').value);
+      let k = parseInt(document.getElementById('kValueCD').value);
+      if (k > n) {
+        document.getElementById('cloughDouthettResult').innerText = "k deve essere minore o uguale a n.";
+        return;
+      }
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let div = euclideanDivision(i * n, k);
+        pattern.push(div.q);
+      }
+      document.getElementById('cloughDouthettResult').innerText =
+        `Posizioni: [${pattern.join(', ')}]`;
+    }
+
+    // ---------------------------
+    // Deep Rhythm Pattern Generation
+    // ---------------------------
+    function generateDeepRhythm() {
+      let n = parseInt(document.getElementById('nValueDeep').value);
+      let k = parseInt(document.getElementById('kValueDeep').value);
+      let mInput = parseInt(document.getElementById('mValueDeep').value);
+      if (k > n) {
+        document.getElementById('deepRhythmResult').innerText = "k deve essere minore o uguale a n.";
+        return;
+      }
+      let pattern = [];
+      for (let i = 0; i < k; i++) {
+        let r = (i * mInput) % n;
+        pattern.push(r);
+      }
+      pattern.sort((a, b) => a - b);
+      document.getElementById('deepRhythmResult').innerText =
+        `Posizioni: [${pattern.join(', ')}]`;
+    }
+   // ─── FUNZIONI DI UTILITÀ ────────────────────────────────────────────────
+
+    /**
+     * Verifica se l'intero array è composto solo da 0.
+     * @param {number[]} pattern 
+     * @returns {boolean}
+     */
+    function isAllZeros(pattern) {
+      return pattern.every(x => x === 0);
+    }
+    
+    /**
+     * Verifica se l'intero array è composto solo da 1.
+     * @param {number[]} pattern 
+     * @returns {boolean}
+     */
+    function isAllOnes(pattern) {
+      return pattern.every(x => x === 1);
+    }
+    
+    /**
+     * Appende 1 alla fine del pattern fino a raggiungere la lunghezza target.
+     * @param {number[]} pattern 
+     * @param {number} targetLength 
+     */
+    function appendOnes(pattern, targetLength) {
+      while (pattern.length < targetLength) {
+        pattern.push(1);
+      }
+    }
+    
+    /**
+     * Tronca il pattern alla lunghezza target.
+     * @param {number[]} pattern 
+     * @param {number} targetLength 
+     * @returns {number[]}
+     */
+    function cut(pattern, targetLength) {
+      return pattern.slice(0, targetLength);
+    }
+    
+    // ─── FUNZIONI PER LA GENERAZIONE DEL TIHAI ────────────────────────────────
+    
+    /**
+     * Calcola i parametri b (numero di bols) e d (numero di divisioni) 
+     * a partire dal numero totale di passi n e dalla modularità m.
+     * 
+     * @param {number} n - Passi totali.
+     * @param {number} m - Modularità.
+     * @returns {[number, number]} - [b, d]
+     */
+    function tihaiGenerator(n, m) {
+      let l = n;
+      while (l % m !== 0) {
+        l++;
+      }
+      const d = l - n;
+      const b = Math.floor(l / m) - d;
+      return [b, d];
+    }
+    
+    /**
+     * Costruisce il pattern binario Tihai dato b, d e m.
+     * 
+     * @param {number} b - Numero di bols.
+     * @param {number} d - Numero di divisioni.
+     * @param {number} m - Modularità.
+     * @returns {number[]} - Pattern Tihai (1 = beat, 0 = divisione).
+     */
+    function tihaiReader(b, d, m) {
+      const out = [];
+    
+      // Primo segmento: b volte 1, poi d volte 0.
+      for (let i = 0; i < b; i++) out.push(1);
+      for (let i = 0; i < d; i++) out.push(0);
+    
+      // Segmenti intermedi: (m - 2) volte ripetizione del segmento.
+      for (let i = 0; i < m - 2; i++) {
+        for (let j = 0; j < b; j++) out.push(1);
+        for (let j = 0; j < d; j++) out.push(0);
+      }
+    
+      // Segmento finale: b volte 1.
+      for (let i = 0; i < b; i++) out.push(1);
+    
+      return out;
+    }
+    
+    function tihai(n, m, pseudo) {
+      // Casi base: per n molto piccoli restituiamo un pattern di soli 1.
+      if (n <= 2) {
+        return new Array(n).fill(1);
+      }
+      
+      if (m === 1) {
+        return new Array(n).fill(1);
+      } else if (m <= 0) {
+        return null;
+      }
+    
+      const [b, d] = tihaiGenerator(n, m);
+      
+      // Se b non è positivo, il pattern non è valido.
+      if (b <= 0) {
+        if (pseudo) {
+          const shorterPattern = tihai(n - 1, m, pseudo);
+          return (shorterPattern === null) ? null : (appendOnes(shorterPattern, n), shorterPattern);
+        } else {
+          return null;
+        }
+      }
+    
+      let pattern = tihaiReader(b, d, m);
+      
+      // Se il pattern è tutto 0, è sempre invalido.
+      if (isAllZeros(pattern)) {
+        if (pseudo) {
+          const shorterPattern = tihai(n - 1, m, pseudo);
+          return (shorterPattern === null) ? null : (appendOnes(shorterPattern, n), shorterPattern);
+        } else {
+          return null;
+        }
+      }
+    
+      // Se il pattern è tutto 1...
+      if (isAllOnes(pattern)) {
+        if (!pseudo) {
+          // In modalità non pseudo, se il pattern è tutto 1 è valido solo se n è divisibile per m.
+          if (n % m === 0) {
+            return cut(pattern, n);
+          } else {
+            return null;
+          }
+        } else {
+          // In modalità pseudo, anche un pattern tutto 1 è considerato degenere.
+          const shorterPattern = tihai(n - 1, m, pseudo);
+          return (shorterPattern === null) ? null : (appendOnes(shorterPattern, n), shorterPattern);
+        }
+      }
+    
+      // Se il pattern non è degenere, lo tronchiamo alla lunghezza n e lo restituiamo.
+      return cut(pattern, n);
+    }
+    function computeTihai() {
+      const n = parseInt(document.getElementById('nValueTihai').value, 10);
+      const m = parseInt(document.getElementById('mValueTihai').value, 10);
+      const pseudo = document.getElementById('pseudoToggle').checked;
+    
+      const pattern = tihai(n, m, pseudo);
+    
+      let resultText = `n: ${n}, m: ${m}\n`;
+    
+      if (pattern === null) {
+        resultText += "Non è possibile generare un pattern valido con questi parametri.";
+      } else {
+        const [b, d] = tihaiGenerator(n, m);
+        resultText += `bols (b): ${b}, dams (d): ${d}\n`;
+        resultText += `Pattern: ${pattern.join(' ')}`;
+      }
+    
+      document.getElementById('tihaiResult').innerText = resultText;
+    }
+    // ---------------------------
+    // Voice Leading Point-to-Point
+    // ---------------------------
+    function voiceLeadingPointToPoint() {
+      let V1 = parseNumberArray(document.getElementById('vectorV1').value);
+      let V2 = parseNumberArray(document.getElementById('vectorV2').value);
+      let m = parseInt(document.getElementById('globalMod').value);
+      if (V1.length !== V2.length) {
+        document.getElementById('voiceLeadingResult').innerText =
+          "I vettori devono avere la stessa lunghezza.";
+        return;
+      }
+      const n = V1.length;
+      let bestCost = Infinity;
+      let bestAdjusted = null;
+      function permute(arr, l, r) {
+        if (l === r) {
+          let adjusted = [];
+          let cost = 0;
+          for (let i = 0; i < n; i++) {
+            let candidate = V2[arr[i]];
+            let k_i = Math.round((V1[i] - candidate) / m);
+            candidate = candidate + k_i * m;
+            adjusted.push(candidate);
+            cost += Math.pow(V1[i] - candidate, 2);
+          }
+          if (cost < bestCost) {
+            bestCost = cost;
+            bestAdjusted = adjusted.slice();
+          }
+        } else {
+          for (let i = l; i <= r; i++) {
+            [arr[l], arr[i]] = [arr[i], arr[l]];
+            permute(arr, l + 1, r);
+            [arr[l], arr[i]] = [arr[i], arr[l]];
+          }
+        }
+      }
+      let indices = Array.from({length: n}, (_, i) => i);
+      permute(indices, 0, n - 1);
+      if (bestAdjusted === null) {
+        document.getElementById('voiceLeadingResult').innerText = "Errore nel calcolo.";
+      } else {
+        document.getElementById('voiceLeadingResult').innerText =
+          `Voicing: [${bestAdjusted.join(', ')}]`;
+      }
+    }
+
+    // ---------------------------
+    // Voice Leading Euclidean
+    // ---------------------------
+    function voiceLeadingEuclidean() {
+      let V1 = parseNumberArray(document.getElementById('vectorV1E').value);
+      let V2 = parseNumberArray(document.getElementById('vectorV2E').value);
+      let m = parseInt(document.getElementById('globalMod').value);
+      if (V1.length !== V2.length) {
+        document.getElementById('voiceLeadingEuclideanResult').innerText =
+          "I vettori devono avere la stessa lunghezza.";
+        return;
+      }
+      const n = V1.length;
+      let bestDistance = Infinity;
+      let bestAdjusted = null;
+      for (let r = 0; r < n; r++) {
+        let rotated = [];
+        for (let i = 0; i < n; i++) {
+          rotated.push(tildeP(r + i, V2, m));
+        }
+        let adjusted = [];
+        let sum = 0;
+        for (let i = 0; i < n; i++) {
+          let candidate = rotated[i];
+          let k_i = Math.round((V1[i] - candidate) / m);
+          candidate = candidate + k_i * m;
+          adjusted.push(candidate);
+          sum += Math.pow(V1[i] - candidate, 2);
+        }
+        let dist = Math.sqrt(sum);
+        if (dist < bestDistance) {
+          bestDistance = dist;
+          bestAdjusted = adjusted.slice();
+        }
+      }
+      if (bestAdjusted === null) {
+        document.getElementById('voiceLeadingEuclideanResult').innerText = "Errore nel calcolo.";
+      } else {
+        document.getElementById('voiceLeadingEuclideanResult').innerText =
+          `Voicing: [${bestAdjusted.join(', ')}]`;
+      }
+    }
+
+    // ---------------------------
+    // Interscambio Modale
+    // ---------------------------
+    function rotI(I, r) {
+      const n = I.length;
+      let rotated = [];
+      for (let j = 0; j < n; j++) {
+        rotated.push(tildeI(r + j, I));
+      }
+      return rotated;
+    }
+    // Funzione per calcolare la distanza euclidea tra due vettori
+    function euclideanDistance(vec1, vec2) {
+      if (vec1.length !== vec2.length) return null;
+      let sum = 0;
+      for (let i = 0; i < vec1.length; i++) {
+        let diff = vec1[i] - vec2[i];
+        sum += diff * diff;
+      }
+      return Math.sqrt(sum);
+    }
+
+function modalInterchange() {
+  // Legge la scala S (vettore di intervalli), lo shift e le note in ingresso
+  let intervals = parseNumberArray(document.getElementById('scaleS').value);
+  let modalShift = parseInt(document.getElementById('modalShift').value);
+  let inputNotes = parseNumberArray(document.getElementById('notesInput').value);
+  let m = parseInt(document.getElementById('globalMod').value);
+  if (intervals.length === 0) {
+    document.getElementById('modalInterchangeResult').innerText = "Inserire una scala valida.";
+    return;
+  }
+  // Calcola la scala iniziale usando intervalsToPositions con lo shift fornito e la normalizza
+  let originalPositions = intervalsToPositions(intervals, modalShift);
+
+  let bestCandidate = null;
+  let bestDistance = Infinity;
+  let bestRotation = null;
+
+  // Per ciascuna rotazione possibile della scala (ruotando il vettore degli intervalli con rotI)
+  for (let r = 0; r < intervals.length; r++) {
+     let candidateIntervals = rotI(intervals, r);
+     // Importante: applica lo shift (modalShift) anche ai vettori ruotati
+     let candidatePositions = intervalsToPositions(candidateIntervals, modalShift);
+     // Controlla che il candidato contenga tutte le note in ingresso (mod m)
+     let candidateSet = new Set(candidatePositions.map(x => mod(x, m)));
+     let containsAll = inputNotes.every(note => candidateSet.has(mod(note, m)));
+     if (!containsAll) continue;
+     // Se le scale hanno la stessa lunghezza, calcola la distanza euclidea
+     if (candidatePositions.length !== originalPositions.length) continue;
+     let dist = euclideanDistance(originalPositions, candidatePositions);
+     if (dist < bestDistance) {
+        bestDistance = dist;
+        bestCandidate = candidatePositions;
+        bestRotation = r;
+     }
+  }
+  if (bestCandidate === null) {
+     document.getElementById('modalInterchangeResult').innerText =
+       "Nessun modo contiene tutte le note in ingresso.";
+  } else {
+     document.getElementById('modalInterchangeResult').innerText =
+       `Modo: [${bestCandidate.join(', ')}]`;
+  }
+}
+
+    // ---------------------------
+    // Modulazione
+    // ---------------------------
+    function modulation() {
+      let scale = parseNumberArray(document.getElementById('scaleS2').value);
+      let inputNotes = parseNumberArray(document.getElementById('notesInput2').value);
+      let m = parseInt(document.getElementById('globalMod').value);
+      // Genera tutte le trasposizioni da 0 a m-1 della scala
+      let transpositions = [];
+      for (let t = 0; t < m; t++) {
+        let transposed = scale.map(x => (x + t) % m).sort((a, b) => a - b);
+        transpositions.push({ t: t, transposed: transposed });
+      }
+      let valid = transpositions.filter(tp => {
+        let set = new Set(tp.transposed);
+        return inputNotes.every(note => set.has(note % m));
+      });
+      if (valid.length === 0) {
+        document.getElementById('modulationResult').innerText =
+          "Nessuna trasposizione di S contiene tutte le note in ingresso.";
+      } else {
+        // Scegliamo quella con la minima distanza di edit rispetto alla scala originale.
+        let best = valid[0];
+        let bestDist = levenshtein(scale.map(String), best.transposed.map(String));
+        for (let tp of valid) {
+          let d = levenshtein(scale.map(String), tp.transposed.map(String));
+          if (d < bestDist) {
+            bestDist = d;
+            best = tp;
+          }
+        }
+        document.getElementById('modulationResult').innerText =
+          `Scala: [${best.transposed.join(', ')}]`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .section {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .triad { background-color: #E9D985; }
+        .extensions { background-color: #B2BD7E; }
+        .added { background-color: #749c75; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .control {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        
+        .header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .output {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .note-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .note {
+   
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        .midi {
+
+        }
+        
+        h2 {
+            margin: 0 0 15px 0;
+        }
+    </style>
+    </style>
+</head>
+<body>
+    <h1>Chord Generator</h1>
+    
+    <div class="header">
+        <div class="control">
+            <label>Root Note</label>
+            <select id="rootNote">
+                <option value="0">C</option>
+                <option value="1">C#</option>
+                <option value="2">D</option>
+                <option value="3">D#</option>
+                <option value="4">E</option>
+                <option value="5">F</option>
+                <option value="6">F#</option>
+                <option value="7">G</option>
+                <option value="8">G#</option>
+                <option value="9">A</option>
+                <option value="10">A#</option>
+                <option value="11">B</option>
+            </select>
+        </div>
+        <div class="control">
+            <label>Octave</label>
+            <select id="octave">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5" selected>5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="section triad">
+            <h2>Triad</h2>
+            <div class="control">
+                <label>Root</label>
+                <select id="fundamental">
+                    <option value="yes">Yes</option>
+					<option value="">No</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Third</label>
+                <select id="third">
+                    <option value="major">Major</option>
+                    <option value="minor">Minor</option>
+                    <option value="">None</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Sus2</label>
+                <select id="sus2">
+                    <option value="">Off</option>
+                    <option value="sus 2">Sus 2</option>
+                    <option value="sus b2">Sus ♭2</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Sus4</label>
+                <select id="sus4">
+                    <option value="">Off</option>
+                    <option value="sus 4">Sus 4</option>
+                    <option value="sus #4">Sus ♯4</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Fifth</label>
+                <select id="fifth">
+                    <option value="perfect">Perfect</option>
+                    <option value="augmented">Augmented</option>
+                    <option value="diminished">Diminished</option>
+                    <option value="">None</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section extensions">
+            <h2>Extensions</h2>
+            <div class="control">
+                <label>Seventh</label>
+                <select id="seventh">
+                    <option value="">None</option>
+                    <option value="major">Major</option>
+                    <option value="minor">Minor</option>
+                    <option value="diminished">Diminished</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Ninth</label>
+                <select id="ninth">
+                    <option value="">None</option>
+                    <option value="major">Major</option>
+                    <option value="minor">Minor</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Eleventh</label>
+                <select id="eleventh">
+                    <option value="">None</option>
+                    <option value="natural">Natural</option>
+                    <option value="sharp">Sharp</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Thirteenth</label>
+                <select id="thirteenth">
+                    <option value="">None</option>
+                    <option value="natural">Natural</option>
+                    <option value="flat">Flat</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section added">
+            <h2>Added Notes</h2>
+            <div class="control">
+                <label>Second</label>
+                <select id="second">
+                    <option value="">None</option>
+                    <option value="major">Major</option>
+                    <option value="minor">Minor</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Fourth</label>
+                <select id="fourth">
+                    <option value="">None</option>
+                    <option value="perfect">Perfect</option>
+                    <option value="sharp">Sharp</option>
+                </select>
+            </div>
+            <div class="control">
+                <label>Sixth</label>
+                <select id="sixth">
+                    <option value="">None</option>
+                    <option value="major">Major</option>
+                    <option value="minor">Minor</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="output">
+        <h3>Chord:</h3>
+        <div id="notes" class="note-display"></div>
+        <h3>Notes:</h3>
+        <div id="midi" class="note-display"></div>
+    </div>
+
+    <script>
+
+        function generate(root, octave, voicing) {
+            const chord = new Set();
+            
+            if (voicing.fundamental) {
+				switch (voicing.fundamental) {
+				case "yes": chord.add(root); break;
+                }
+            }
+            
+            if (voicing.sus2) {
+                switch (voicing.sus2) {
+                    case "sus 2": chord.add(root + 2); break;
+                    case "sus b2": chord.add(root + 1); break;
+                }
+            }
+            
+            if (voicing.sus4) {
+                switch (voicing.sus4) {
+                    case "sus 4": chord.add(root + 5); break;
+                    case "sus #4": chord.add(root + 6); break;
+                }
+            }
+            
+            // Only add third if no suspensions are active
+            if (!voicing.sus2 && !voicing.sus4 && voicing.third) {
+                switch (voicing.third) {
+                    case "major": chord.add(root + 4); break;
+                    case "minor": chord.add(root + 3); break;
+                }
+            }
+            
+
+            if (voicing.fifth) {
+                switch (voicing.fifth) {
+                    case "perfect": chord.add(root + 7); break;
+                    case "augmented": chord.add(root + 8); break;
+                    case "diminished": chord.add(root + 6); break;
+                }
+            }
+
+            if (voicing.seventh) {
+                switch (voicing.seventh) {
+                    case "major": chord.add(root + 11); break;
+                    case "minor": chord.add(root + 10); break;
+                    case "diminished": chord.add(root + 9); break;
+                }
+            }
+
+            if (voicing.ninth) {
+                switch (voicing.ninth) {
+                    case "major": chord.add(root + 14); break;
+                    case "minor": chord.add(root + 13); break;
+                }
+            }
+
+            if (voicing.eleventh) {
+                switch (voicing.eleventh) {
+                    case "natural": chord.add(root + 17); break;
+                    case "sharp": chord.add(root + 18); break;
+                }
+            }
+            if (voicing.thirteenth) {
+                switch (voicing.thirteenth) {
+                    case "natural": chord.add(root + 21); break;
+                    case "flat": chord.add(root + 20); break;
+                }
+            }
+            if (voicing.second) {
+                switch (voicing.second) {
+                    case "major": chord.add(root + 2); break;
+                    case "minor": chord.add(root + 1); break;
+                }
+            }
+
+            if (voicing.fourth) {
+                switch (voicing.fourth) {
+                    case "perfect": chord.add(root + 5); break;
+                    case "sharp": chord.add(root + 6); break;
+                }
+            }
+
+            if (voicing.sixth) {
+                switch (voicing.sixth) {
+                    case "major": chord.add(root + 9); break;
+                    case "minor": chord.add(root + 8); break;
+                }
+            }
+            return Array.from(chord, note => note + octave * 12).sort((a, b) => a - b);
+        }
+
+
+        
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        function updateChord() {
+            const root = parseInt(document.getElementById('rootNote').value);
+            const octave = parseInt(document.getElementById('octave').value);
+            const voicing = {
+				fundamental: document.getElementById('fundamental').value,
+                third: document.getElementById('third').value,
+                sus2: document.getElementById('sus2').value,
+                sus4: document.getElementById('sus4').value,
+                fifth: document.getElementById('fifth').value,
+                seventh: document.getElementById('seventh').value,
+                ninth: document.getElementById('ninth').value,
+                eleventh: document.getElementById('eleventh').value,
+				thirteenth: document.getElementById('thirteenth').value,
+                second: document.getElementById('second').value,
+                fourth: document.getElementById('fourth').value,
+                sixth: document.getElementById('sixth').value
+            };
+
+
+            Object.keys(voicing).forEach(key => {
+                if (!voicing[key]) delete voicing[key];
+            });
+
+            const midiNotes = generate(root, octave, voicing);
+            
+
+            const notesDiv = document.getElementById('notes');
+            notesDiv.innerHTML = midiNotes.map(midi => {
+                const noteName = noteNames[midi % 12];
+                const noteOctave = Math.floor(midi / 12) - 1;
+                return `<span class="note">${noteName}${noteOctave}</span>`;
+            }).join('');
+            
+
+            const midiDiv = document.getElementById('midi');
+            midiDiv.innerHTML = midiNotes.map(midi => 
+                `<span class="note midi">${midi}</span>`
+            ).join('');
+        }
+
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', updateChord);
+        });
+
+
+        updateChord();
+    </script>
+</body>
+</html>
